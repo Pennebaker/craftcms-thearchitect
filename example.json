@@ -1,0 +1,155 @@
+{
+    "groups" : [
+        "Generator"
+    ],
+    "fields": [
+        {
+            "group" : "Generator",
+            "name" : "Product Image",
+            "instructions" : "Write a short description for the content.",
+            "type" : "Assets",
+            "typeSettings" : {
+                "defaultUploadLocationSubpath" :  "/testPath/",
+                "restrictFiles" : true,
+                "allowedKinds" :  [
+                    "image"
+                ],
+                "limit" : 5,
+                "selectionLabel" : "Add a product image."
+            }
+        },
+        {
+            "group" : "Generator",
+            "name" : "Long Description",
+            "instructions" : "Write a detailed description of the content.",
+            "type" : "PlainText",
+            "typeSettings" : {
+                "multiline" : true
+            }
+        },
+        {
+            "group" : "Generator",
+            "name" : "Short Description",
+            "instructions" : "Write a short description of the content.",
+            "type" : "PlainText",
+            "typeSettings" : {
+                "multiline" : true
+            }
+        },
+        {
+            "group" : "Generator",
+            "name" : "Matrix Test",
+            "type" : "Matrix",
+            "typeSettings" : {
+                "blockTypes" : {
+                    "new1" : {
+                        "name" : "Header",
+                        "handle" : "header",
+                        "fields" : {
+                            "new1" : {
+                                "name" : "Company Name",
+                                "handle" : "companyName",
+                                "instructions" : "",
+                                "type" : "PlainText"
+                            },
+                            "new2" : {
+                                "name" : "Slogan",
+                                "handle" : "slogan",
+                                "instructions" : "",
+                                "type" : "PlainText"
+                            }
+                        }
+                    },
+                    "new2" : {
+                        "name" : "Image Content",
+                        "handle" : "imageContent",
+                        "fields" : {
+                            "new1" : {
+                                "name" : "Image",
+                                "handle" : "image",
+                                "instructions" : "",
+                                "type" : "Assets",
+                                "typeSettings": {
+                                    "sectionLabel" : "Add an asset."
+                                }
+                            },
+                            "new2" : {
+                                "name" : "Description",
+                                "handle" : "description",
+                                "instructions" : "Write description for image.",
+                                "type" : "PlainText",
+                                "typeSettings": {
+                                    "sectionLabel" : "Add an asset."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "sections": [
+        {
+            "name" : "Products",
+            "handle" : "product",
+            "type" : "channel",
+            "hasUrls" : true,
+            "typeSettings": {
+                "urlFormat" : "products/{slug}",
+                "template" : "products/detail"
+            }
+        },
+        {
+            "name" : "Details",
+            "handle" : "detail",
+            "type" : "single",
+            "hasUrls" : true,
+            "typeSettings": {
+                "urlFormat" : "details",
+                "template" : "details"
+            }
+        }
+    ],
+    "entryTypes" : [
+        {
+            "sectionName" : "Products",
+            "titleLabel" : "Title",
+            "fieldLayout" : {
+                "Product Details" : [
+                    "Product Image",
+                    "Long Description"
+                ],
+                "Content" : [
+                    "body",
+                    "Tags"
+                ]
+            }
+        },
+            {
+                "sectionName" : "Products",
+                "name": "Skippy",
+                "titleLabel" : "Title",
+                "fieldLayout" : {
+                    "Product Details" : [
+                        "Product Image",
+                        "Long Description",
+                        "Matrix Test"
+                    ]
+                }
+            },
+        {
+            "sectionName" : "Details",
+            "titleLabel" : "Titles",
+            "fieldLayout" : {
+                "Product Details" : [
+                    "Product Image",
+                    "Long Description"
+                ],
+                "Content" : [
+                    "body",
+                    "Tags"
+                ]
+            }
+        }
+    ]
+}
