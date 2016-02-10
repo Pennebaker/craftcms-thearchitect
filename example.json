@@ -151,5 +151,16 @@
                 ]
             }
         }
+    ],
+    "sources" : [
+        {
+            "name"  : "AssetSource",
+            "handle" : "sourceTest",
+            "type" : "Local",
+            "settings" : {
+                "path" : "/path/example/",
+                "url" : "/example/"
+            }
+        }
     ]
 }

@@ -113,6 +113,19 @@ class GeneratorController extends BaseController
                 }
             }
 
+            // Add Entry Types from JSON
+            if (isset($result->sources))
+            {
+                foreach ($result->sources as $source) {
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        "type" => "Asset Source",
+                        "name" => $source->name,
+                        "result" => $this->addAssetSource($source)
+                    );
+                }
+            }
+
             craft()->urlManager->setRouteVariables(array(
                 'json' => $json,
                 'result' => $notice
@@ -359,6 +372,43 @@ class GeneratorController extends BaseController
         $entryType->setFieldLayout($fieldLayout);
 
         if (craft()->sections->saveEntryType($entryType))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * addAssetSource
+     * @param String $jsonSection [input string]
+     * @return Boolean          [success]
+     */
+    private function addAssetSource($jsonSource)
+    {
+        $source = new AssetSourceModel();
+
+		$source->name   = $jsonSource->name;
+
+        // Set handle if it was provided
+		if (isset($jsonSource->handle))
+        {
+            $source->handle = $jsonSource->handle;
+        }
+        // Generate handle if one wasn't provided
+        else
+        {
+            $source->handle = $this->generateHandle($jsonSource->name);
+        }
+
+        $source->type  = $jsonSource->type;
+
+        // Convert Object to Array for saving
+        $source->settings = json_decode(json_encode($jsonSource->settings), true);
+
+        if (craft()->assetSources->saveSource($source))
         {
             return true;
         }
