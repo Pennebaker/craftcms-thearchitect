@@ -6,8 +6,7 @@ namespace Craft;
  *
  * @package Craft
  */
-class GeneratorController extends BaseController
-{
+class GeneratorController extends BaseController {
     private $groups;
     private $fields;
     private $sections;
@@ -21,8 +20,7 @@ class GeneratorController extends BaseController
 	 * @throws HttpException
 	 * @return null
 	 */
-	public function init()
-	{
+	public function init() {
 		// All section actions require an admin
 		craft()->userSession->requireAdmin();
 	}
@@ -31,24 +29,20 @@ class GeneratorController extends BaseController
      * actionImport
      * @return null
      */
-    public function actionGenerate()
-    {
+    public function actionGenerate() {
         // Prevent GET Requests
         $this->requirePostRequest();
 
         $json = craft()->request->getRequiredPost('json');
 
-        if ($json)
-        {
+        if ($json) {
             $result = json_decode($json);
 
             $notice = array();
 
             // Add Groups from JSON
-            if (isset($result->groups))
-            {
-                foreach ($result->groups as $group)
-                {
+            if (isset($result->groups)) {
+                foreach ($result->groups as $group) {
                     // Append Notice to Display Results
                     $notice[] = array(
                         "type" => "Group",
@@ -61,10 +55,8 @@ class GeneratorController extends BaseController
             $this->groups = craft()->fields->getAllGroups();
 
             // Add Fields from JSON
-            if (isset($result->fields))
-            {
-                foreach ($result->fields as $field)
-                {
+            if (isset($result->fields)) {
+                foreach ($result->fields as $field) {
                     // Append Notice to Display Results
                     $notice[] = array(
                         "type" => "Field",
@@ -77,10 +69,8 @@ class GeneratorController extends BaseController
             $this->fields = craft()->fields->getAllFields();
 
             // Add Sections from JSON
-            if (isset($result->sections))
-            {
-                foreach ($result->sections as $section)
-                {
+            if (isset($result->sections)) {
+                foreach ($result->sections as $section) {
                     // Append Notice to Display Results
                     $notice[] = array(
                         "type" => "Sections",
@@ -93,15 +83,11 @@ class GeneratorController extends BaseController
             $this->sections = craft()->sections->getAllSections();
 
             // Add Entry Types from JSON
-            if (isset($result->entryTypes))
-            {
+            if (isset($result->entryTypes)) {
                 foreach ($result->entryTypes as $entryType) {
-                    if (isset($entryType->titleLabel))
-                    {
+                    if (isset($entryType->titleLabel)) {
                         $entryTypeName = $entryType->titleLabel;
-                    }
-                    else
-                    {
+                    } else {
                         $entryTypeName = $entryType->titleFormat;
                     }
                     // Append Notice to Display Results
@@ -114,8 +100,7 @@ class GeneratorController extends BaseController
             }
 
             // Add Entry Types from JSON
-            if (isset($result->sources))
-            {
+            if (isset($result->sources)) {
                 foreach ($result->sources as $source) {
                     // Append Notice to Display Results
                     $notice[] = array(
@@ -141,16 +126,13 @@ class GeneratorController extends BaseController
          * @param String $name []
          * @return Boolean     [success]
          */
-    private function addGroup($name)
-    {
+    private function addGroup($name) {
         $group = new FieldGroupModel();
         $group->name = $name;
-        if (craft()->fields->saveGroup($group))
-        {
+
+        if (craft()->fields->saveGroup($group)) {
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -160,45 +142,38 @@ class GeneratorController extends BaseController
      * @param String $jsonField [input string]
      * @return Boolean          [success]
      */
-    private function addField($jsonField)
-    {
+    private function addField($jsonField) {
         $field = new FieldModel();
 
         // If group is set find groupId
-        if (isset($jsonField->group))
-        {
+        if (isset($jsonField->group)) {
     		$field->groupId = $this->getGroupId($jsonField->group);
         }
 
         $field->name = $jsonField->name;
 
         // Set handle if it was provided
-		if (isset($jsonField->handle))
-        {
+		if (isset($jsonField->handle)) {
             $field->handle = $jsonField->handle;
         }
         // Generate handle if one wasn't provided
-        else
-        {
+        else {
             $field->handle = $this->generateHandle($jsonField->name);
         }
 
         // Set instructions if it was provided
-        if (isset($jsonField->instructions))
-        {
+        if (isset($jsonField->instructions)) {
             $field->instructions = $jsonField->instructions;
         }
 
         // Set translatable if it was provided
-        if (isset($jsonField->translatable))
-        {
+        if (isset($jsonField->translatable)) {
             $field->translatable = $jsonField->translatable;
         }
 
         $field->type = $jsonField->type;
 
-        if (isset($jsonField->typeSettings))
-        {
+        if (isset($jsonField->typeSettings)) {
             // Convert Object to Array for saving
             $jsonField->typeSettings = json_decode(json_encode($jsonField->typeSettings), true);
 
@@ -206,12 +181,9 @@ class GeneratorController extends BaseController
             $field->settings = $jsonField->typeSettings;
         }
 
-        if (craft()->fields->saveField($field))
-        {
+        if (craft()->fields->saveField($field)) {
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -221,71 +193,57 @@ class GeneratorController extends BaseController
      * @param String $jsonSection [input string]
      * @return Boolean          [success]
      */
-    private function addSection($jsonSection)
-    {
+    private function addSection($jsonSection) {
         $section = new SectionModel();
 
         $section->name = $jsonSection->name;
 
         // Set handle if it was provided
-		if (isset($jsonSection->handle))
-        {
+		if (isset($jsonSection->handle)) {
             $section->handle = $jsonSection->handle;
         }
         // Generate handle if one wasn't provided
-        else
-        {
+        else {
             $section->handle = $this->generateHandle($jsonSection->name);
         }
 
         $section->type = $jsonSection->type;
 
         // Set enableVersioning if it was provided
-        if (isset($jsonSection->typeSettings->enableVersioning))
-        {
+        if (isset($jsonSection->typeSettings->enableVersioning)) {
             $section->enableVersioning = $jsonSection->typeSettings->enableVersioning;
         } else {
             $section->enableVersioning = 1;
         }
 
         // Set hasUrls if it was provided
-        if (isset($jsonSection->typeSettings->hasUrls))
-        {
+        if (isset($jsonSection->typeSettings->hasUrls)) {
             $section->hasUrls = $jsonSection->typeSettings->hasUrls;
         }
 
         // Set template if it was provided
-        if (isset($jsonSection->typeSettings->template))
-        {
+        if (isset($jsonSection->typeSettings->template)) {
             $section->template = $jsonSection->typeSettings->template;
         }
 
         // Set maxLevels if it was provided
-        if (isset($jsonSection->typeSettings->maxLevels))
-        {
+        if (isset($jsonSection->typeSettings->maxLevels)) {
             $section->maxLevels = $jsonSection->typeSettings->maxLevels;
         }
 
         $locales = array();
 		$primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
 		$localeIds = array($primaryLocaleId);
-        foreach ($localeIds as $localeId)
-		{
-            if (isset($jsonSection->typeSettings->urlFormat))
-            {
+        foreach ($localeIds as $localeId) {
+            if (isset($jsonSection->typeSettings->urlFormat)) {
     			$urlFormat = $jsonSection->typeSettings->urlFormat;
-            }
-            else
-            {
+            } else {
                 $urlFormat = null;
             }
 
-            if (isset($jsonSection->typeSettings->nestedUrlFormat))
-            {
+            if (isset($jsonSection->typeSettings->nestedUrlFormat)) {
     			$nestedUrlFormat = $jsonSection->typeSettings->nestedUrlFormat;
-            }
-            else
-            {
+            } else {
                 $nestedUrlFormat = null;
             }
 
@@ -298,12 +256,9 @@ class GeneratorController extends BaseController
 		}
 		$section->setLocales($locales);
 
-        if (craft()->sections->saveSection($section))
-        {
+        if (craft()->sections->saveSection($section)) {
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -313,15 +268,13 @@ class GeneratorController extends BaseController
      * @param String $jsonEntryType [input string]
      * @return Boolean          [success]
      */
-    private function addEntryType($jsonEntryType)
-    {
+    private function addEntryType($jsonEntryType) {
         $entryType = new EntryTypeModel();
 
         $entryType->sectionId = $this->getSectionId($jsonEntryType->sectionName);
 
         // Check for name if not set name as sectionName
-        if (!isset($jsonEntryType->name))
-        {
+        if (!isset($jsonEntryType->name)) {
             $jsonEntryType->name = $jsonEntryType->sectionName;
         }
         $entryType->name = $jsonEntryType->name;
@@ -333,36 +286,30 @@ class GeneratorController extends BaseController
         }
 
         // Set handle if it was provided
-		if (isset($jsonEntryType->handle))
-        {
+		if (isset($jsonEntryType->handle)) {
             $entryType->handle = $jsonEntryType->handle;
         }
         // Generate handle if one wasn't provided
-        else
-        {
+        else {
             $entryType->handle = $this->generateHandle($jsonEntryType->name);
         }
 
         // If titleLabel set hasTitleField to True
-        if (isset($jsonEntryType->titleLabel))
-        {
+        if (isset($jsonEntryType->titleLabel)) {
             $entryType->hasTitleField = true;
     		$entryType->titleLabel = $jsonEntryType->titleLabel;
         }
         // If titleFormat set hasTitleField to False
-        else
-        {
+        else {
             $entryType->hasTitleField = false;
     		$entryType->titleFormat = $jsonEntryType->titleFormat;
         }
 
         $fieldLayoutPost = array();
 
-        foreach ($jsonEntryType->fieldLayout as $tab => $fields)
-        {
+        foreach ($jsonEntryType->fieldLayout as $tab => $fields) {
             $fieldLayoutPost[$tab] = array();
-            foreach ($fields as $field)
-            {
+            foreach ($fields as $field) {
                 $fieldLayoutPost[$tab][] = $this->getFieldId($field);
             }
         }
@@ -371,12 +318,9 @@ class GeneratorController extends BaseController
 
         $entryType->setFieldLayout($fieldLayout);
 
-        if (craft()->sections->saveEntryType($entryType))
-        {
+        if (craft()->sections->saveEntryType($entryType)) {
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -386,20 +330,17 @@ class GeneratorController extends BaseController
      * @param String $jsonSection [input string]
      * @return Boolean          [success]
      */
-    private function addAssetSource($jsonSource)
-    {
+    private function addAssetSource($jsonSource) {
         $source = new AssetSourceModel();
 
 		$source->name   = $jsonSource->name;
 
         // Set handle if it was provided
-		if (isset($jsonSource->handle))
-        {
+		if (isset($jsonSource->handle)) {
             $source->handle = $jsonSource->handle;
         }
         // Generate handle if one wasn't provided
-        else
-        {
+        else {
             $source->handle = $this->generateHandle($jsonSource->name);
         }
 
@@ -408,12 +349,9 @@ class GeneratorController extends BaseController
         // Convert Object to Array for saving
         $source->settings = json_decode(json_encode($jsonSource->settings), true);
 
-        if (craft()->assetSources->saveSource($source))
-        {
+        if (craft()->assetSources->saveSource($source)) {
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -423,13 +361,10 @@ class GeneratorController extends BaseController
      * @param String $name [name to find ID for]
      * @return Int
      */
-    private function getGroupId($name)
-    {
+    private function getGroupId($name) {
         $firstId = $this->groups[0]['id'];
-        foreach ($this->groups as $group)
-        {
-            if ($group->attributes['name'] == $name)
-            {
+        foreach ($this->groups as $group) {
+            if ($group->attributes['name'] == $name) {
                 return $group->attributes['id'];
             }
         }
@@ -441,19 +376,15 @@ class GeneratorController extends BaseController
      * @param String $name [name to find ID for]
      * @return Int
      */
-    private function getFieldId($name)
-    {
-        foreach ($this->fields as $field)
-        {
+    private function getFieldId($name) {
+        foreach ($this->fields as $field) {
             // Return ID if handle matches the search
-            if ($field->attributes['handle'] == $name)
-            {
+            if ($field->attributes['handle'] == $name) {
                 return $field->attributes['id'];
             }
 
             // Return ID if name matches the search
-            if ($field->attributes['name'] == $name)
-            {
+            if ($field->attributes['name'] == $name) {
                 return $field->attributes['id'];
             }
         }
@@ -465,19 +396,15 @@ class GeneratorController extends BaseController
      * @param String $name [name to find ID for]
      * @return Int
      */
-    private function getSectionId($name)
-    {
-        foreach ($this->sections as $section)
-        {
+    private function getSectionId($name) {
+        foreach ($this->sections as $section) {
             // Return ID if handle matches the search
-            if ($section->attributes['handle'] == $name)
-            {
+            if ($section->attributes['handle'] == $name) {
                 return $section->attributes['id'];
             }
 
             // Return ID if name matches the search
-            if ($section->attributes['name'] == $name)
-            {
+            if ($section->attributes['name'] == $name) {
                 return $section->attributes['id'];
             }
         }
@@ -489,13 +416,10 @@ class GeneratorController extends BaseController
      * @param Int $id [ID to find handle for]
      * @return String
      */
-    private function getSectionHandle($id)
-    {
-        foreach ($this->sections as $section)
-        {
+    private function getSectionHandle($id) {
+        foreach ($this->sections as $section) {
             // Return ID if handle matches the search
-            if ($section->attributes['id'] == $id)
-            {
+            if ($section->attributes['id'] == $id) {
                 return $section->attributes['handle'];
             }
         }
@@ -507,14 +431,12 @@ class GeneratorController extends BaseController
      * @param  String $str [input string]
      * @return String      [the generated handle]
      */
-    private function generateHandle($string)
-    {
+    private function generateHandle($string) {
         $string = strtolower($string);
 
         $words = explode(" ", $string);
 
-        for ($i = 1; $i < count($words); $i++ )
-        {
+        for ($i = 1; $i < count($words); $i++ ) {
         	$words[$i] = ucfirst($words[$i]);
         }
 
