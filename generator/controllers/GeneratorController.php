@@ -93,6 +93,7 @@ class GeneratorController extends BaseController {
                     // Append Notice to Display Results
                     $notice[] = array(
                         "type" => "Entry Types",
+                        // Channels Might have an additional name.
                         "name" => $entryType->sectionName . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
                         "result" => $this->addEntryType($entryType)
                     );
@@ -107,6 +108,18 @@ class GeneratorController extends BaseController {
                         "type" => "Asset Source",
                         "name" => $source->name,
                         "result" => $this->addAssetSource($source)
+                    );
+                }
+            }
+
+            // Add Entry Types from JSON
+            if (isset($result->globals)) {
+                foreach ($result->globals as $global) {
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        "type" => "GlobalSet",
+                        "name" => $global->name,
+                        "result" => $this->addGlobalSet($global)
                     );
                 }
             }
@@ -130,6 +143,7 @@ class GeneratorController extends BaseController {
         $group = new FieldGroupModel();
         $group->name = $name;
 
+        // Save Group to DB
         if (craft()->fields->saveGroup($group)) {
             return true;
         } else {
@@ -181,6 +195,7 @@ class GeneratorController extends BaseController {
             $field->settings = $jsonField->typeSettings;
         }
 
+        // Save Field to DB
         if (craft()->fields->saveField($field)) {
             return true;
         } else {
@@ -231,6 +246,8 @@ class GeneratorController extends BaseController {
             $section->maxLevels = $jsonSection->typeSettings->maxLevels;
         }
 
+        // Set Locale Information
+        // Pull from SectionController.php aprox. Ln 170
         $locales = array();
 		$primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
 		$localeIds = array($primaryLocaleId);
@@ -256,6 +273,7 @@ class GeneratorController extends BaseController {
 		}
 		$section->setLocales($locales);
 
+        // Save Section to DB
         if (craft()->sections->saveSection($section)) {
             return true;
         } else {
@@ -279,6 +297,7 @@ class GeneratorController extends BaseController {
         }
         $entryType->name = $jsonEntryType->name;
 
+        // If the Entry Type exists load it so that it udpates it.
         $sectionHandle = $this->getSectionHandle($entryType->sectionId);
         $entryTypes = craft()->sections->getEntryTypesByHandle($sectionHandle);
         if ($entryTypes) {
@@ -305,19 +324,14 @@ class GeneratorController extends BaseController {
     		$entryType->titleFormat = $jsonEntryType->titleFormat;
         }
 
-        $fieldLayoutPost = array();
-
-        foreach ($jsonEntryType->fieldLayout as $tab => $fields) {
-            $fieldLayoutPost[$tab] = array();
-            foreach ($fields as $field) {
-                $fieldLayoutPost[$tab][] = $this->getFieldId($field);
-            }
+        // Parse & Set Field Layout if Provided
+        if (isset($jsonEntryType->fieldLayout)) {
+            $fieldLayout = $this->assembleLayout($jsonEntryType->fieldLayout);
+            $fieldLayout->type = ElementType::Entry;
+            $entryType->setFieldLayout($fieldLayout);
         }
 
-        $fieldLayout = craft()->fields->assembleLayout($fieldLayoutPost, array());
-
-        $entryType->setFieldLayout($fieldLayout);
-
+        // Save Entry Type to DB
         if (craft()->sections->saveEntryType($entryType)) {
             return true;
         } else {
@@ -349,11 +363,72 @@ class GeneratorController extends BaseController {
         // Convert Object to Array for saving
         $source->settings = json_decode(json_encode($jsonSource->settings), true);
 
+
+        // Parse & Set Field Layout if Provided
+        if (isset($jsonSource->fieldLayout)) {
+    		$fieldLayout = $this->assembleLayout($jsonSource->fieldLayout);
+    		$fieldLayout->type = ElementType::Asset;
+    		$source->setFieldLayout($fieldLayout);
+        }
+
+        // Save Asset Source to DB
         if (craft()->assetSources->saveSource($source)) {
             return true;
         } else {
             return false;
         }
+    }
+
+    /**
+     * addGlobalSet
+     * @param String $jsonGlobalSet [input string]
+     * @return Boolean          [success]
+     */
+    private function addGlobalSet($jsonGlobalSet) {
+        $globalSet = new GlobalSetModel();
+
+        $globalSet->name = $jsonGlobalSet->name;
+
+        // Set handle if it was provided
+		if (isset($jsonGlobalSet->handle)) {
+            $globalSet->handle = $jsonGlobalSet->handle;
+        }
+        // Generate handle if one wasn't provided
+        else {
+            $globalSet->handle = $this->generateHandle($jsonGlobalSet->name);
+        }
+
+        // Parse & Set Field Layout if Provided
+        if (isset($jsonGlobalSet->fieldLayout)) {
+            $fieldLayout = $this->assembleLayout($jsonGlobalSet->fieldLayout);
+    		$fieldLayout->type = ElementType::GlobalSet;
+    		$globalSet->setFieldLayout($fieldLayout);
+        }
+
+        // Save Asset Source to DB
+        if (craft()->globals->saveSet($globalSet)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * assembleLayout
+     * @param Array $fieldLayout
+     * @param Array $requiredFields
+     * @return FieldLayoutModel
+     */
+    private function assembleLayout($fieldLayout, $requiredFields = array()) {
+        $fieldLayoutPost = array();
+
+        foreach ($fieldLayout as $tab => $fields) {
+            $fieldLayoutPost[$tab] = array();
+            foreach ($fields as $field) {
+                $fieldLayoutPost[$tab][] = $this->getFieldId($field);
+            }
+        }
+        return craft()->fields->assembleLayout($fieldLayoutPost, $requiredFields);
     }
 
     /**

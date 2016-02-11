@@ -125,18 +125,18 @@
                 ]
             }
         },
-            {
-                "sectionName" : "Products",
-                "name": "Skippy",
-                "titleLabel" : "Title",
-                "fieldLayout" : {
-                    "Product Details" : [
-                        "Product Image",
-                        "Long Description",
-                        "Matrix Test"
-                    ]
-                }
-            },
+        {
+            "sectionName" : "Products",
+            "name": "Skippy",
+            "titleLabel" : "Title",
+            "fieldLayout" : {
+                "Product Details" : [
+                    "Product Image",
+                    "Long Description",
+                    "Matrix Test"
+                ]
+            }
+        },
         {
             "sectionName" : "Details",
             "titleLabel" : "Titles",
@@ -160,6 +160,17 @@
             "settings" : {
                 "path" : "/path/example/",
                 "url" : "/example/"
+            }
+        }
+    ],
+    "globals" : [
+        {
+            "name" : "Global Test",
+            "fieldLayout" : {
+                "Product Details" : [
+                    "Product Image",
+                    "Long Description"
+                ]
             }
         }
     ]
