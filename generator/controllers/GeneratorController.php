@@ -113,6 +113,18 @@ class GeneratorController extends BaseController {
             }
 
             // Add Entry Types from JSON
+            if (isset($result->transforms)) {
+                foreach ($result->transforms as $transform) {
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        "type" => "Asset Transform",
+                        "name" => $transform->name,
+                        "result" => $this->addAssetTransform($transform)
+                    );
+                }
+            }
+
+            // Add Entry Types from JSON
             if (isset($result->globals)) {
                 foreach ($result->globals as $global) {
                     // Append Notice to Display Results
@@ -153,8 +165,8 @@ class GeneratorController extends BaseController {
 
     /**
      * addField
-     * @param String $jsonField [input string]
-     * @return Boolean          [success]
+     * @param ArrayObject $jsonField
+     * @return Boolean [success]
      */
     private function addField($jsonField) {
         $field = new FieldModel();
@@ -205,8 +217,8 @@ class GeneratorController extends BaseController {
 
     /**
      * addSection
-     * @param String $jsonSection [input string]
-     * @return Boolean          [success]
+     * @param ArrayObject $jsonSection
+     * @return Boolean [success]
      */
     private function addSection($jsonSection) {
         $section = new SectionModel();
@@ -247,7 +259,7 @@ class GeneratorController extends BaseController {
         }
 
         // Set Locale Information
-        // Pull from SectionController.php aprox. Ln 170
+        // Pulled from SectionController.php aprox. Ln 170
         $locales = array();
 		$primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
 		$localeIds = array($primaryLocaleId);
@@ -283,8 +295,8 @@ class GeneratorController extends BaseController {
 
     /**
      * addEntryType
-     * @param String $jsonEntryType [input string]
-     * @return Boolean          [success]
+     * @param ArrayObject $jsonEntryType
+     * @return Boolean [success]
      */
     private function addEntryType($jsonEntryType) {
         $entryType = new EntryTypeModel();
@@ -341,8 +353,8 @@ class GeneratorController extends BaseController {
 
     /**
      * addAssetSource
-     * @param String $jsonSection [input string]
-     * @return Boolean          [success]
+     * @param ArrayObject $jsonSection
+     * @return Boolean [success]
      */
     private function addAssetSource($jsonSource) {
         $source = new AssetSourceModel();
@@ -380,9 +392,81 @@ class GeneratorController extends BaseController {
     }
 
     /**
+     * addAssetTransform
+     * @param ArrayObject $jsonAssetTransform
+     * @return Boolean [success]
+     */
+    private function addAssetTransform($jsonAssetTransform) {
+        $transform = new AssetTransformModel();
+
+        $transform->name = $jsonAssetTransform->name;
+
+        // Set handle if it was provided
+		if (isset($jsonAssetTransform->handle)) {
+            $transform->handle = $jsonAssetTransform->handle;
+        }
+        // Generate handle if one wasn't provided
+        else {
+            $transform->handle = $this->generateHandle($jsonAssetTransform->name);
+        }
+
+        // One of these fields are required.
+        if (isset($jsonAssetTransform->width) OR isset($jsonAssetTransform->height)) {
+            if (isset($jsonAssetTransform->width)) {
+                $transform->width = $jsonAssetTransform->width;
+            }
+            if (isset($jsonAssetTransform->height)) {
+                $transform->height = $jsonAssetTransform->height;
+            }
+        } else {
+            return false;
+        }
+
+        // Set mode if it was provided
+        if (isset($jsonAssetTransform->mode)) {
+            $transform->mode = $jsonAssetTransform->mode;
+        }
+
+        // Set position if it was provided
+        if (isset($jsonAssetTransform->position)) {
+            $transform->position = $jsonAssetTransform->position;
+        }
+
+        // Set quality if it was provided
+        if (isset($jsonAssetTransform->quality)) {
+            // Quality must be greater than 0
+            if ($jsonAssetTransform->quality < 1) {
+                $transform->quality = 1;
+            }
+            // Quality must not be greater than 100
+            elseif ($jsonAssetTransform->quality > 100) {
+                $transform->quality = 100;
+            } else {
+                $transform->quality = $jsonAssetTransform->quality;
+            }
+        }
+
+        // Set format if it was provided
+        if (isset($jsonAssetTransform->format)) {
+            $transform->format = $jsonAssetTransform->format;
+        }
+        // If not provided set to Auto format
+        else {
+            $transform->format = null;
+        }
+
+        // Save Asset Source to DB
+        if (craft()->assetTransforms->saveTransform($transform)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * addGlobalSet
-     * @param String $jsonGlobalSet [input string]
-     * @return Boolean          [success]
+     * @param ArrayObject $jsonGlobalSet
+     * @return Boolean [success]
      */
     private function addGlobalSet($jsonGlobalSet) {
         $globalSet = new GlobalSetModel();

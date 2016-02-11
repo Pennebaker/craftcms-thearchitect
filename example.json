@@ -163,6 +163,15 @@
             }
         }
     ],
+    "transforms" : [
+        {
+            "name" : "Thumbnail",
+            "mode" : "crop",
+            "position" : "center-center",
+            "width" : 60,
+            "height" : 60
+        }
+    ],
     "globals" : [
         {
             "name" : "Global Test",
