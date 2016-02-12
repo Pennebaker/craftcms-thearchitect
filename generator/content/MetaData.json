@@ -1,0 +1,17 @@
+{
+    "groups" : [
+        "Meta Data"
+    ],
+    "fields": [
+        {
+            "group" : "Meta Data",
+            "name" : "SEO Title",
+            "type" : "PlainText"
+        },
+        {
+            "group" : "Meta Data",
+            "name" : "SEO Description",
+            "type" : "PlainText"
+        }
+    ]
+}

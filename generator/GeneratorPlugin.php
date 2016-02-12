@@ -55,4 +55,11 @@ class GeneratorPlugin extends BasePlugin
 			return true;
 		}
 	}
+
+    public function registerCpRoutes()
+    {
+        return array(
+            'generator/from' => array('action' => 'generator/generateList'),
+        );
+    }
 }

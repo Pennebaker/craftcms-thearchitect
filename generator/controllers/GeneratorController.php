@@ -25,8 +25,60 @@ class GeneratorController extends BaseController {
 		craft()->userSession->requireAdmin();
 	}
 
+
     /**
-     * actionImport
+     * actionGenerateList
+     * @return null
+     */
+    public function actionGenerateList() {
+        $files = array();
+        if ($handle = opendir(craft()->path->getPluginsPath() . 'generator/content')) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry != "." && $entry != ".." && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) == "json") {
+                    $files[] = $entry;
+                }
+            }
+            closedir($handle);
+        }
+
+        natsort($files);
+
+        $variables = array(
+            'files' => $files
+        );
+
+        $this->renderTemplate('generator/from', $variables);
+    }
+
+
+    /**
+     * actionGenerateFrom
+     * @return null
+     */
+    public function actionGenerateFrom() {
+        // Prevent GET Requests
+        $this->requirePostRequest();
+
+        $fileName = craft()->request->getRequiredPost('fileName');
+
+        $filePath = craft()->path->getPluginsPath() . 'generator/content/' . $fileName;
+
+        if (file_exists($filePath)) {
+            $json = file_get_contents($filePath);
+
+            $notice = $this->parseJson($json);
+
+            $variables = array(
+                'json' => $json,
+                'result' => $notice
+            );
+
+            $this->renderTemplate('generator/index', $variables);
+        }
+    }
+
+    /**
+     * actionGenerate
      * @return null
      */
     public function actionGenerate() {
@@ -36,105 +88,7 @@ class GeneratorController extends BaseController {
         $json = craft()->request->getRequiredPost('json');
 
         if ($json) {
-            $result = json_decode($json);
-
-            $notice = array();
-
-            // Add Groups from JSON
-            if (isset($result->groups)) {
-                foreach ($result->groups as $group) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Group",
-                        "name" => $group,
-                        "result" => $this->addGroup($group)
-                    );
-                }
-            }
-
-            $this->groups = craft()->fields->getAllGroups();
-
-            // Add Fields from JSON
-            if (isset($result->fields)) {
-                foreach ($result->fields as $field) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Field",
-                        "name" => $field->name,
-                        "result" => $this->addField($field)
-                    );
-                }
-            }
-
-            $this->fields = craft()->fields->getAllFields();
-
-            // Add Sections from JSON
-            if (isset($result->sections)) {
-                foreach ($result->sections as $section) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Sections",
-                        "name" => $section->name,
-                        "result" => $this->addSection($section)
-                    );
-                }
-            }
-
-            $this->sections = craft()->sections->getAllSections();
-
-            // Add Entry Types from JSON
-            if (isset($result->entryTypes)) {
-                foreach ($result->entryTypes as $entryType) {
-                    if (isset($entryType->titleLabel)) {
-                        $entryTypeName = $entryType->titleLabel;
-                    } else {
-                        $entryTypeName = $entryType->titleFormat;
-                    }
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Entry Types",
-                        // Channels Might have an additional name.
-                        "name" => $entryType->sectionName . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
-                        "result" => $this->addEntryType($entryType)
-                    );
-                }
-            }
-
-            // Add Entry Types from JSON
-            if (isset($result->sources)) {
-                foreach ($result->sources as $source) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Asset Source",
-                        "name" => $source->name,
-                        "result" => $this->addAssetSource($source)
-                    );
-                }
-            }
-
-            // Add Entry Types from JSON
-            if (isset($result->transforms)) {
-                foreach ($result->transforms as $transform) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "Asset Transform",
-                        "name" => $transform->name,
-                        "result" => $this->addAssetTransform($transform)
-                    );
-                }
-            }
-
-            // Add Entry Types from JSON
-            if (isset($result->globals)) {
-                foreach ($result->globals as $global) {
-                    // Append Notice to Display Results
-                    $notice[] = array(
-                        "type" => "GlobalSet",
-                        "name" => $global->name,
-                        "result" => $this->addGlobalSet($global)
-                    );
-                }
-            }
+            $notice = $this->parseJson($json);
 
             craft()->urlManager->setRouteVariables(array(
                 'json' => $json,
@@ -146,11 +100,120 @@ class GeneratorController extends BaseController {
     // Private Methods
     // =========================================================================
 
-        /**
-         * addGroup
-         * @param String $name []
-         * @return Boolean     [success]
-         */
+    /**
+     * parseJson
+     * @param String $json
+     * @return Array [successfulness]
+     */
+    private function parseJson($json) {
+        $result = json_decode($json);
+
+        $notice = array();
+
+        // Add Groups from JSON
+        if (isset($result->groups)) {
+            foreach ($result->groups as $group) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Group",
+                    "name" => $group,
+                    "result" => $this->addGroup($group)
+                );
+            }
+        }
+
+        $this->groups = craft()->fields->getAllGroups();
+
+        // Add Fields from JSON
+        if (isset($result->fields)) {
+            foreach ($result->fields as $field) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Field",
+                    "name" => $field->name,
+                    "result" => $this->addField($field)
+                );
+            }
+        }
+
+        $this->fields = craft()->fields->getAllFields();
+
+        // Add Sections from JSON
+        if (isset($result->sections)) {
+            foreach ($result->sections as $section) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Sections",
+                    "name" => $section->name,
+                    "result" => $this->addSection($section)
+                );
+            }
+        }
+
+        $this->sections = craft()->sections->getAllSections();
+
+        // Add Entry Types from JSON
+        if (isset($result->entryTypes)) {
+            foreach ($result->entryTypes as $entryType) {
+                if (isset($entryType->titleLabel)) {
+                    $entryTypeName = $entryType->titleLabel;
+                } else {
+                    $entryTypeName = $entryType->titleFormat;
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Entry Types",
+                    // Channels Might have an additional name.
+                    "name" => $entryType->sectionName . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
+                    "result" => $this->addEntryType($entryType)
+                );
+            }
+        }
+
+        // Add Entry Types from JSON
+        if (isset($result->sources)) {
+            foreach ($result->sources as $source) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Asset Source",
+                    "name" => $source->name,
+                    "result" => $this->addAssetSource($source)
+                );
+            }
+        }
+
+        // Add Entry Types from JSON
+        if (isset($result->transforms)) {
+            foreach ($result->transforms as $transform) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "Asset Transform",
+                    "name" => $transform->name,
+                    "result" => $this->addAssetTransform($transform)
+                );
+            }
+        }
+
+        // Add Entry Types from JSON
+        if (isset($result->globals)) {
+            foreach ($result->globals as $global) {
+                // Append Notice to Display Results
+                $notice[] = array(
+                    "type" => "GlobalSet",
+                    "name" => $global->name,
+                    "result" => $this->addGlobalSet($global)
+                );
+            }
+        }
+
+        return $notice;
+    }
+
+    /**
+     * addGroup
+     * @param String $name []
+     * @return Boolean     [success]
+     */
     private function addGroup($name) {
         $group = new FieldGroupModel();
         $group->name = $name;

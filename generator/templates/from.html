@@ -1,0 +1,24 @@
+{% extends "_layouts/cp" %}
+{% set title = "Generator"|t %}
+
+{% import "_includes/forms" as forms %}
+
+{% set tabs = {
+    tab1: { label: "Raw"|t, url: url('generator') },
+    tab2: { label: "Files"|t, url: url('generator/from') },
+} %}
+
+{% set selectedTab = 'tab2' %}
+
+{% set content %}
+
+    {# Output of Submitted Data #}
+
+    <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
+        <input type="hidden" name="action" value="generator/generatefrom">
+        {% for file in files %}
+        <input type="submit" class="btn dashed" name="fileName" value="{{ file }}" style="margin: 5px;">
+        {% endfor %}
+    </form>
+
+{% endset %}
