@@ -27,7 +27,7 @@ class GeneratorController extends BaseController {
 
 
     /**
-     * actionGenerateList
+     * actionGenerateList [list the files inside the content folder]
      * @return null
      */
     public function actionGenerateList() {
@@ -47,15 +47,15 @@ class GeneratorController extends BaseController {
             'files' => $files
         );
 
-        $this->renderTemplate('generator/from', $variables);
+        $this->renderTemplate('generator/files', $variables);
     }
 
 
     /**
-     * actionGenerateFrom
+     * actionGenerateLoad [load the selected file for review before processing]
      * @return null
      */
-    public function actionGenerateFrom() {
+    public function actionGenerateLoad() {
         // Prevent GET Requests
         $this->requirePostRequest();
 
@@ -66,11 +66,9 @@ class GeneratorController extends BaseController {
         if (file_exists($filePath)) {
             $json = file_get_contents($filePath);
 
-            $notice = $this->parseJson($json);
-
             $variables = array(
                 'json' => $json,
-                'result' => $notice
+                'filename' => $fileName
             );
 
             $this->renderTemplate('generator/index', $variables);
@@ -90,10 +88,12 @@ class GeneratorController extends BaseController {
         if ($json) {
             $notice = $this->parseJson($json);
 
-            craft()->urlManager->setRouteVariables(array(
+            $variables = array(
                 'json' => $json,
                 'result' => $notice
-            ));
+            );
+
+            $this->renderTemplate('generator/index', $variables);
         }
     }
 

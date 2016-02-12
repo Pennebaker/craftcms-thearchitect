@@ -4,8 +4,8 @@
 {% import "_includes/forms" as forms %}
 
 {% set tabs = {
-    tab1: { label: "Raw"|t, url: url('generator') },
-    tab2: { label: "Files"|t, url: url('generator/from') },
+    tab1: { label: "Raw Input"|t, url: url('generator') },
+    tab2: { label: "Available Files"|t, url: url('generator/files') },
 } %}
 
 {% set content %}
@@ -39,6 +39,10 @@
                 {% endfor %}
             </tbody>
         </table>
+    {% endif %}
+
+    {% if filename is defined %}
+        <h2>{{ filename }}</h2>
     {% endif %}
 
     {# Generator Input Form #}
