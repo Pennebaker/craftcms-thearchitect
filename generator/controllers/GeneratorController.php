@@ -193,12 +193,13 @@ class GeneratorController extends BaseController {
         // Add Entry Types from JSON
         if (isset($result->sources)) {
             foreach ($result->sources as $source) {
+                $assetSourceResult = $this->addAssetSource($source);
                 // Append Notice to Display Results
                 $notice[] = array(
                     "type" => "Asset Source",
                     "name" => $source->name,
-                    "result" => $this->addAssetSource($source),
-                    "errors" => false
+                    "result" => $assetSourceResult[0],
+                    "errors" => $assetSourceResult[1]
                 );
             }
         }
@@ -471,9 +472,9 @@ class GeneratorController extends BaseController {
 
         // Save Asset Source to DB
         if (craft()->assetSources->saveSource($source)) {
-            return true;
+            return [true, null];
         } else {
-            return false;
+            return [false, $source->getErrors()];
         }
     }
 
