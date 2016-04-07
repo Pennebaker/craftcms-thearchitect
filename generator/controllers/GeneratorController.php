@@ -43,6 +43,19 @@ class GeneratorController extends BaseController {
 
         natsort($files);
 
+        $groups = craft()->fields->getAllGroups();
+        $fields = craft()->fields->getAllFields();
+        $sections = craft()->sections->getAllSections();
+
+        foreach ($fields as $field) {
+            if ($field->type == 'Matrix') {
+                $blockTypes = craft()->matrix->getBlockTypesByFieldId($field->id);
+                foreach ($blockTypes as $blockType) {
+                    $blockType->getFields();
+                }
+            }
+        }
+
         $variables = array(
             'files' => $files
         );
@@ -117,7 +130,8 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "Group",
                     "name" => $group,
-                    "result" => $this->addGroup($group)
+                    "result" => $this->addGroup($group),
+                    "errors" => false
                 );
             }
         }
@@ -131,7 +145,9 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "Field",
                     "name" => $field->name,
-                    "result" => $this->addField($field)
+                    "result" => $this->addField($field)[0],
+                    "errors" => $this->addField($field)[1],
+                    "errors_alt" => $this->addField($field)[2]
                 );
             }
         }
@@ -145,7 +161,8 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "Sections",
                     "name" => $section->name,
-                    "result" => $this->addSection($section)
+                    "result" => $this->addSection($section),
+                    "errors" => false
                 );
             }
         }
@@ -165,7 +182,8 @@ class GeneratorController extends BaseController {
                     "type" => "Entry Types",
                     // Channels Might have an additional name.
                     "name" => $entryType->sectionName . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
-                    "result" => $this->addEntryType($entryType)
+                    "result" => $this->addEntryType($entryType),
+                    "errors" => false
                 );
             }
         }
@@ -177,7 +195,8 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "Asset Source",
                     "name" => $source->name,
-                    "result" => $this->addAssetSource($source)
+                    "result" => $this->addAssetSource($source),
+                    "errors" => false
                 );
             }
         }
@@ -189,7 +208,8 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "Asset Transform",
                     "name" => $transform->name,
-                    "result" => $this->addAssetTransform($transform)
+                    "result" => $this->addAssetTransform($transform),
+                    "errors" => false
                 );
             }
         }
@@ -201,7 +221,8 @@ class GeneratorController extends BaseController {
                 $notice[] = array(
                     "type" => "GlobalSet",
                     "name" => $global->name,
-                    "result" => $this->addGlobalSet($global)
+                    "result" => $this->addGlobalSet($global),
+                    "errors" => false
                 );
             }
         }
@@ -272,9 +293,9 @@ class GeneratorController extends BaseController {
 
         // Save Field to DB
         if (craft()->fields->saveField($field)) {
-            return true;
+            return [true];
         } else {
-            return false;
+            return [false, $field->getErrors(), $field->getSettingErrors()];
         }
     }
 

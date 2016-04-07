@@ -19,6 +19,7 @@
                     <th>Type</th>
                     <th>Name</th>
                     <th>Results</th>
+                    <th>Errors</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,6 +36,18 @@
                     {% else %}
                         <td class="action">{{ "Error"|t }}</td>
                     {% endif %}
+                        <td>
+                        {% if item.errors %}
+                            {% for errType, errs in item.errors %}
+                                <h6>{{ errType }}</h6>
+                                <ul>
+                                {% for err in errs %}
+                                    <li>{{ err }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endfor %}
+                        {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
