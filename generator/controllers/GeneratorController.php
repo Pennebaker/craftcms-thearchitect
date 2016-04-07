@@ -296,7 +296,7 @@ class GeneratorController extends BaseController {
 
         // Save Field to DB
         if (craft()->fields->saveField($field)) {
-            return [true];
+            return [true, false];
         } else {
             return [false, $field->getErrors(), $field->getSettingErrors()];
         }
@@ -374,7 +374,7 @@ class GeneratorController extends BaseController {
 
         // Save Section to DB
         if (craft()->sections->saveSection($section)) {
-            return [true];
+            return [true, false];
         } else {
             return [false, $section->getErrors()];
         }
