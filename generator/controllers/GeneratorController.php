@@ -141,13 +141,14 @@ class GeneratorController extends BaseController {
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
+                $addFieldResult = $this->addField($field);
                 // Append Notice to Display Results
                 $notice[] = array(
                     "type" => "Field",
                     "name" => $field->name,
-                    "result" => $this->addField($field)[0],
-                    "errors" => $this->addField($field)[1],
-                    "errors_alt" => $this->addField($field)[2]
+                    "result" => $addFieldResult[0],
+                    "errors" => $addFieldResult[1],
+                    "errors_alt" => $addFieldResult[2]
                 );
             }
         }
@@ -157,12 +158,13 @@ class GeneratorController extends BaseController {
         // Add Sections from JSON
         if (isset($result->sections)) {
             foreach ($result->sections as $section) {
+                $addSectionResult = $this->addSection($section);
                 // Append Notice to Display Results
                 $notice[] = array(
                     "type" => "Sections",
                     "name" => $section->name,
-                    "result" => $this->addSection($section),
-                    "errors" => false
+                    "result" => $addSectionResult[0],
+                    "errors" => $addSectionResult[1]
                 );
             }
         }
@@ -371,9 +373,9 @@ class GeneratorController extends BaseController {
 
         // Save Section to DB
         if (craft()->sections->saveSection($section)) {
-            return true;
+            return [true];
         } else {
-            return false;
+            return [false, $section->getErrors()];
         }
     }
 
