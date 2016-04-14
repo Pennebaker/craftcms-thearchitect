@@ -286,12 +286,12 @@ class GeneratorController extends BaseController {
 
         $field->type = $jsonField->type;
 
-        if (isset($jsonField->typeSettings)) {
+        if (isset($jsonField->typesettings)) {
             // Convert Object to Array for saving
-            $jsonField->typeSettings = json_decode(json_encode($jsonField->typeSettings), true);
+            $jsonField->typesettings = json_decode(json_encode($jsonField->typesettings), true);
 
             // $field->settings requires an array of the settings
-            $field->settings = $jsonField->typeSettings;
+            $field->settings = $jsonField->typesettings;
         }
 
         // Save Field to DB
@@ -324,25 +324,25 @@ class GeneratorController extends BaseController {
         $section->type = $jsonSection->type;
 
         // Set enableVersioning if it was provided
-        if (isset($jsonSection->typeSettings->enableVersioning)) {
-            $section->enableVersioning = $jsonSection->typeSettings->enableVersioning;
+        if (isset($jsonSection->typesettings->enableVersioning)) {
+            $section->enableVersioning = $jsonSection->typesettings->enableVersioning;
         } else {
             $section->enableVersioning = 1;
         }
 
         // Set hasUrls if it was provided
-        if (isset($jsonSection->typeSettings->hasUrls)) {
-            $section->hasUrls = $jsonSection->typeSettings->hasUrls;
+        if (isset($jsonSection->typesettings->hasUrls)) {
+            $section->hasUrls = $jsonSection->typesettings->hasUrls;
         }
 
         // Set template if it was provided
-        if (isset($jsonSection->typeSettings->template)) {
-            $section->template = $jsonSection->typeSettings->template;
+        if (isset($jsonSection->typesettings->template)) {
+            $section->template = $jsonSection->typesettings->template;
         }
 
         // Set maxLevels if it was provided
-        if (isset($jsonSection->typeSettings->maxLevels)) {
-            $section->maxLevels = $jsonSection->typeSettings->maxLevels;
+        if (isset($jsonSection->typesettings->maxLevels)) {
+            $section->maxLevels = $jsonSection->typesettings->maxLevels;
         }
 
         // Set Locale Information
@@ -351,14 +351,14 @@ class GeneratorController extends BaseController {
 		$primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
 		$localeIds = array($primaryLocaleId);
         foreach ($localeIds as $localeId) {
-            if (isset($jsonSection->typeSettings->urlFormat)) {
-    			$urlFormat = $jsonSection->typeSettings->urlFormat;
+            if (isset($jsonSection->typesettings->urlFormat)) {
+    			$urlFormat = $jsonSection->typesettings->urlFormat;
             } else {
                 $urlFormat = null;
             }
 
-            if (isset($jsonSection->typeSettings->nestedUrlFormat)) {
-    			$nestedUrlFormat = $jsonSection->typeSettings->nestedUrlFormat;
+            if (isset($jsonSection->typesettings->nestedUrlFormat)) {
+    			$nestedUrlFormat = $jsonSection->typesettings->nestedUrlFormat;
             } else {
                 $nestedUrlFormat = null;
             }
