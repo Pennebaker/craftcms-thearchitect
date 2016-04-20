@@ -1,0 +1,35 @@
+{
+"groups":[
+  "Menus"
+],
+  "fields":[
+    {
+      "group": "Menus",
+      "name": "Show in Top Menus",
+        "handle": "showInTopMenus",
+      "type": "Lightswitch",
+      "instructions": "Does this page appear in the main navigation?"
+    },
+    {
+      "group": "Menus",
+      "name": "Top Menu Label",
+      "handle": "topMenuLabel",
+      "type": "PlainText",
+      "instructions": "What is the label for this page in the main navigation? Shorter is better."
+    },
+    {
+      "group": "Menus",
+      "name": "Show in Bottom Menus",
+      "handle": "showInBottomMenus",
+      "type": "Lightswitch",
+      "instructions": "Does this page appear in the footer navigation?"
+    },
+    {
+      "group": "Menus",
+      "name": "Bottom Menu Label",
+      "handle": "bottomMenuLabel",
+      "type": "PlainText",
+      "instructions": "What is the label for this page in the footer? Shorter is better."
+    }
+  ]
+}
