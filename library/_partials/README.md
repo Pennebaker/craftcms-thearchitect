@@ -22,4 +22,4 @@ The `new1` object shown above doesn't have braces that defines it as an object, 
 Block-level models in the partials directory are not configured to drag and drop into the Generator as solo fields. They lack the proper structure for the plugin to read them properly. They are meant to be added as is to a Matrix field type.
 
 ## Examples  
-Example will be added to the [Plugin Wiki](https://github.com/Pennebaker/craftcms-generator/wiki).
+Examples will be added to the [Plugin Wiki](https://github.com/Pennebaker/craftcms-generator/wiki/Block-Examples).
