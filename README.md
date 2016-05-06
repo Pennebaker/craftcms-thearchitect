@@ -10,3 +10,5 @@ An `example.json` file is provided
 
 ## JSON Schema
 The example / syntax schemas are located on the [Repo's Wiki](https://github.com/Pennebaker/craftcms-generator/wiki)
+
+If you're using the [Atom text editor](https://atom.io/), you can download a [snippet library](https://github.com/Emkaytoo/craft-json-snippets) to help speed up your writing custom models for the plugin.
