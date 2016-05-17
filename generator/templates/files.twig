@@ -15,6 +15,7 @@
 
     <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
         <input type="hidden" name="action" value="generator/generateload">
+        {{ getCsrfInput() }}
         {% for file in files %}
         <input type="submit" class="btn dashed" name="fileName" value="{{ file }}" style="margin: 5px;">
         {% endfor %}

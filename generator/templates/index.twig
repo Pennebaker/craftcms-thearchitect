@@ -62,7 +62,7 @@
 
     <form class="field" action="" method="post" accept-charset="UTF-8">
         <input type="hidden" name="action" value="generator/generate">
-        <input type="hidden" name="{{ craft.config.csrfTokenName }}" value="{{ craft.request.csrfToken }}">
+        {{ getCsrfInput() }}
 
         {# Text Area for Input Data #}
         {{ forms.textarea({
