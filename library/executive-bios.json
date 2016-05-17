@@ -23,7 +23,7 @@
       "handle": "bio",
       "type": "RichText",
       "instructions": "The content of the bio itself.",
-      "typeSettings": {
+      "typesettings": {
         "configFile": "Simple"
       }
     },
@@ -33,7 +33,7 @@
       "handle": "bioPhoto",
       "instructions": "Usually a headshot.",
       "type": "Assets",
-      "typeSettings": {
+      "typesettings": {
         "restrictFiles": true,
         "allowedKinds": [
           "image"
