@@ -1,0 +1,72 @@
+{
+  "name": "Call to Action Block",
+  "handle": "ctaBlock",
+  "instructions": "This block is used to incite action in your user.",
+  "fields": {
+    "new1": {
+      "name": "headline",
+      "handle": "headline",
+      "instructions": "The headline for this block.",
+      "type": "PlainText"
+    },
+    "new2": {
+      "name": "CTA Copy",
+      "handle": "blockCopy",
+      "instructions": "The copy that precedes the button.",
+      "type": "RichText",
+      "typesettings": {
+        "configFile": "Simple"
+      }
+    },
+    "new3": {
+      "name": "Background Image",
+      "handle": "blockBgImg",
+      "instructions": "The background image for this block.",
+      "type": "Assets",
+      "typesettings": {
+        "restrictFiles": true,
+        "allowedKinds": [
+          "image"
+        ],
+        "limit": 1,
+        "selectionLabel": "Select an Image"
+      }
+    },
+    "new4": {
+      "name": "Block Background Color",
+      "handle": "blockBgColor",
+      "instructions": "Is the background white or gray?",
+      "type": "Dropdown",
+      "typesettings": {
+        "options": [
+          {
+            "label": "White",
+            "value": "white",
+            "default": true
+          },
+          {
+            "label": "Gray",
+            "value": "gray",
+            "default": false
+          }
+        ]
+      }
+    },
+    "new5": {
+      "name": "Button Text",
+      "handle": "buttonText",
+      "instructions": "The text for the button.",
+      "type": "PlainText"
+    },
+    "new6": {
+      "name": "Destination",
+      "handle": "buttonDestination",
+      "instructions": "Where does the button go when you click it?",
+      "type": "Entries",
+      "typesettings": {
+        "limit": 1,
+        "selectionLabel": "Select a Destination"
+      }
+    }
+  }
+}

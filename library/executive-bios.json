@@ -1,0 +1,61 @@
+{
+  "groups":[
+    "Executive Bios"
+  ],
+  "fields": [
+    {
+      "group": "Executive Bios",
+      "name": "Display Name",
+      "handle": "displayName",
+      "type": "PlainText",
+      "instructions": "Whose bio is this?"
+    },
+    {
+      "group": "Executive Bios",
+      "name": "Job Title",
+      "handle": "jobTitle",
+      "type": "PlainText",
+      "instructions": "What's their job title?"
+    },
+    {
+      "group": "Executive Bios",
+      "name": "Bio Content",
+      "handle": "bio",
+      "type": "RichText",
+      "instructions": "The content of the bio itself.",
+      "typesettings": {
+        "configFile": "Simple"
+      }
+    },
+    {
+      "group": "Executive Bios",
+      "name": "Bio Photo",
+      "handle": "bioPhoto",
+      "instructions": "Usually a headshot.",
+      "type": "Assets",
+      "typesettings": {
+        "restrictFiles": true,
+        "allowedKinds": [
+          "image"
+        ],
+        "selectionLabel": "Select an image"
+      }
+    }
+  ],
+  "entryTypes": [
+    {
+      "sectionName": "Executive Bios",
+      "name":"Executive Bios",
+      "handle":"bios",
+      "titleLabel": "CMS Title",
+      "fieldLayout": {
+        "Bio": [
+          "Display Name",
+          "Job Title",
+          "Bio Content",
+          "Bio Photo"
+        ]
+      }
+    }
+  ]
+}
