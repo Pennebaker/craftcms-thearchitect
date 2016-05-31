@@ -113,6 +113,121 @@ class GeneratorController extends BaseController {
     // Private Methods
     // =========================================================================
 
+    private function getSourceByHandle($handle) {
+        $assetSources = craft()->assetSources->getAllSources();
+        foreach ($assetSources as $key => $assetSource) {
+            if ($assetSource->handle === $handle) {
+                return $assetSource;
+            }
+        }
+    }
+
+    private function getCategoryByHandle($handle) {
+        $categories = craft()->categories->getAllGroups();
+        foreach ($categories as $key => $category) {
+            if ($category->handle === $handle) {
+                return $category;
+            }
+        }
+    }
+
+    private function getTagGroupByHandle($handle) {
+        $tagGroups = craft()->tags->getAllTagGroups();
+        foreach ($tagGroups as $key => $tagGroup) {
+            if ($tagGroup->handle === $handle) {
+                return $tagGroup;
+            }
+        }
+    }
+
+    private function getUserGroupByHandle($handle) {
+        $userGroups = craft()->userGroups->getAllGroups();
+        foreach ($userGroups as $key => $userGroup) {
+            if ($userGroup->handle === $handle) {
+                return $userGroup;
+            }
+        }
+    }
+
+    private function replaceSourcesHandles(&$object) {
+        if ($object->type == 'Matrix') {
+            if (isset($object->typesettings->blockTypes)) {
+                foreach ($object->typesettings->blockTypes as &$blockType) {
+                    foreach ($blockType->fields as &$field) {
+                        $this->replaceSourcesHandles($field);
+                    }
+                }
+            }
+        }
+        if ($object->type == 'Neo') {
+            if (isset($object->typesettings->blockTypes)) {
+                foreach ($object->typesettings->blockTypes as &$blockType) {
+                    foreach ($blockType->fieldLayout as &$fieldLayout) {
+                        foreach ($fieldLayout as &$fieldHandle) {
+                            $field = craft()->fields->getFieldByHandle($fieldHandle);
+                            $fieldHandle = $field->id;
+                        }
+                    }
+                }
+            }
+        }
+        if ($object->type == 'SuperTable') {
+            if (isset($object->typesettings->blockTypes)) {
+                foreach ($object->typesettings->blockTypes as &$blockType) {
+                    foreach ($blockType->fields as &$field) {
+                        $this->replaceSourcesHandles($field);
+                    }
+                }
+            }
+        }
+        if ($object->type == 'Entries') {
+            if (isset($object->typesettings->sources)) {
+                foreach ($object->typesettings->sources as $k => &$v) {
+                    $section = craft()->sections->getSectionByHandle($v);
+                    if ($section) {
+                        $v = 'section:' . $section->id;
+                    }
+                }
+            }
+        }
+        if ($object->type == 'Assets') {
+            if (isset($object->typesettings->sources)) {
+                foreach ($object->typesettings->sources as $k => &$v) {
+                    $assetSource = $this->getSourceByHandle($v);
+                    if ($assetSource) {
+                        $v = 'folder:' . $assetSource->id;
+                    }
+                }
+            }
+        }
+        if ($object->type == 'Categories') {
+            if (isset($object->typesettings->source)) {
+                $category = $this->getCategoryByHandle($object->typesettings->source);
+                if ($category) {
+                    $object->typesettings->source = 'group:' . $category->id;
+                }
+            }
+        }
+        if ($object->type == 'Tags') {
+            if (isset($object->typesettings->source)) {
+                $category = $this->getTagGroupByHandle($object->typesettings->source);
+                if ($category) {
+                    $object->typesettings->source = 'taggroup:' . $category->id;
+                }
+            }
+        }
+        if ($object->type == 'Users') {
+            if (isset($object->typesettings->sources)) {
+                foreach ($object->typesettings->sources as $k => &$v) {
+                    $userGroup = $this->getUserGroupByHandle($v);
+                    if ($userGroup) {
+                        $v = 'group:' . $userGroup->id;
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * parseJson
      * @param String $json
@@ -141,6 +256,7 @@ class GeneratorController extends BaseController {
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
+                $this->replaceSourcesHandles($field);
                 $addFieldResult = $this->addField($field);
                 // Append Notice to Display Results
                 $notice[] = array(
