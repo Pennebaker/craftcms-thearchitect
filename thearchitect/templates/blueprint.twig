@@ -36,7 +36,7 @@
                         </div>
                     </th>
                     <td>
-                        {{ field.handle }}
+                        <code>{{ field.handle }}</code>
                     </td>
                     <td>
                         {{ field.type }}
@@ -68,7 +68,7 @@
                         </div>
                     </th>
                     <td>
-                        {{ section.handle }}
+                        <code>{{ section.handle }}</code>
                     </td>
                     <td>
                         {{ section.type }}
@@ -87,9 +87,23 @@
                 <tr>
                     <th>Name</th>
                     <th>Handle</th>
+                    <th>Type</th>
                 </tr>
             </thead>
             <tbody>
+                {% for assetSource in assetSources %}
+                <tr>
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="assetSource{{ assetSource.id }}" class="checkbox" name="assetSourceSelection[]" value="{{ assetSource.id }}"> <label for="assetSource{{ assetSource.id }}">{{ assetSource }}</label>
+                    </th>
+                    <td>
+                        <code>{{ assetSource.handle }}</code>
+                    </td>
+                    <td>
+                        {{ assetSource.type }}
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
         <hr>
@@ -99,9 +113,31 @@
                 <tr>
                     <th>Name</th>
                     <th>Handle</th>
+                    <th>Mode</th>
+                    <th>Dimensions</th>
+                    <th>Format</th>
                 </tr>
             </thead>
             <tbody>
+                {% for assetTransform in assetTransforms %}
+                <tr>
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="assetTransform{{ assetTransform.id }}" class="checkbox" name="assetTransformSelection[]" value="{{ assetTransform.id }}"> <label for="assetTransform{{ assetTransform.id }}">{{ assetTransform }}</label>
+                    </th>
+                    <td>
+                        <code>{{ assetTransform.handle }}</code>
+                    </td>
+                    <td>
+                        {{ assetTransform.mode }}
+                    </td>
+                    <td>
+                        {{ assetTransform.width }} &times; {{ assetTransform.height }}
+                    </td>
+                    <td>
+                        {{ (assetTransform.format) ? assetTransform.format : 'auto' }}
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
         <hr>
@@ -114,6 +150,16 @@
                 </tr>
             </thead>
             <tbody>
+                {% for global in craft.globals.getAllSets() %}
+                <tr>
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="global{{ global.id }}" class="checkbox" name="globalSelection[]" value="{{ global.id }}"> <label for="global{{ global.id }}">{{ global }}</label>
+                    </th>
+                    <td>
+                        <code>{{ global.handle }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
         <hr>

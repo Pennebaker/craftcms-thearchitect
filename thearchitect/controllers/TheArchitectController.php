@@ -32,6 +32,8 @@ class TheArchitectController extends BaseController {
      */
     public function actionBlueprint() {
         $variables = array(
+            'assetSources' => craft()->assetSources->getAllSources(),
+            'assetTransforms' => craft()->assetTransforms->getAllTransforms()
         );
 
         $this->renderTemplate('thearchitect/blueprint', $variables);
