@@ -54,6 +54,15 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
+     * getReleaseFeedUrl
+     * @return string
+     */
+	public function getReleaseFeedUrl()
+	{
+		return 'https://raw.githubusercontent.com/Pennebaker/craft-thearchitect/master/releases.json';
+	}
+
+    /**
      * getDocumentationUrl
      * @return string
      */
