@@ -1,0 +1,26 @@
+{% extends "_layouts/cp" %}
+{% set title = "The Architect"|t %}
+
+{% import "_includes/forms" as forms %}
+
+{% set tabs = {
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
+    tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+} %}
+
+{% set selectedTab = 'tab3' %}
+
+{% set content %}
+
+    {# Text Area for Output Data #}
+    {{ forms.textarea({
+        name: 'json',
+        class: 'nicetext code',
+        value: (json is defined ? json : null),
+        first: true,
+        autofocus: true,
+        rows: 24
+    }) }}
+
+{% endset %}

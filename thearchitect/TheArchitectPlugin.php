@@ -78,6 +78,7 @@ class TheArchitectPlugin extends BasePlugin
     {
         return array(
             'thearchitect/files' => array('action' => 'theArchitect/constructList'),
+            'thearchitect/blueprint' => array('action' => 'theArchitect/blueprint'),
         );
     }
 }

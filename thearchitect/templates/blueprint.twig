@@ -1,0 +1,126 @@
+{% extends "_layouts/cp" %}
+{% set title = "The Architect"|t %}
+
+{% import "_includes/forms" as forms %}
+
+{% set tabs = {
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
+    tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+} %}
+
+{% set selectedTab = 'tab3' %}
+
+{% set content %}
+    <h2>Export functionality is very basic at the time and only supports Fields.</h2>
+
+    <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
+        <input type="hidden" name="action" value="theArchitect/constructblueprint">
+        {{ getCsrfInput() }}
+        <h1>Fields</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Type</th>
+                    <th>Group</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in craft.fields.getAllFields() %}
+                <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
+                    <th scope="row" class="name">
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
+                        </div>
+                    </th>
+                    <td>
+                        {{ field.handle }}
+                    </td>
+                    <td>
+                        {{ field.type }}
+                    </td>
+                    <td>
+                        {{ field.group }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>Sections</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Type</th>
+                    <th>URL Format</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for section in craft.sections.getAllSections() %}
+                <tr class="section" data-id="{{ section.id }}" data-name="{{ section }}">
+                    <th scope="row" class="name">
+                        <div class="section checkboxsection">
+                            <input type="checkbox" id="section{{ section.id }}" class="checkbox" name="sectionSelection[]" value="{{ section.id }}"> <label for="section{{ section.id }}">{{ section }}</label>
+                        </div>
+                    </th>
+                    <td>
+                        {{ section.handle }}
+                    </td>
+                    <td>
+                        {{ section.type }}
+                    </td>
+                    <td>
+                        {{ section.urlFormat }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>Sources</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <hr>
+        <h1>Transforms</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <hr>
+        <h1>Globals</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <hr>
+        <div class="buttons">
+            <input type="submit" class="btn submit export-btn" value="Export Selected">
+            <input type="submit" class="btn submit disabled export-btn" disabled="" value="Export All">
+        </div>
+    </form>
+
+{% endset %}

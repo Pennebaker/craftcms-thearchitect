@@ -6,6 +6,7 @@
 {% set tabs = {
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
+    tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
 } %}
 
 {% set content %}
@@ -26,6 +27,8 @@
                 {% for item in result %}
                 {% if item.result %}
                     <tr class="success">
+                {% elseif item.type == 'Group' %}
+                    <tr class="warning">
                 {% else %}
                     <tr class="error">
                 {% endif %}
@@ -33,10 +36,18 @@
                         <td>{{ item.name }}</td>
                     {% if item.result %}
                         <td class=" action">{{ "Success"|t }}</td>
+                    {% elseif item.type == 'Group' %}
+                        <td class="action">{{ "Warning"|t }}</td>
                     {% else %}
                         <td class="action">{{ "Error"|t }}</td>
                     {% endif %}
                         <td>
+                        {% if not item.result and item.type == 'Group' %}
+                            <h6>Name</h6>
+                            <ul>
+                                <li>{{ "Group"|t ~ " \"" ~ item.name ~ "\" " ~ "has already been taken."|t }}</li>
+                            </ul>
+                        {% endif %}
                         {% if item.errors %}
                             {% for errType, errs in item.errors %}
                                 <h6>{{ errType }}</h6>

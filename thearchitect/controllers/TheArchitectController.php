@@ -27,6 +27,111 @@ class TheArchitectController extends BaseController {
 
 
     /**
+     * actionBlueprint [list the exportable items]
+     * @return null
+     */
+    public function actionBlueprint() {
+        $variables = array(
+        );
+
+        $this->renderTemplate('thearchitect/blueprint', $variables);
+    }
+
+
+    /**
+     * actionConstructBlueprint [ TODO ]
+     * @return null
+     */
+    public function actionConstructBlueprint() {
+        // Prevent GET Requests
+        $this->requirePostRequest();
+
+        $post = craft()->request->getPost();
+
+        $groups = [];
+        $fields = [];
+        foreach ($post['fieldSelection'] as $id) {
+            $field = craft()->fields->getFieldById($id);
+
+            if (!in_array($field->group->name, $groups)) {
+                array_push($groups, $field->group->name);
+            }
+
+            $tmpField = [
+                "group" => $field->group->name,
+                "name" => $field->name,
+                "handle" => $field->handle,
+                "instructions" => $field->instructions,
+                "required" => $field->required,
+                "type" => $field->type,
+                "typesettings" => $field->settings
+            ];
+
+            if ($field->type == 'Neo') {
+                $blockTypes = craft()->neo->getBlockTypesByFieldId($id);
+                $blockCount = 0;
+                foreach ($blockTypes as $blockType) {
+                    $tmpField["typesettings"]["blockTypes"]["new" . $blockCount] = [
+                        "sortOrder" => $blockType->sortOrder,
+                        "name" => $blockType->name,
+                        "handle" => $blockType->handle,
+                        "maxBlocks" => $blockType->maxBlocks,
+                        "childBlocks" => $blockType->childBlocks,
+                        "topLevel" => $blockType->topLevel,
+                        "fieldLayout" => []
+                    ];
+                    foreach ($blockType->getFieldLayout()->getTabs() as $tab) {
+                        $tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name] = [];
+                        foreach ($tab->getFields() as $tabField) {
+                            array_push($tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                        }
+                    }
+                    $blockCount++;
+                }
+            }
+
+            if ($field->type == 'Matrix') {
+                $blockTypes = craft()->matrix->getBlockTypesByFieldId($id);
+                $blockCount = 1;
+                foreach ($blockTypes as $blockType) {
+                    $tmpField["typesettings"]["blockTypes"]["new" . $blockCount] = [
+                        "name" => $blockType->name,
+                        "handle" => $blockType->handle,
+                        "fields" => []
+                    ];
+                    $fieldCount = 1;
+                    foreach ($blockType->fields as $blockField) {
+                        $tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fields"]["new" . $fieldCount] = [
+                            "name" => $blockField->name,
+                            "handle" => $blockField->handle,
+                            "instructions" => $blockField->instructions,
+                            "required" => $blockField->required,
+                            "type" => $blockField->type,
+                            "typesettings" => $blockField->settings
+                        ];
+                        $fieldCount++;
+                    }
+                    $blockCount++;
+                }
+            }
+
+            array_push($fields, $tmpField);
+        }
+
+        $output = [
+            'groups' => $groups,
+            'fields' => $fields
+        ];
+
+        $variables = array(
+            'json' => json_encode($output, JSON_PRETTY_PRINT)
+        );
+
+        $this->renderTemplate('thearchitect/output', $variables);
+    }
+
+
+    /**
      * actionConstructList [list the files inside the content folder]
      * @return null
      */
@@ -241,11 +346,12 @@ class TheArchitectController extends BaseController {
         // Add Groups from JSON
         if (isset($result->groups)) {
             foreach ($result->groups as $group) {
+                $addGroupResult = $this->addGroup($group);
                 // Append Notice to Display Results
                 $notice[] = array(
                     "type" => "Group",
                     "name" => $group,
-                    "result" => $this->addGroup($group),
+                    "result" => $addGroupResult,
                     "errors" => false
                 );
             }
