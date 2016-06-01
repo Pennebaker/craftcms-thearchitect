@@ -781,7 +781,13 @@ class TheArchitectController extends BaseController {
 
         // Parse & Set Field Layout if Provided
         if (isset($jsonEntryType->fieldLayout)) {
-            $fieldLayout = $this->assembleLayout($jsonEntryType->fieldLayout);
+            $requiredFields = [];
+            if (isset($jsonEntryType->requiredFields)) {
+                foreach ($jsonEntryType->requiredFields as $requirdField) {
+                    array_push($requiredFields, $this->getFieldId($requirdField));
+                }
+            }
+            $fieldLayout = $this->assembleLayout($jsonEntryType->fieldLayout, $requiredFields);
             $fieldLayout->type = ElementType::Entry;
             $entryType->setFieldLayout($fieldLayout);
         }
@@ -821,7 +827,13 @@ class TheArchitectController extends BaseController {
 
         // Parse & Set Field Layout if Provided
         if (isset($jsonSource->fieldLayout)) {
-    		$fieldLayout = $this->assembleLayout($jsonSource->fieldLayout);
+            $requiredFields = [];
+            if (isset($jsonSource->requiredFields)) {
+                foreach ($jsonSource->requiredFields as $requirdField) {
+                    array_push($requiredFields, $this->getFieldId($requirdField));
+                }
+            }
+    		$fieldLayout = $this->assembleLayout($jsonSource->fieldLayout, $requiredFields);
     		$fieldLayout->type = ElementType::Asset;
     		$source->setFieldLayout($fieldLayout);
         }
@@ -927,7 +939,13 @@ class TheArchitectController extends BaseController {
 
         // Parse & Set Field Layout if Provided
         if (isset($jsonGlobalSet->fieldLayout)) {
-            $fieldLayout = $this->assembleLayout($jsonGlobalSet->fieldLayout);
+            $requiredFields = [];
+            if (isset($jsonSource->requiredFields)) {
+                foreach ($jsonSource->requiredFields as $requirdField) {
+                    array_push($requiredFields, $this->getFieldId($requirdField));
+                }
+            }
+            $fieldLayout = $this->assembleLayout($jsonGlobalSet->fieldLayout, $requiredFields);
     		$fieldLayout->type = ElementType::GlobalSet;
     		$globalSet->setFieldLayout($fieldLayout);
         }
