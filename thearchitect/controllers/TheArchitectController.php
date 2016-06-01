@@ -126,7 +126,7 @@ class TheArchitectController extends BaseController {
         ];
 
         $variables = array(
-            'json' => json_encode($output, JSON_PRETTY_PRINT)
+            'json' => json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT)
         );
 
         $this->renderTemplate('thearchitect/output', $variables);
