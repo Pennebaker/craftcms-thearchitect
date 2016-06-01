@@ -1,11 +1,11 @@
 {% extends "_layouts/cp" %}
-{% set title = "Generator"|t %}
+{% set title = "The Architect"|t %}
 
 {% import "_includes/forms" as forms %}
 
 {% set tabs = {
-    tab1: { label: "Raw Input"|t, url: url('generator') },
-    tab2: { label: "Available Files"|t, url: url('generator/files') },
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
 } %}
 
 {% set content %}
@@ -58,10 +58,10 @@
         <h2><span class="light">{{ "Loaded"|t }}: </span>{{ filename }}</h2>
     {% endif %}
 
-    {# Generator Input Form #}
+    {# The Architect Input Form #}
 
     <form class="field" action="" method="post" accept-charset="UTF-8">
-        <input type="hidden" name="action" value="generator/generate">
+        <input type="hidden" name="action" value="theArchitect/construct">
         {{ getCsrfInput() }}
 
         {# Text Area for Input Data #}
@@ -74,7 +74,7 @@
             rows: 24
         }) }}
 
-        <input type="submit" class="btn submit" value="Generate">
+        <input type="submit" class="btn submit" value="Construct">
     </form>
 
 {% endset %}

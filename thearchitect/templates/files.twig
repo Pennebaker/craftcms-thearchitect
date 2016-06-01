@@ -1,11 +1,11 @@
 {% extends "_layouts/cp" %}
-{% set title = "Generator"|t %}
+{% set title = "The Architect"|t %}
 
 {% import "_includes/forms" as forms %}
 
 {% set tabs = {
-    tab1: { label: "Raw Input"|t, url: url('generator') },
-    tab2: { label: "Available Files"|t, url: url('generator/files') },
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
 } %}
 
 {% set selectedTab = 'tab2' %}
@@ -14,7 +14,7 @@
     {# Output of Submitted Data #}
 
     <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
-        <input type="hidden" name="action" value="generator/generateload">
+        <input type="hidden" name="action" value="theArchitect/constructload">
         {{ getCsrfInput() }}
         {% for file in files %}
         <input type="submit" class="btn dashed" name="fileName" value="{{ file }}" style="margin: 5px;">

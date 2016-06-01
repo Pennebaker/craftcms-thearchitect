@@ -2,11 +2,11 @@
 namespace Craft;
 
 /**
- * Class GeneratorPlugin
+ * Class TheArchitectPlugin
  *
  * @package Craft
  */
-class GeneratorPlugin extends BasePlugin
+class TheArchitectPlugin extends BasePlugin
 {
     /**
      * getName
@@ -14,7 +14,7 @@ class GeneratorPlugin extends BasePlugin
      */
     public function getName()
     {
-        return Craft::t('Generator');
+        return Craft::t('The Architect');
     }
 
     /**
@@ -45,6 +45,24 @@ class GeneratorPlugin extends BasePlugin
     }
 
     /**
+     * getPluginUrl
+     * @return string
+     */
+    public function getPluginUrl()
+    {
+        return 'https://github.com/Pennebaker/craftcms-thearchitect';
+    }
+
+    /**
+     * getDocumentationUrl
+     * @return string
+     */
+    public function getDocumentationUrl()
+    {
+        return $this->getPluginUrl() . '/wiki';
+    }
+
+    /**
      * hasCpSection
      * @return boolean
      */
@@ -59,7 +77,7 @@ class GeneratorPlugin extends BasePlugin
     public function registerCpRoutes()
     {
         return array(
-            'generator/files' => array('action' => 'generator/generateList'),
+            'thearchitect/files' => array('action' => 'theArchitect/constructList'),
         );
     }
 }

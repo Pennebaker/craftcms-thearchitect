@@ -2,11 +2,11 @@
 namespace Craft;
 
 /**
- * Generator Controller
+ * TheArchitectController
  *
  * @package Craft
  */
-class GeneratorController extends BaseController {
+class TheArchitectController extends BaseController {
     private $groups;
     private $fields;
     private $sections;
@@ -27,12 +27,12 @@ class GeneratorController extends BaseController {
 
 
     /**
-     * actionGenerateList [list the files inside the content folder]
+     * actionConstructList [list the files inside the content folder]
      * @return null
      */
-    public function actionGenerateList() {
+    public function actionConstructList() {
         $files = array();
-        if ($handle = opendir(craft()->path->getPluginsPath() . 'generator/content')) {
+        if ($handle = opendir(craft()->path->getPluginsPath() . 'thearchitect/content')) {
             while (false !== ($entry = readdir($handle))) {
                 if ($entry != "." && $entry != ".." && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) == "json") {
                     $files[] = $entry;
@@ -60,21 +60,21 @@ class GeneratorController extends BaseController {
             'files' => $files
         );
 
-        $this->renderTemplate('generator/files', $variables);
+        $this->renderTemplate('thearchitect/files', $variables);
     }
 
 
     /**
-     * actionGenerateLoad [load the selected file for review before processing]
+     * actionConstructLoad [load the selected file for review before processing]
      * @return null
      */
-    public function actionGenerateLoad() {
+    public function actionConstructLoad() {
         // Prevent GET Requests
         $this->requirePostRequest();
 
         $fileName = craft()->request->getRequiredPost('fileName');
 
-        $filePath = craft()->path->getPluginsPath() . 'generator/content/' . $fileName;
+        $filePath = craft()->path->getPluginsPath() . 'thearchitect/content/' . $fileName;
 
         if (file_exists($filePath)) {
             $json = file_get_contents($filePath);
@@ -84,15 +84,15 @@ class GeneratorController extends BaseController {
                 'filename' => $fileName
             );
 
-            $this->renderTemplate('generator/index', $variables);
+            $this->renderTemplate('thearchitect/index', $variables);
         }
     }
 
     /**
-     * actionGenerate
+     * actionConstruct
      * @return null
      */
-    public function actionGenerate() {
+    public function actionConstruct() {
         // Prevent GET Requests
         $this->requirePostRequest();
 
@@ -106,7 +106,7 @@ class GeneratorController extends BaseController {
                 'result' => $notice
             );
 
-            $this->renderTemplate('generator/index', $variables);
+            $this->renderTemplate('thearchitect/index', $variables);
         }
     }
 
@@ -385,9 +385,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonField->handle)) {
             $field->handle = $jsonField->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $field->handle = $this->generateHandle($jsonField->name);
+            $field->handle = $this->constructHandle($jsonField->name);
         }
 
         // Set instructions if it was provided
@@ -432,9 +432,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonSection->handle)) {
             $section->handle = $jsonSection->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $section->handle = $this->generateHandle($jsonSection->name);
+            $section->handle = $this->constructHandle($jsonSection->name);
         }
 
         $section->type = $jsonSection->type;
@@ -523,9 +523,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonEntryType->handle)) {
             $entryType->handle = $jsonEntryType->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $entryType->handle = $this->generateHandle($jsonEntryType->name);
+            $entryType->handle = $this->constructHandle($jsonEntryType->name);
         }
 
         // If titleLabel set hasTitleField to True
@@ -568,9 +568,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonSource->handle)) {
             $source->handle = $jsonSource->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $source->handle = $this->generateHandle($jsonSource->name);
+            $source->handle = $this->constructHandle($jsonSource->name);
         }
 
         $source->type  = $jsonSource->type;
@@ -608,9 +608,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonAssetTransform->handle)) {
             $transform->handle = $jsonAssetTransform->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $transform->handle = $this->generateHandle($jsonAssetTransform->name);
+            $transform->handle = $this->constructHandle($jsonAssetTransform->name);
         }
 
         // One of these fields are required.
@@ -680,9 +680,9 @@ class GeneratorController extends BaseController {
 		if (isset($jsonGlobalSet->handle)) {
             $globalSet->handle = $jsonGlobalSet->handle;
         }
-        // Generate handle if one wasn't provided
+        // Construct handle if one wasn't provided
         else {
-            $globalSet->handle = $this->generateHandle($jsonGlobalSet->name);
+            $globalSet->handle = $this->constructHandle($jsonGlobalSet->name);
         }
 
         // Parse & Set Field Layout if Provided
@@ -789,11 +789,11 @@ class GeneratorController extends BaseController {
     }
 
     /**
-     * generateHandle
+     * constructHandle
      * @param  String $str [input string]
-     * @return String      [the generated handle]
+     * @return String      [the constructed handle]
      */
-    private function generateHandle($string) {
+    private function constructHandle($string) {
         $string = strtolower($string);
 
         $words = explode(" ", $string);
