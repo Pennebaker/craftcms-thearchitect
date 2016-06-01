@@ -56,6 +56,59 @@ class TheArchitectController extends BaseController {
         $entryTypes = [];
         $transforms = [];
         $globals = [];
+        if (isset($post['sectionSelection'])) {
+            foreach ($post['sectionSelection'] as $id) {
+                $section = craft()->sections->getSectionById($id);
+
+                $tmpSection = [
+                    "name" => $section->attributes["name"],
+                    "handle" => $section->attributes["handle"],
+                    "type" => $section->attributes["type"],
+                    "enableVersioning" => $section->attributes["enableVersioning"],
+                    "typesettings" => [
+                        "hasUrls" => $section->attributes["hasUrls"],
+                        "urlFormat" => $section->getUrlFormat(),
+                        "nestedUrlFormat" => $section->locales[craft()->i18n->getPrimarySiteLocaleId()]->attributes["nestedUrlFormat"],
+                        "template" => $section->attributes["template"],
+                        "maxLevels" => $section->attributes["maxLevels"]
+                    ]
+                ];
+                if ($tmpSection["typesettings"]["maxLevels"] === null) {
+                    unset($tmpSection["typesettings"]["maxLevels"]);
+                }
+                if ($tmpSection["typesettings"]["nestedUrlFormat"] === null) {
+                    unset($tmpSection["typesettings"]["nestedUrlFormat"]);
+                }
+                if ($tmpSection["type"] === "single") {
+                    unset($tmpSection["typesettings"]["hasUrls"]);
+                }
+                array_push($sections, $tmpSection);
+
+                $sectionEntryTypes = $section->getEntryTypes();
+                foreach ($sectionEntryTypes as $entryType) {
+                    $tmpEntryType = [
+                        "sectionHandle" => $section->attributes["handle"],
+                        "hasTitleField" => $entryType->attributes["hasTitleField"],
+                        "titleLabel" => $entryType->attributes["titleLabel"],
+                        "titleFormat" => $entryType->attributes["titleFormat"],
+                        "name" => $entryType->attributes["name"],
+                        "handle" => $entryType->attributes["handle"],
+                        "titleLabel" => $entryType->attributes["titleLabel"],
+                        "fieldLayout" => []
+                    ];
+                    if ($tmpEntryType["titleFormat"] === null) {
+                        unset($tmpEntryType["titleFormat"]);
+                    }
+                    foreach ($entryType->getFieldLayout()->getTabs() as $tab) {
+                        $tmpEntryType["fieldLayout"][$tab->name] = [];
+                        foreach ($tab->getFields() as $tabField) {
+                            array_push($tmpEntryType["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                        }
+                    }
+                    array_push($entryTypes, $tmpEntryType);
+                }
+            }
+        }
         if (isset($post['fieldSelection'])) {
             foreach ($post['fieldSelection'] as $id) {
                 $field = craft()->fields->getFieldById($id);
@@ -131,7 +184,7 @@ class TheArchitectController extends BaseController {
             'sections' => $sections,
             'fields' => $fields,
             'entryTypes' => $entryTypes,
-            'tranforms' => $tranforms,
+            'transforms' => $transforms,
             'globals' => $globals
         ];
 
@@ -423,13 +476,14 @@ class TheArchitectController extends BaseController {
                 } else {
                     $entryTypeName = $entryType->titleFormat;
                 }
+                $addEntryTypeResult = $this->addEntryType($entryType);
                 // Append Notice to Display Results
                 $notice[] = array(
                     "type" => "Entry Types",
                     // Channels Might have an additional name.
-                    "name" => $entryType->sectionName . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
-                    "result" => $this->addEntryType($entryType),
-                    "errors" => false
+                    "name" => $entryType->sectionHandle . ( (isset($entryType->name)) ? ' > ' . $entryType->name : '' ) . ' > ' . $entryTypeName,
+                    "result" => $addEntryTypeResult[0],
+                    "errors" => $addEntryTypeResult[1]
                 );
             }
         }
@@ -632,21 +686,6 @@ class TheArchitectController extends BaseController {
     private function addEntryType($jsonEntryType) {
         $entryType = new EntryTypeModel();
 
-        $entryType->sectionId = $this->getSectionId($jsonEntryType->sectionName);
-
-        // Check for name if not set name as sectionName
-        if (!isset($jsonEntryType->name)) {
-            $jsonEntryType->name = $jsonEntryType->sectionName;
-        }
-        $entryType->name = $jsonEntryType->name;
-
-        // If the Entry Type exists load it so that it udpates it.
-        $sectionHandle = $this->getSectionHandle($entryType->sectionId);
-        $entryTypes = craft()->sections->getEntryTypesByHandle($sectionHandle);
-        if ($entryTypes) {
-            $entryType = craft()->sections->getEntryTypeById($entryTypes[0]->attributes['id']);
-        }
-
         // Set handle if it was provided
 		if (isset($jsonEntryType->handle)) {
             $entryType->handle = $jsonEntryType->handle;
@@ -655,6 +694,17 @@ class TheArchitectController extends BaseController {
         else {
             $entryType->handle = $this->constructHandle($jsonEntryType->name);
         }
+
+        $entryType->sectionId = $this->getSectionId($jsonEntryType->sectionHandle);
+
+        // If the Entry Type exists load it so that it udpates it.
+        $sectionHandle = $this->getSectionHandle($entryType->sectionId);
+        $entryTypes = craft()->sections->getEntryTypesByHandle($entryType->handle);
+        if ($entryTypes) {
+            $entryType = craft()->sections->getEntryTypeById($entryTypes[0]->attributes['id']);
+        }
+
+        $entryType->name = $jsonEntryType->name;
 
         // If titleLabel set hasTitleField to True
         if (isset($jsonEntryType->titleLabel)) {
@@ -676,9 +726,9 @@ class TheArchitectController extends BaseController {
 
         // Save Entry Type to DB
         if (craft()->sections->saveEntryType($entryType)) {
-            return true;
+            return [true, false];
         } else {
-            return false;
+            return [false, $entryType->getErrors()];
         }
     }
 
