@@ -59,6 +59,7 @@ class TheArchitectController extends BaseController {
         if (isset($post['sectionSelection'])) {
             foreach ($post['sectionSelection'] as $id) {
                 $section = craft()->sections->getSectionById($id);
+                if ($section === null) continue;
 
                 $tmpSection = [
                     "name" => $section->attributes["name"],
@@ -112,6 +113,7 @@ class TheArchitectController extends BaseController {
         if (isset($post['fieldSelection'])) {
             foreach ($post['fieldSelection'] as $id) {
                 $field = craft()->fields->getFieldById($id);
+                if ($field === null) continue;
 
                 if (!in_array($field->group->name, $groups)) {
                     array_push($groups, $field->group->name);
@@ -126,6 +128,57 @@ class TheArchitectController extends BaseController {
                     "type" => $field->type,
                     "typesettings" => $field->settings
                 ];
+
+                if ($field->type == 'Assets') {
+                    if ($tmpField["typesettings"]["sources"]) {
+                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                            if (substr($value, 0, 7) == 'folder:') {
+                                $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
+                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                            }
+                        }
+                    }
+                }
+
+                if ($field->type == 'Categories') {
+                    if ($tmpField["typesettings"]["source"]) {
+                        if (substr($tmpField["typesettings"]["source"], 0, 6) == 'group:') {
+                            $category = craft()->categories->getGroupById(intval(substr($tmpField["typesettings"]["source"], 6)));
+                            $tmpField["typesettings"]["source"] = $category->handle;
+                        }
+                    }
+                }
+
+                if ($field->type == 'Entries') {
+                    if ($tmpField["typesettings"]["sources"]) {
+                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                            if (substr($value, 0, 8) == 'section:') {
+                                $source = craft()->sections->getSectionById(intval(substr($value, 8)));
+                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                            }
+                        }
+                    }
+                }
+
+                if ($field->type == 'Tags') {
+                    if ($tmpField["typesettings"]["source"]) {
+                        if (substr($tmpField["typesettings"]["source"], 0, 9) == 'taggroup:') {
+                            $category = craft()->tags->getTagGroupById(intval(substr($tmpField["typesettings"]["source"], 9)));
+                            $tmpField["typesettings"]["source"] = $category->handle;
+                        }
+                    }
+                }
+
+                if ($field->type == 'Users') {
+                    if ($tmpField["typesettings"]["sources"]) {
+                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                            if (substr($value, 0, 6) == 'group:') {
+                                $source = craft()->userGroups->getGroupById(intval(substr($value, 6)));
+                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                            }
+                        }
+                    }
+                }
 
                 if ($field->type == 'Neo') {
                     $blockTypes = craft()->neo->getBlockTypesByFieldId($id);
