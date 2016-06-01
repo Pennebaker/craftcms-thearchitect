@@ -1,6 +1,6 @@
 # The Architect for [Craft CMS](http://buildwithcraft.com/)
 
-CraftCMS Plugin to Generate Groups, Fields, Sections and Assets from JSON data.
+CraftCMS Plugin to Construct Groups, Fields, Sections and Assets from JSON data.
 
 ## Installation
 1. Move the `thearchitect` directory into your `craft/plugins` directory.
