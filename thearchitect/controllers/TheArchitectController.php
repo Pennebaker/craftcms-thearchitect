@@ -61,7 +61,7 @@ class TheArchitectController extends BaseController {
                 $section = craft()->sections->getSectionById($id);
                 if ($section === null) continue;
 
-                $tmpSection = [
+                $newSection = [
                     "name" => $section->attributes["name"],
                     "handle" => $section->attributes["handle"],
                     "type" => $section->attributes["type"],
@@ -74,20 +74,21 @@ class TheArchitectController extends BaseController {
                         "maxLevels" => $section->attributes["maxLevels"]
                     ]
                 ];
-                if ($tmpSection["typesettings"]["maxLevels"] === null) {
-                    unset($tmpSection["typesettings"]["maxLevels"]);
+                if ($newSection["typesettings"]["maxLevels"] === null) {
+                    unset($newSection["typesettings"]["maxLevels"]);
                 }
-                if ($tmpSection["typesettings"]["nestedUrlFormat"] === null) {
-                    unset($tmpSection["typesettings"]["nestedUrlFormat"]);
+                if ($newSection["typesettings"]["nestedUrlFormat"] === null) {
+                    unset($newSection["typesettings"]["nestedUrlFormat"]);
                 }
-                if ($tmpSection["type"] === "single") {
-                    unset($tmpSection["typesettings"]["hasUrls"]);
+                if ($newSection["type"] === "single") {
+                    unset($newSection["typesettings"]["hasUrls"]);
                 }
-                array_push($sections, $tmpSection);
+                // Add New Section into the Sections Array
+                array_push($sections, $newSection);
 
                 $sectionEntryTypes = $section->getEntryTypes();
                 foreach ($sectionEntryTypes as $entryType) {
-                    $tmpEntryType = [
+                    $newEntryType = [
                         "sectionHandle" => $section->attributes["handle"],
                         "hasTitleField" => $entryType->attributes["hasTitleField"],
                         "titleLabel" => $entryType->attributes["titleLabel"],
@@ -97,29 +98,32 @@ class TheArchitectController extends BaseController {
                         "titleLabel" => $entryType->attributes["titleLabel"],
                         "fieldLayout" => []
                     ];
-                    if ($tmpEntryType["titleFormat"] === null) {
-                        unset($tmpEntryType["titleFormat"]);
+                    if ($newEntryType["titleFormat"] === null) {
+                        unset($newEntryType["titleFormat"]);
                     }
                     foreach ($entryType->getFieldLayout()->getTabs() as $tab) {
-                        $tmpEntryType["fieldLayout"][$tab->name] = [];
+                        $newEntryType["fieldLayout"][$tab->name] = [];
                         foreach ($tab->getFields() as $tabField) {
-                            array_push($tmpEntryType["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                            array_push($newEntryType["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
                         }
                     }
-                    array_push($entryTypes, $tmpEntryType);
+                    // Add New EntryType into the EntryTypes Array
+                    array_push($entryTypes, $newEntryType);
                 }
             }
         }
+
         if (isset($post['fieldSelection'])) {
             foreach ($post['fieldSelection'] as $id) {
                 $field = craft()->fields->getFieldById($id);
                 if ($field === null) continue;
 
+                // If Field Group is not defined in Groups Array add it
                 if (!in_array($field->group->name, $groups)) {
                     array_push($groups, $field->group->name);
                 }
 
-                $tmpField = [
+                $newField = [
                     "group" => $field->group->name,
                     "name" => $field->name,
                     "handle" => $field->handle,
@@ -130,51 +134,51 @@ class TheArchitectController extends BaseController {
                 ];
 
                 if ($field->type == 'Assets') {
-                    if ($tmpField["typesettings"]["sources"]) {
-                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                    if ($newField["typesettings"]["sources"]) {
+                        foreach ($newField["typesettings"]["sources"] as $key => $value) {
                             if (substr($value, 0, 7) == 'folder:') {
                                 $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
-                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                                $newField["typesettings"]["sources"][$key] = $source->handle;
                             }
                         }
                     }
                 }
 
                 if ($field->type == 'Categories') {
-                    if ($tmpField["typesettings"]["source"]) {
-                        if (substr($tmpField["typesettings"]["source"], 0, 6) == 'group:') {
-                            $category = craft()->categories->getGroupById(intval(substr($tmpField["typesettings"]["source"], 6)));
-                            $tmpField["typesettings"]["source"] = $category->handle;
+                    if ($newField["typesettings"]["source"]) {
+                        if (substr($newField["typesettings"]["source"], 0, 6) == 'group:') {
+                            $category = craft()->categories->getGroupById(intval(substr($newField["typesettings"]["source"], 6)));
+                            $newField["typesettings"]["source"] = $category->handle;
                         }
                     }
                 }
 
                 if ($field->type == 'Entries') {
-                    if ($tmpField["typesettings"]["sources"]) {
-                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                    if ($newField["typesettings"]["sources"]) {
+                        foreach ($newField["typesettings"]["sources"] as $key => $value) {
                             if (substr($value, 0, 8) == 'section:') {
                                 $source = craft()->sections->getSectionById(intval(substr($value, 8)));
-                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                                $newField["typesettings"]["sources"][$key] = $source->handle;
                             }
                         }
                     }
                 }
 
                 if ($field->type == 'Tags') {
-                    if ($tmpField["typesettings"]["source"]) {
-                        if (substr($tmpField["typesettings"]["source"], 0, 9) == 'taggroup:') {
-                            $category = craft()->tags->getTagGroupById(intval(substr($tmpField["typesettings"]["source"], 9)));
-                            $tmpField["typesettings"]["source"] = $category->handle;
+                    if ($newField["typesettings"]["source"]) {
+                        if (substr($newField["typesettings"]["source"], 0, 9) == 'taggroup:') {
+                            $category = craft()->tags->getTagGroupById(intval(substr($newField["typesettings"]["source"], 9)));
+                            $newField["typesettings"]["source"] = $category->handle;
                         }
                     }
                 }
 
                 if ($field->type == 'Users') {
-                    if ($tmpField["typesettings"]["sources"]) {
-                        foreach ($tmpField["typesettings"]["sources"] as $key => $value) {
+                    if ($newField["typesettings"]["sources"]) {
+                        foreach ($newField["typesettings"]["sources"] as $key => $value) {
                             if (substr($value, 0, 6) == 'group:') {
                                 $source = craft()->userGroups->getGroupById(intval(substr($value, 6)));
-                                $tmpField["typesettings"]["sources"][$key] = $source->handle;
+                                $newField["typesettings"]["sources"][$key] = $source->handle;
                             }
                         }
                     }
@@ -184,7 +188,7 @@ class TheArchitectController extends BaseController {
                     $blockTypes = craft()->neo->getBlockTypesByFieldId($id);
                     $blockCount = 0;
                     foreach ($blockTypes as $blockType) {
-                        $tmpField["typesettings"]["blockTypes"]["new" . $blockCount] = [
+                        $newField["typesettings"]["blockTypes"]["new" . $blockCount] = [
                             "sortOrder" => $blockType->sortOrder,
                             "name" => $blockType->name,
                             "handle" => $blockType->handle,
@@ -194,9 +198,9 @@ class TheArchitectController extends BaseController {
                             "fieldLayout" => []
                         ];
                         foreach ($blockType->getFieldLayout()->getTabs() as $tab) {
-                            $tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name] = [];
+                            $newField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name] = [];
                             foreach ($tab->getFields() as $tabField) {
-                                array_push($tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                                array_push($newField["typesettings"]["blockTypes"]["new" . $blockCount]["fieldLayout"][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
                             }
                         }
                         $blockCount++;
@@ -207,14 +211,14 @@ class TheArchitectController extends BaseController {
                     $blockTypes = craft()->matrix->getBlockTypesByFieldId($id);
                     $blockCount = 1;
                     foreach ($blockTypes as $blockType) {
-                        $tmpField["typesettings"]["blockTypes"]["new" . $blockCount] = [
+                        $newField["typesettings"]["blockTypes"]["new" . $blockCount] = [
                             "name" => $blockType->name,
                             "handle" => $blockType->handle,
                             "fields" => []
                         ];
                         $fieldCount = 1;
                         foreach ($blockType->fields as $blockField) {
-                            $tmpField["typesettings"]["blockTypes"]["new" . $blockCount]["fields"]["new" . $fieldCount] = [
+                            $newField["typesettings"]["blockTypes"]["new" . $blockCount]["fields"]["new" . $fieldCount] = [
                                 "name" => $blockField->name,
                                 "handle" => $blockField->handle,
                                 "instructions" => $blockField->instructions,
@@ -227,11 +231,12 @@ class TheArchitectController extends BaseController {
                         $blockCount++;
                     }
                 }
-
-                array_push($fields, $tmpField);
+                // Add New Field into the Fields Array
+                array_push($fields, $newField);
             }
         }
 
+        // Add all Arrays into the final output array
         $output = [
             'groups' => $groups,
             'sections' => $sections,
@@ -241,15 +246,19 @@ class TheArchitectController extends BaseController {
             'globals' => $globals
         ];
 
+        // Remove empty sections from the output array
         foreach ($output as $key => $value) {
             if ($value == []) {
                 unset($output[$key]);
             }
         }
 
+        // If the output is empty redirect back the the export page
         if ($output == []) {
             $this->redirect('thearchitect/blueprint');
-        } else {
+        }
+        // Else display the output data as json for the user to copy
+        else {
             $variables = array(
                 'json' => json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT)
             );
