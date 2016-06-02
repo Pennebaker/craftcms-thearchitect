@@ -19,6 +19,8 @@ class TheArchitectService extends BaseApplicationComponent
     {
         $result = json_decode($json);
 
+        $this->stripHandleSpaces($result);
+
         $notice = array();
 
         // Add Groups from JSON
@@ -723,6 +725,19 @@ class TheArchitectService extends BaseApplicationComponent
                 return $userGroup;
             }
         }
+    }
+
+    private function stripHandleSpaces(&$object)
+    {
+        foreach ($object as $key => &$value) {
+            if ($key === "handle") {
+                $value = preg_replace("/\s/", '', $value);
+            }
+            if (gettype($value) == 'array' || gettype($value) == 'object') {
+                $value = $this->stripHandleSpaces($value);
+            }
+        }
+        return $object;
     }
 
     private function replaceSourcesHandles(&$object)
