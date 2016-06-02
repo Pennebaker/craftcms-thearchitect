@@ -310,10 +310,16 @@ class TheArchitectService extends BaseApplicationComponent
                 $nestedUrlFormat = null;
             }
 
+            if (isset($jsonSection->typesettings->$localeId->defaultLocaleStatus)) {
+                $defaultLocaleStatus = $jsonSection->typesettings->$localeId->defaultLocaleStatus;
+            } else {
+                $defaultLocaleStatus = true;
+            }
+
             if ($urlFormat !== null || $nestedUrlFormat !== null) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
-                    'enabledByDefault' => null,
+                    'enabledByDefault' => $defaultLocaleStatus,
                     'urlFormat' => $urlFormat,
                     'nestedUrlFormat' => $nestedUrlFormat,
                 ));
@@ -335,11 +341,17 @@ class TheArchitectService extends BaseApplicationComponent
                 $nestedUrlFormat = null;
             }
 
+            if (isset($jsonSection->typesettings->defaultLocaleStatus)) {
+                $defaultLocaleStatus = $jsonSection->typesettings->defaultLocaleStatus;
+            } else {
+                $defaultLocaleStatus = true;
+            }
+
 
             if ($urlFormat !== null || $nestedUrlFormat !== null) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
-                    'enabledByDefault' => null,
+                    'enabledByDefault' => $defaultLocaleStatus,
                     'urlFormat' => $urlFormat,
                     'nestedUrlFormat' => $nestedUrlFormat,
                 ));
