@@ -833,6 +833,18 @@ class TheArchitectService extends BaseApplicationComponent
                     }
                 }
             }
+            if (isset($object->typesettings->defaultUploadLocationSource)) {
+                $assetSource = $this->getSourceByHandle($object->typesettings->defaultUploadLocationSource);
+                if ($assetSource) {
+                    $object->typesettings->defaultUploadLocationSource = $assetSource->id;
+                }
+            }
+            if (isset($object->typesettings->singleUploadLocationSource)) {
+                $assetSource = $this->getSourceByHandle($object->typesettings->singleUploadLocationSource);
+                if ($assetSource) {
+                    $object->typesettings->singleUploadLocationSource = $assetSource->id;
+                }
+            }
         }
         if ($object->type == 'Categories') {
             if (isset($object->typesettings->source)) {
@@ -956,13 +968,21 @@ class TheArchitectService extends BaseApplicationComponent
                 ];
 
                 if ($field->type == 'Assets') {
-                    if ($newField['typesettings']['sources']) {
+                    if ($newField['typesettings']['sources'] !== "*") {
                         foreach ($newField['typesettings']['sources'] as $key => $value) {
                             if (substr($value, 0, 7) == 'folder:') {
                                 $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
                                 $newField['typesettings']['sources'][$key] = $source->handle;
                             }
                         }
+                    }
+                    if ($newField['typesettings']['defaultUploadLocationSource']) {
+                        $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
+                        $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                    }
+                    if ($newField['typesettings']['singleUploadLocationSource']) {
+                        $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
+                        $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
                     }
                 }
 
