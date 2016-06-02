@@ -39,6 +39,20 @@ class TheArchitectService extends BaseApplicationComponent
 
         $this->groups = craft()->fields->getAllGroups();
 
+        // Add Sections from JSON
+        if (isset($result->sections)) {
+            foreach ($result->sections as $section) {
+                $addSectionResult = $this->addSection($section);
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Sections',
+                    'name' => $section->name,
+                    'result' => $addSectionResult[0],
+                    'errors' => $addSectionResult[1],
+                );
+            }
+        }
+
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
@@ -56,20 +70,6 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         $this->fields = craft()->fields->getAllFields();
-
-        // Add Sections from JSON
-        if (isset($result->sections)) {
-            foreach ($result->sections as $section) {
-                $addSectionResult = $this->addSection($section);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Sections',
-                    'name' => $section->name,
-                    'result' => $addSectionResult[0],
-                    'errors' => $addSectionResult[1],
-                );
-            }
-        }
 
         $this->sections = craft()->sections->getAllSections();
 
