@@ -293,8 +293,33 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         // Set Locale Information
+        $locales = [];
+
+        $allLocales = craft()->i18n->getAllLocales();
+        foreach ($allLocales as $locale) {
+            $localeId = $locale->id;
+            if (isset($jsonSection->typesettings->$localeId->urlFormat)) {
+                $urlFormat = $jsonSection->typesettings->$localeId->urlFormat;
+            } else {
+                $urlFormat = null;
+            }
+
+            if (isset($jsonSection->typesettings->$localeId->nestedUrlFormat)) {
+                $nestedUrlFormat = $jsonSection->typesettings->$localeId->nestedUrlFormat;
+            } else {
+                $nestedUrlFormat = null;
+            }
+
+            if ($urlFormat !== null || $nestedUrlFormat !== null) {
+                $locales[$localeId] = new SectionLocaleModel(array(
+                    'locale' => $localeId,
+                    'enabledByDefault' => null,
+                    'urlFormat' => $urlFormat,
+                    'nestedUrlFormat' => $nestedUrlFormat,
+                ));
+            }
+        }
         // Pulled from SectionController.php aprox. Ln 170
-        $locales = array();
         $primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
         $localeIds = array($primaryLocaleId);
         foreach ($localeIds as $localeId) {
@@ -310,12 +335,15 @@ class TheArchitectService extends BaseApplicationComponent
                 $nestedUrlFormat = null;
             }
 
-            $locales[$localeId] = new SectionLocaleModel(array(
-                'locale' => $localeId,
-                'enabledByDefault' => null,
-                'urlFormat' => $urlFormat,
-                'nestedUrlFormat' => $nestedUrlFormat,
-            ));
+
+            if ($urlFormat !== null || $nestedUrlFormat !== null) {
+                $locales[$localeId] = new SectionLocaleModel(array(
+                    'locale' => $localeId,
+                    'enabledByDefault' => null,
+                    'urlFormat' => $urlFormat,
+                    'nestedUrlFormat' => $nestedUrlFormat,
+                ));
+            }
         }
         $section->setLocales($locales);
 
