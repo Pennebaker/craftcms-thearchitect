@@ -982,17 +982,23 @@ class TheArchitectService extends BaseApplicationComponent
                         foreach ($newField['typesettings']['sources'] as $key => $value) {
                             if (substr($value, 0, 7) == 'folder:') {
                                 $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
-                                $newField['typesettings']['sources'][$key] = $source->handle;
+                                if ($source) {
+                                    $newField['typesettings']['sources'][$key] = $source->handle;
+                                }
                             }
                         }
                     }
-                    if ($newField['typesettings']['defaultUploadLocationSource']) {
+                    if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
                         $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
-                        $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                        if ($source) {
+                            $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                        }
                     }
-                    if ($newField['typesettings']['singleUploadLocationSource']) {
+                    if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
                         $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
-                        $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+                        if ($source) {
+                            $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+                        }
                     }
                 }
 
@@ -1000,7 +1006,9 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($newField['typesettings']['source']) {
                         if (substr($newField['typesettings']['source'], 0, 6) == 'group:') {
                             $category = craft()->categories->getGroupById(intval(substr($newField['typesettings']['source'], 6)));
-                            $newField['typesettings']['source'] = $category->handle;
+                            if ($category) {
+                                $newField['typesettings']['source'] = $category->handle;
+                            }
                         }
                     }
                 }
@@ -1009,8 +1017,10 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($newField['typesettings']['sources']) {
                         foreach ($newField['typesettings']['sources'] as $key => $value) {
                             if (substr($value, 0, 8) == 'section:') {
-                                $source = craft()->sections->getSectionById(intval(substr($value, 8)));
-                                $newField['typesettings']['sources'][$key] = $source->handle;
+                                $section = craft()->sections->getSectionById(intval(substr($value, 8)));
+                                if ($section) {
+                                    $newField['typesettings']['sources'][$key] = $section->handle;
+                                }
                             }
                         }
                     }
@@ -1019,8 +1029,10 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($field->type == 'Tags') {
                     if ($newField['typesettings']['source']) {
                         if (substr($newField['typesettings']['source'], 0, 9) == 'taggroup:') {
-                            $category = craft()->tags->getTagGroupById(intval(substr($newField['typesettings']['source'], 9)));
-                            $newField['typesettings']['source'] = $category->handle;
+                            $tag = craft()->tags->getTagGroupById(intval(substr($newField['typesettings']['source'], 9)));
+                            if ($tag) {
+                                $newField['typesettings']['source'] = $tag->handle;
+                            }
                         }
                     }
                 }
@@ -1029,8 +1041,10 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($newField['typesettings']['sources']) {
                         foreach ($newField['typesettings']['sources'] as $key => $value) {
                             if (substr($value, 0, 6) == 'group:') {
-                                $source = craft()->userGroups->getGroupById(intval(substr($value, 6)));
-                                $newField['typesettings']['sources'][$key] = $source->handle;
+                                $userGroup = craft()->userGroups->getGroupById(intval(substr($value, 6)));
+                                if ($userGroup) {
+                                    $newField['typesettings']['sources'][$key] = $userGroup->handle;
+                                }
                             }
                         }
                     }
