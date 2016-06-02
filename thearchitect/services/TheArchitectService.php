@@ -145,11 +145,11 @@ class TheArchitectService extends BaseApplicationComponent
      */
     public function exportConstruct($post)
     {
-        $transforms = [];
-        $globals = [];
-
         list($sections, $entryTypes) = $this->sectionExport($post);
         list($groups, $fields) = $this->fieldExport($post);
+        $sources = $this->assetSourceExport($post);
+        $transforms = $this->transformExport($post);
+        $globals = $this->globalSetExport($post);
 
         // Add all Arrays into the final output array
         $output = [
@@ -157,6 +157,7 @@ class TheArchitectService extends BaseApplicationComponent
             'sections' => $sections,
             'fields' => $fields,
             'entryTypes' => $entryTypes,
+            'sources' => $sources,
             'transforms' => $transforms,
             'globals' => $globals,
         ];
@@ -578,8 +579,8 @@ class TheArchitectService extends BaseApplicationComponent
         // Parse & Set Field Layout if Provided
         if (isset($jsonGlobalSet->fieldLayout)) {
             $requiredFields = [];
-            if (isset($jsonSource->requiredFields)) {
-                foreach ($jsonSource->requiredFields as $requirdField) {
+            if (isset($jsonGlobalSet->requiredFields)) {
+                foreach ($jsonGlobalSet->requiredFields as $requirdField) {
                     array_push($requiredFields, $this->getFieldId($requirdField));
                 }
             }
@@ -763,6 +764,15 @@ class TheArchitectService extends BaseApplicationComponent
         foreach ($userGroups as $key => $userGroup) {
             if ($userGroup->handle === $handle) {
                 return $userGroup;
+            }
+        }
+    }
+
+    private function getTransformById($id) {
+        $transforms = craft()->assetTransforms->getAllTransforms();
+        foreach ($transforms as $key => $transform) {
+            if ($transform->id == $id) {
+                return $transform;
             }
         }
     }
@@ -1090,5 +1100,83 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         return [$groups, $fields];
+    }
+
+    private function assetSourceExport($post) {
+        $sources = [];
+        if (isset($post['assetSourceSelection'])) {
+            foreach ($post['assetSourceSelection'] as $id) {
+                $assetSource = craft()->assetSources->getSourceById($id);
+                if ($assetSource === null) {
+                    continue;
+                }
+                $newAssetSource = [
+                    'name' => $assetSource->name,
+                    'handle' => $assetSource->handle,
+                    'type' => $assetSource->type,
+                    'settings' => $assetSource->settings,
+                    'fieldLayout' => []
+                ];
+
+                foreach ($assetSource->getFieldLayout()->getTabs() as $tab) {
+                    $newAssetSource['fieldLayout'][$tab->name] = [];
+                    foreach ($tab->getFields() as $tabField) {
+                        array_push($newAssetSource['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                    }
+                }
+                array_push($sources, $newAssetSource);
+            }
+        }
+        return $sources;
+    }
+
+    private function transformExport($post) {
+        $transforms = [];
+        if (isset($post['assetTransformSelection'])) {
+            foreach ($post['assetTransformSelection'] as $id) {
+                $transform = $this->getTransformById($id);
+                if ($transform === null) {
+                    continue;
+                }
+                $newTransform = [
+                    'name' => $transform->name,
+                    'handle' => $transform->handle,
+                    'mode' => $transform->mode,
+                    'position' => $transform->position,
+                    'width' => $transform->width,
+                    'height' => $transform->height,
+                    'quality' => $transform->quality,
+                    'format' => $transform->format
+                ];
+                array_push($transforms, $newTransform);
+            }
+        }
+        return $transforms;
+    }
+
+    private function globalSetExport($post) {
+        $globals = [];
+        if (isset($post['globalSelection'])) {
+            foreach ($post['globalSelection'] as $id) {
+                $globalSet = craft()->globals->getSetById($id);
+                if ($globalSet === null) {
+                    continue;
+                }
+                $newGlobalSet = [
+                    'name' => $globalSet->name,
+                    'handle' => $globalSet->handle,
+                    'fieldLayout' => []
+                ];
+
+                foreach ($globalSet->getFieldLayout()->getTabs() as $tab) {
+                    $newGlobalSet['fieldLayout'][$tab->name] = [];
+                    foreach ($tab->getFields() as $tabField) {
+                        array_push($newGlobalSet['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                    }
+                }
+                array_push($globals, $newGlobalSet);
+            }
+        }
+        return $globals;
     }
 }
