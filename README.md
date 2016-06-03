@@ -12,3 +12,6 @@ Example files can be found in the `library` directory
 The example / syntax schemas are located on the [Repo's Wiki](https://github.com/Pennebaker/craftcms-thearchitect/wiki)
 
 If you're using the [Atom text editor](https://atom.io/), you can download a [snippet library](https://github.com/Emkaytoo/craft-json-snippets) to help speed up your writing custom models for the plugin.
+
+## Field Layouts using names instead of handles
+If you have some field layouts that use names this functionality was dropped in version 1.0.3. Alternatively you can update your old models to use handles to fix them for newer versions.
