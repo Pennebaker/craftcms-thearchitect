@@ -836,10 +836,12 @@ class TheArchitectService extends BaseApplicationComponent
         }
         if ($object->type == 'Assets') {
             if (isset($object->typesettings->sources)) {
-                foreach ($object->typesettings->sources as $k => &$v) {
-                    $assetSource = $this->getSourceByHandle($v);
-                    if ($assetSource) {
-                        $v = 'folder:'.$assetSource->id;
+                if (gettype($object->typesettings->sources) == 'array') {
+                    foreach ($object->typesettings->sources as $k => &$v) {
+                        $assetSource = $this->getSourceByHandle($v);
+                        if ($assetSource) {
+                            $v = 'folder:'.$assetSource->id;
+                        }
                     }
                 }
             }
