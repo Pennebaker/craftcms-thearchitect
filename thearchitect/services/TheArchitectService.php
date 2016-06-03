@@ -53,6 +53,23 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
+        // Add Asset Sources from JSON
+        if (isset($result->sources)) {
+            foreach ($result->sources as $key => $source) {
+                $assetSourceResult = $this->addAssetSource($source);
+                if ($assetSourceResult[0] === false) {
+                    unset($result->sources[$key]);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Asset Source',
+                    'name' => $source->name,
+                    'result' => $assetSourceResult[0],
+                    'errors' => $assetSourceResult[1],
+                );
+            }
+        }
+
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
@@ -70,6 +87,20 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         $this->fields = craft()->fields->getAllFields();
+
+        // Set Asset Source Field Layouts from JSON
+        if (isset($result->sources)) {
+            foreach ($result->sources as $source) {
+                $assetSourceResult = $this->setAssetSourceFieldLayout($source);
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Asset Source Field Layout',
+                    'name' => $source->name,
+                    'result' => $assetSourceResult[0],
+                    'errors' => $assetSourceResult[1],
+                );
+            }
+        }
 
         $this->sections = craft()->sections->getAllSections();
 
@@ -93,21 +124,7 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
-        // Add Entry Types from JSON
-        if (isset($result->sources)) {
-            foreach ($result->sources as $source) {
-                $assetSourceResult = $this->addAssetSource($source);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Asset Source',
-                    'name' => $source->name,
-                    'result' => $assetSourceResult[0],
-                    'errors' => $assetSourceResult[1],
-                );
-            }
-        }
-
-        // Add Entry Types from JSON
+        // Add Transforms from JSON
         if (isset($result->transforms)) {
             foreach ($result->transforms as $transform) {
                 // Append Notice to Display Results
@@ -120,7 +137,7 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
-        // Add Entry Types from JSON
+        // Add Globals from JSON
         if (isset($result->globals)) {
             foreach ($result->globals as $global) {
                 // Append Notice to Display Results
@@ -410,6 +427,11 @@ class TheArchitectService extends BaseApplicationComponent
             $entryType->titleFormat = $jsonEntryType->titleFormat;
         }
 
+        $problemFields = $this->checkFieldLayout($jsonEntryType->fieldLayout);
+        if ($problemFields !== ["handle"=>[]]) {
+            return [false, $problemFields];
+        }
+
         // Parse & Set Field Layout if Provided
         if (isset($jsonEntryType->fieldLayout)) {
             $requiredFields = [];
@@ -458,6 +480,39 @@ class TheArchitectService extends BaseApplicationComponent
         // Convert Object to Array for saving
         $source->settings = json_decode(json_encode($jsonSource->settings), true);
 
+        // Save Asset Source to DB
+        if (craft()->assetSources->saveSource($source)) {
+            return [true, null];
+        } else {
+            return [false, $source->getErrors()];
+        }
+    }
+
+    /**
+     * addAssetSource.
+     *
+     * @param ArrayObject $jsonSection
+     *
+     * @return bool [success]
+     */
+    public function setAssetSourceFieldLayout($jsonSource)
+    {
+        // Set handle if it was provided
+        if (isset($jsonSource->handle)) {
+            $handle = $jsonSource->handle;
+        }
+        // Construct handle if one wasn't provided
+        else {
+            $handle = $this->constructHandle($jsonSource->name);
+        }
+
+        $source = $this->getSourceByHandle($handle);
+
+        $problemFields = $this->checkFieldLayout($jsonSource->fieldLayout);
+        if ($problemFields !== ["handle"=>[]]) {
+            return [false, $problemFields];
+        }
+
         // Parse & Set Field Layout if Provided
         if (isset($jsonSource->fieldLayout)) {
             $requiredFields = [];
@@ -477,6 +532,20 @@ class TheArchitectService extends BaseApplicationComponent
         } else {
             return [false, $source->getErrors()];
         }
+    }
+
+    private function checkFieldLayout($fieldLayout) {
+        $problemFields = [];
+        $problemFields["handle"] = [];
+        foreach ($fieldLayout as $tab => $fields) {
+            foreach ($fields as $fieldHandle) {
+                $field = craft()->fields->getFieldByHandle($fieldHandle);
+                if ($field === null) {
+                    array_push($problemFields["handle"], 'Handle "' . $fieldHandle . '" is not a valid field.');
+                }
+            }
+        }
+        return $problemFields;
     }
 
     /**
@@ -574,6 +643,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Construct handle if one wasn't provided
         else {
             $globalSet->handle = $this->constructHandle($jsonGlobalSet->name);
+        }
+
+        $problemFields = $this->checkFieldLayout($jsonGlobalSet->fieldLayout);
+        if ($problemFields !== ["handle"=>[]]) {
+            return [false, $problemFields];
         }
 
         // Parse & Set Field Layout if Provided
