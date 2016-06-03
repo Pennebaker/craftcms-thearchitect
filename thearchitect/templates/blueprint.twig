@@ -32,7 +32,7 @@
                 <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
                     <th scope="row" class="name">
                         <div class="field checkboxfield">
-                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
+                            <input type="checkbox" id="field{{ field.id }}" class="checkbox{% if field.type == 'SuperTable' %} disabled" disabled="{% endif %}" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
                         </div>
                     </th>
                     <td>
