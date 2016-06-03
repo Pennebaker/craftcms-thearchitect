@@ -1053,8 +1053,17 @@ class TheArchitectService extends BaseApplicationComponent
                 }
 
                 if ($field->type == 'Neo') {
-                    $blockTypes = craft()->neo->getBlockTypesByFieldId($id);
+                    $neoGroups = craft()->neo->getGroupsByFieldId($id);
+                    $newField['typesettings']['groups']['name'] = [];
+                    $newField['typesettings']['groups']['sortOrder'] = [];
+                    foreach ($neoGroups as $group) {
+                        array_push($newField['typesettings']['groups']['name'], $group->name);
+                        array_push($newField['typesettings']['groups']['sortOrder'], $group->sortOrder);
+                    }
+
                     $blockCount = 0;
+
+                    $blockTypes = craft()->neo->getBlockTypesByFieldId($id);
                     foreach ($blockTypes as $blockType) {
                         $newField['typesettings']['blockTypes']['new'.$blockCount] = [
                             'sortOrder' => $blockType->sortOrder,
