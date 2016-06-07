@@ -1,4 +1,4 @@
-![Alt text](/tgearcgutect.jpg?raw=true "The Architect")
+![Alt text](/thearchitect.jpg?raw=true "The Architect")
 # The Architect for [Craft CMS](http://buildwithcraft.com/)
 
 CraftCMS Plugin to Construct Groups, Fields, Sections and Assets from JSON data.
