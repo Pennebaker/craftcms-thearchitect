@@ -16,3 +16,5 @@ If you're using the [Atom text editor](https://atom.io/), you can download a [sn
 
 ## Field Layouts using names instead of handles
 If you have some field layouts that use names this functionality was dropped in version 1.0.3. Alternatively you can update your old models to use handles to fix them for newer versions.
+
+*Special thanks to [Shannon Threadgill](https://dribbble.com/threadgillthunder) for his totally boss illustrations.*
