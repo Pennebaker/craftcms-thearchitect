@@ -1,0 +1,73 @@
+[
+	{
+		"version": "1.2.1",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.2.1.zip",
+		"date": "2016-06-08T08:47:58-05:00",
+		"notes": [
+			"[Change] Disable checkbox for SuperTables since they do not export correctly.",
+			"[Improvement] Plugin Icons"
+		]
+	},
+	{
+		"version": "1.2.0",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.2.0.zip",
+		"date": "2016-06-03T12:08:30-05:00",
+		"notes": [
+			"[Improvement] Import assets and set field layouts in a specific order to allow fields that reference assets to be imported while allowing assets to reference fields itself.",
+            "[Feature] Check field layouts for missing fields to prevent database errors from craft."
+		]
+	},
+	{
+		"version": "1.1.2",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.1.2.zip",
+		"date": "2016-06-03T11:17:44-05:00",
+		"notes": [
+			"[Fixed] Assets sources bug when sources is \"*\" instead of an array.",
+            "[Fixed] Neo field export missing groups."
+		]
+	},
+	{
+		"version": "1.1.1",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.1.1.zip",
+		"date": "2016-06-02T11:30:12-05:00",
+		"notes": [
+			"[Improvement] Import Sections before fields"
+		]
+	},
+	{
+		"version": "1.1.0",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.1.0.zip",
+		"date": "2016-06-02T11:19:19-05:00",
+		"notes": [
+			"[Added] Exporting of sections",
+            "[Added] Exporting of sources",
+            "[Added] Exporting of transforms",
+            "[Added] Exporting of globals"
+		]
+	},
+	{
+		"version": "1.0.2",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.0.2.zip",
+		"date": "2016-06-01T11:50:29-05:00",
+		"notes": [
+			"[Improvement] JSON_NUMERIC_CHECK flag for json_encode"
+		]
+	},
+	{
+		"version": "1.0.1",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.0.1.zip",
+		"date": "2016-06-01T10:27:56-05:00",
+		"notes": [
+			"[Added] getReleaseFeedUrl defined for craft update notifications about plugin"
+		]
+	},
+	{
+		"version": "1.0.1",
+		"downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.0.1.zip",
+		"date": "2016-06-01T10:24:15-05:00",
+		"notes": [
+			"[Added] Import and construct fields",
+            "[Feature] Exporting of fields"
+		]
+	}
+]
