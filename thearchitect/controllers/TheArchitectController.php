@@ -31,6 +31,9 @@ class TheArchitectController extends BaseController
             'assetTransforms' => craft()->assetTransforms->getAllTransforms(),
         );
 
+        craft()->templates->includeJsResource('thearchitect/js/thearchitect.js');
+        craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
+
         $this->renderTemplate('thearchitect/blueprint', $variables);
     }
 

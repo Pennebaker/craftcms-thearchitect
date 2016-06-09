@@ -21,13 +21,18 @@
         <table class="data fullwidth collapsible">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allFields" class="checkbox" name="allFields" value="all"><label for="allFields"></label>
+                            Name
+                        </div>
+                    </th>
                     <th>Handle</th>
                     <th>Type</th>
                     <th>Group</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="fields">
                 {% for field in craft.fields.getAllFields() %}
                 <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
                     <th scope="row" class="name">
@@ -53,13 +58,18 @@
         <table class="data fullwidth collapsible">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allSections" class="checkbox" name="allSections" value="all"><label for="allSections"></label>
+                            Name
+                        </div>
+                    </th>
                     <th>Handle</th>
                     <th>Type</th>
                     <th>URL Format</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="sections">
                 {% for section in craft.sections.getAllSections() %}
                 <tr class="section" data-id="{{ section.id }}" data-name="{{ section }}">
                     <th scope="row" class="name">
@@ -85,12 +95,17 @@
         <table class="data fullwidth collapsible">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allAssetSources" class="checkbox" name="allAssetSources" value="all"><label for="allAssetSources"></label>
+                            Name
+                        </div>
+                    </th>
                     <th>Handle</th>
                     <th>Type</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="assetSources">
                 {% for assetSource in assetSources %}
                 <tr>
                     <th scope="row" class="name">
@@ -111,14 +126,19 @@
         <table class="data fullwidth collapsible">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allAssetTransforms" class="checkbox" name="allAssetTransforms" value="all"><label for="allAssetTransforms"></label>
+                            Name
+                        </div>
+                    </th>
                     <th>Handle</th>
                     <th>Mode</th>
                     <th>Dimensions</th>
                     <th>Format</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="assetTransforms">
                 {% for assetTransform in assetTransforms %}
                 <tr>
                     <th scope="row" class="name">
@@ -145,11 +165,16 @@
         <table class="data fullwidth collapsible">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allGlobals" class="checkbox" name="allGlobals" value="all"><label for="allGlobals"></label>
+                            Name
+                        </div>
+                    </th>
                     <th>Handle</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="globals">
                 {% for global in craft.globals.getAllSets() %}
                 <tr>
                     <th scope="row" class="name">
