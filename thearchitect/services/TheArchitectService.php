@@ -190,6 +190,124 @@ class TheArchitectService extends BaseApplicationComponent
     }
 
     /**
+     * exportMatrixAsNeo
+     *
+     * @param array $post
+     *
+     * @return array [output, allFields, fields, similarFields]
+     */
+    public function exportMatrixAsNeo($post) {
+
+        $export = $this->exportConstruct($post);
+
+        // Converting arrays to objects.
+        $json = json_encode($export, JSON_NUMERIC_CHECK);
+
+        $object = json_decode($json);
+
+        $newObject = clone $object;
+        $newObject->fields = [];
+
+        $fields = [];
+        $allFields = [];
+        $addedMatrixFields = [];
+
+        $fieldLinks = [];
+        $similarFields = [];
+
+        foreach ($object->fields as $fieldId => $field) {
+            if ($field->type == 'Matrix') {
+                $currentGroup = $field->group;
+                $maxCount = 0;
+                foreach ($field->typesettings->blockTypes as $blockId => $block) {
+                    foreach ($block->fields as $blockFieldId => $blockField) {
+                        $allFields[] = $blockField;
+                        $fieldLoc = array_search($blockField, $fields);
+                        for ($i=0; $i < $maxCount; $i++) {
+                            if ($fieldLoc !== false) {
+                                break;
+                            }
+                            $testBlockField = clone $blockField;
+                            $testBlockField->handle = $blockField->handle . '_' . $i;
+                            $fieldLoc = array_search($testBlockField, $fields);
+                            if ($fieldLoc !== false) {
+                                $blockField->handle = $testBlockField->handle;;
+                            }
+                        }
+                        if ($fieldLoc === false) {
+                            if ($this->hasHandle($blockField->handle, $fields)) {
+                                $count = 0;
+                                $originalHandle = $blockField->handle;
+                                while ($this->hasHandle($blockField->handle, $fields)) {
+                                    $blockField->handle = $originalHandle . '_' . $count;
+                                    $count++;
+                                }
+                                if ($count > $maxCount) {
+                                    $maxCount = $count;
+                                }
+                            }
+                            $fields[] = $blockField;
+                        }
+                    }
+                }
+                foreach ($fields as $fAId => $fieldA) {
+                    foreach ($fields as $fBId => $fieldB) {
+                        if ($fieldA != $fieldB && !(isset($fieldLinks[$fBId]) && $fieldLinks[$fBId] == $fAId)) {
+                            if ($fieldA->type == $fieldB->type) {
+                                if ($fieldA->typesettings == $fieldB->typesettings) {
+                                    $fieldLinks[$fAId] = $fBId;
+                                    $similarFields[] = [
+                                        'A' => json_encode($fieldA, JSON_PRETTY_PRINT),
+                                        'B' => json_encode($fieldB, JSON_PRETTY_PRINT)
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+                // Append the fields to the new exported fields section. If they don't already exist there.
+                foreach ($fields as $addField) {
+                    if ($addField->type != 'Matrix') {
+                        $addField->group = $currentGroup;
+                        if (!$this->hasHandle($addField->handle, $newObject->fields)) {
+                            $newObject->fields[] = clone $addField;
+                        }
+                    }
+                }
+                // Add the current matrix field as a Neo field to the new exported fields section.
+                $addedMatrixFields[] = $field->handle;
+                $newField = clone $field;
+                $newField->type = 'Neo';
+                $newField->typesettings = [ "maxBlocks" => $field->typesettings->maxBlocks, "groups" => [], "blockTypes" => [] ];
+                $count = 0;
+                foreach ($field->typesettings->blockTypes as $blockId => $block) {
+                    $blockFields = [];
+                    $requiredFields = [];
+                    foreach ($block->fields as $blockField) {
+                        $blockFields[] = $blockField->handle;
+                        if ($blockField->required) {
+                            $requiredFields[] = $blockField->handle;
+                        }
+                    }
+                    $newField->typesettings['blockTypes']["new".$count] = [
+                        "sortOrder" => strval($count+1),
+                        "name" => $block->name,
+                        "handle" => $block->handle,
+                        "maxBlocks" => "",
+                        "childBlocks" => [],
+                        "topLevel" => true,
+                        "fieldLayout" => [ "Tab" => $blockFields ],
+                        "requiredFields" => $requiredFields
+                    ];
+                    $count++;
+                }
+                $newObject->fields[] = $newField;
+            }
+        }
+        return [$newObject, $allFields, $fields, $similarFields];
+    }
+
+    /**
      * addGroup.
      *
      * @param string $name []
@@ -862,6 +980,15 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
         return $object;
+    }
+
+    private function hasHandle($handle, $fields) {
+        foreach ($fields as $field) {
+            if ($field->handle == $handle) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function replaceSourcesHandles(&$object)

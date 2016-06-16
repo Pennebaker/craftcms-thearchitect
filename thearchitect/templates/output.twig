@@ -18,6 +18,9 @@
     <p>
         To import this json back into Craft you will need the <a href="https://github.com/benjamminf/craft-neo" target="_blank">Neo Plugin</a> installed.
     </p>
+    <p>
+        {{ oldFieldCount }} fields found in matrix field(s) reduced to {{ newFieldCount }} fields used by Neo
+    </p>
     {% endif %}
     {# Text Area for Output Data #}
     {{ forms.textarea({
@@ -28,5 +31,8 @@
         autofocus: true,
         rows: 24
     }) }}
+    <pre>
+        {{ dump(similarFields) }}
+    </pre>
 
 {% endset %}
