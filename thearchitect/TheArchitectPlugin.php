@@ -23,7 +23,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getVersion()
     {
-        return '1.2.3';
+        return '1.3.0';
     }
 
     /**
@@ -88,6 +88,7 @@ class TheArchitectPlugin extends BasePlugin
         return array(
             'thearchitect/files' => array('action' => 'theArchitect/constructList'),
             'thearchitect/blueprint' => array('action' => 'theArchitect/blueprint'),
+            'thearchitect/convert' => array('action' => 'theArchitect/convert'),
         );
     }
 }

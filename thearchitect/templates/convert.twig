@@ -1,0 +1,64 @@
+{% extends "_layouts/cp" %}
+{% set title = "The Architect"|t %}
+
+{% import "_includes/forms" as forms %}
+
+{% set tabs = {
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
+    tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Matrix Conversion"|t, url: url('thearchitect/convert') },
+} %}
+
+{% set selectedTab = 'tab4' %}
+
+{% set content %}
+    <p>
+        The exported model will need the <a href="https://github.com/benjamminf/craft-neo" target="_blank">Neo Plugin</a> installed on that Craft instance.
+    </p>
+
+    <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
+        <input type="hidden" name="action" value="theArchitect/recode">
+        {{ getCsrfInput() }}
+        <h1>Matrix Fields</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allFields" class="checkbox" name="allFields" value="all"><label for="allFields"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Handle</th>
+                    <th>Group</th>
+                </tr>
+            </thead>
+            <tbody class="fields">
+                {% for field in craft.fields.getAllFields() %}
+                {% if field.type == 'Matrix' %}
+                <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
+                    <th scope="row" class="name">
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
+                        </div>
+                    </th>
+                    <td>
+                        <code>{{ field.handle }}</code>
+                    </td>
+                    <td>
+                        {{ field.group }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <div class="buttons">
+            <input type="submit" class="btn submit export-btn" value="Convert Selected">
+            <input type="submit" class="btn submit disabled export-btn" disabled="" value="Convert All">
+        </div>
+    </form>
+
+{% endset %}

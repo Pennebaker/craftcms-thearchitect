@@ -7,13 +7,12 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Matrix Conversion"|t, url: url('thearchitect/convert') },
 } %}
 
 {% set selectedTab = 'tab3' %}
 
 {% set content %}
-    <h2>Export functionality is in early stages at the time and only supports Fields and Sections.</h2>
-
     <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
         <input type="hidden" name="action" value="theArchitect/constructblueprint">
         {{ getCsrfInput() }}

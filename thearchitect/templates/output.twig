@@ -7,12 +7,18 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Matrix Conversion"|t, url: url('thearchitect/convert') },
 } %}
 
-{% set selectedTab = 'tab3' %}
+{% set selectedTab = tab %}
 
 {% set content %}
 
+    {% if selectedTab == 'tab4' %}
+    <p>
+        To import this json back into Craft you will need the <a href="https://github.com/benjamminf/craft-neo" target="_blank">Neo Plugin</a> installed.
+    </p>
+    {% endif %}
     {# Text Area for Output Data #}
     {{ forms.textarea({
         name: 'json',

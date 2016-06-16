@@ -38,7 +38,7 @@ class TheArchitectController extends BaseController
     }
 
     /**
-     * actionConstructBlueprint [ TODO ].
+     * actionConstructBlueprint.
      */
     public function actionConstructBlueprint()
     {
@@ -57,10 +57,153 @@ class TheArchitectController extends BaseController
         else {
             $variables = array(
                 'json' => json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT),
+                'tab' => 'tab3',
             );
 
             $this->renderTemplate('thearchitect/output', $variables);
         }
+    }
+
+    /**
+     * actionBlueprint [list the exportable items].
+     */
+    public function actionConvert()
+    {
+        $variables = array(
+            'assetSources' => craft()->assetSources->getAllSources(),
+            'assetTransforms' => craft()->assetTransforms->getAllTransforms(),
+        );
+
+        craft()->templates->includeJsResource('thearchitect/js/thearchitect.js');
+        craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
+
+        $this->renderTemplate('thearchitect/convert', $variables);
+    }
+
+    /**
+     * actionConvert [ TODO ].
+     */
+    public function actionRecode()
+    {
+        // Prevent GET Requests
+        $this->requirePostRequest();
+
+        $post = craft()->request->getPost();
+
+        $export = craft()->theArchitect->exportConstruct($post);
+        // Converting arrays to objects.
+        $json = json_encode($export, JSON_NUMERIC_CHECK);
+        $object = json_decode($json);
+
+        $newObject = clone $object;
+        $newObject->fields = [];
+
+        foreach ($object->fields as $fieldId => $field) {
+            if ($field->type == 'Matrix') {
+                $fields = [];
+                $allFields = [];
+                $currentGroup = $field->group;
+                $maxCount = 0;
+                foreach ($field->typesettings->blockTypes as $blockId => $block) {
+                    foreach ($block->fields as $blockFieldId => $blockField) {
+                        $allFields[] = $blockField;
+                        $fieldLoc = array_search($blockField, $fields);
+                        for ($i=0; $i < $maxCount; $i++) {
+                            if ($fieldLoc !== false) {
+                                break;
+                            }
+                            $testBlockField = clone $blockField;
+                            $testBlockField->handle = $blockField->handle . '_' . $i;
+                            $fieldLoc = array_search($testBlockField, $fields);
+                            if ($fieldLoc !== false) {
+                                $blockField->handle = $testBlockField->handle;;
+                            }
+                        }
+                        if ($fieldLoc === false) {
+                            if ($this->hasHandle($blockField->handle, $fields)) {
+                                $count = 0;
+                                $originalHandle = $blockField->handle;
+                                while ($this->hasHandle($blockField->handle, $fields)) {
+                                    $blockField->handle = $originalHandle . '_' . $count;
+                                    $count++;
+                                }
+                                if ($count > $maxCount) {
+                                    $maxCount = $count;
+                                }
+                            }
+                            $fields[] = $blockField;
+                        }
+                    }
+                }
+                $fieldLinks = [];
+                foreach ($fields as $fAId => $fieldA) {
+                    foreach ($fields as $fBId => $fieldB) {
+                        if ($fieldA != $fieldB && !(isset($fieldLinks[$fBId]) && $fieldLinks[$fBId] == $fAId)) {
+                            if ($fieldA->type == $fieldB->type) {
+                                if ($fieldA->typesettings == $fieldB->typesettings) {
+                                    $fieldLinks[$fAId] = $fBId;
+                                    // print 'found similar fields' . "\n";
+                                    // print '<table><tr><td><pre style="margin:0 10px;padding:5px 10px;background-color:#eee;">' . json_encode($fieldA, JSON_PRETTY_PRINT) . '</pre></td><td><pre style="margin:0 10px;padding:5px 10px;background-color:#eee;">' . json_encode($fieldB, JSON_PRETTY_PRINT) . '</pre></td></tr></table>';
+                                }
+                            }
+                        }
+                    }
+                }
+                // print '<pre>';
+                // print 'Found ' . sizeof($allFields) . ' Fields' . "\n";
+                // print 'Reduced to ' . sizeof($fields) . ' Fields';
+                // print '</pre>';
+                foreach ($fields as $field) {
+                    $field->group = $currentGroup;
+                    $newObject->fields[] = $field;
+                }
+                foreach ($object->fields as $fieldId => $field) {
+                    if ($field->type == 'Matrix') {
+                        $newField = clone $field;
+                        $newField->type = 'Neo';
+                        $newField->typesettings = [ "maxBlocks" => $field->typesettings->maxBlocks, "groups" => [], "blockTypes" => [] ];
+                        $count = 0;
+                        foreach ($field->typesettings->blockTypes as $blockId => $block) {
+                            $blockFields = [];
+                            $requiredFields = [];
+                            foreach ($block->fields as $blockField) {
+                                $blockFields[] = $blockField->handle;
+                                if ($blockField->required) {
+                                    $requiredFields[] = $blockField->handle;
+                                }
+                            }
+                            $newField->typesettings['blockTypes']["new".$count] = [
+                                "sortOrder" => strval($count+1),
+                                "name" => $block->name,
+                                "handle" => $block->handle,
+                                "maxBlocks" => "",
+                                "childBlocks" => [],
+                                "topLevel" => true,
+                                "fieldLayout" => [ "Tab" => $blockFields ],
+                                "requiredFields" => $requiredFields
+                            ];
+                            $count++;
+                        }
+                        $newObject->fields[] = $newField;
+                    }
+                }
+                $variables = array(
+                    'json' => json_encode($newObject, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT),
+                    'tab' => 'tab4',
+                );
+
+                $this->renderTemplate('thearchitect/output', $variables);
+            }
+        }
+    }
+
+    private function hasHandle($handle, $fields) {
+        foreach ($fields as $field) {
+            if ($field->handle == $handle) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
