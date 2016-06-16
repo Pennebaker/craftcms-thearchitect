@@ -886,6 +886,13 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
+
+                    foreach ($blockType->requiredFields as &$fieldHandle) {
+                        $field = craft()->fields->getFieldByHandle($fieldHandle);
+                        if ($field !== null) {
+                            $fieldHandle = $field->id;
+                        }
+                    }
                 }
             }
         }
@@ -1053,78 +1060,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'typesettings' => $field->settings,
                 ];
 
-                if ($field->type == 'Assets') {
-                    if ($newField['typesettings']['sources'] !== "*") {
-                        foreach ($newField['typesettings']['sources'] as $key => $value) {
-                            if (substr($value, 0, 7) == 'folder:') {
-                                $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
-                                if ($source) {
-                                    $newField['typesettings']['sources'][$key] = $source->handle;
-                                }
-                            }
-                        }
-                    }
-                    if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
-                        $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
-                        if ($source) {
-                            $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
-                        }
-                    }
-                    if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
-                        $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
-                        if ($source) {
-                            $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
-                        }
-                    }
-                }
-
-                if ($field->type == 'Categories') {
-                    if ($newField['typesettings']['source']) {
-                        if (substr($newField['typesettings']['source'], 0, 6) == 'group:') {
-                            $category = craft()->categories->getGroupById(intval(substr($newField['typesettings']['source'], 6)));
-                            if ($category) {
-                                $newField['typesettings']['source'] = $category->handle;
-                            }
-                        }
-                    }
-                }
-
-                if ($field->type == 'Entries') {
-                    if ($newField['typesettings']['sources']) {
-                        foreach ($newField['typesettings']['sources'] as $key => $value) {
-                            if (substr($value, 0, 8) == 'section:') {
-                                $section = craft()->sections->getSectionById(intval(substr($value, 8)));
-                                if ($section) {
-                                    $newField['typesettings']['sources'][$key] = $section->handle;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if ($field->type == 'Tags') {
-                    if ($newField['typesettings']['source']) {
-                        if (substr($newField['typesettings']['source'], 0, 9) == 'taggroup:') {
-                            $tag = craft()->tags->getTagGroupById(intval(substr($newField['typesettings']['source'], 9)));
-                            if ($tag) {
-                                $newField['typesettings']['source'] = $tag->handle;
-                            }
-                        }
-                    }
-                }
-
-                if ($field->type == 'Users') {
-                    if ($newField['typesettings']['sources']) {
-                        foreach ($newField['typesettings']['sources'] as $key => $value) {
-                            if (substr($value, 0, 6) == 'group:') {
-                                $userGroup = craft()->userGroups->getGroupById(intval(substr($value, 6)));
-                                if ($userGroup) {
-                                    $newField['typesettings']['sources'][$key] = $userGroup->handle;
-                                }
-                            }
-                        }
-                    }
-                }
+                $this->parseFieldSources($field, $newField);
 
                 if ($field->type == 'Neo') {
                     $neoGroups = craft()->neo->getGroupsByFieldId($id);
@@ -1177,6 +1113,7 @@ class TheArchitectService extends BaseApplicationComponent
                                 'type' => $blockField->type,
                                 'typesettings' => $blockField->settings,
                             ];
+                            $this->parseFieldSources($blockField, $newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount]);
                             ++$fieldCount;
                         }
                         ++$blockCount;
@@ -1199,6 +1136,108 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         return [$groups, $fields];
+    }
+
+    private function parseFieldSources(&$field, &$newField) {
+        if ($field->type == 'Assets') {
+            if ($newField['typesettings']['sources'] !== "*") {
+                foreach ($newField['typesettings']['sources'] as $key => $value) {
+                    if (substr($value, 0, 7) == 'folder:') {
+                        $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
+                        if ($source) {
+                            $newField['typesettings']['sources'][$key] = $source->handle;
+                        }
+                    }
+                }
+            }
+            if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
+                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
+                if ($source) {
+                    $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                }
+            }
+            if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
+                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
+                if ($source) {
+                    $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+                }
+            }
+        }
+
+        if ($field->type == 'RichText') {
+            if ($newField['typesettings']['availableAssetSources'] !== "*") {
+                foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
+                    $source = craft()->assetSources->getSourceById($value);
+                    if ($source) {
+                        $newField['typesettings']['availableAssetSources'][$key] = $source->handle;
+                    }
+                }
+            }
+            if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
+                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
+                if ($source) {
+                    $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                }
+            }
+            if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
+                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
+                if ($source) {
+                    $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+                }
+            }
+        }
+
+        if ($field->type == 'Categories') {
+            if ($newField['typesettings']['source']) {
+                if (substr($newField['typesettings']['source'], 0, 6) == 'group:') {
+                    $category = craft()->categories->getGroupById(intval(substr($newField['typesettings']['source'], 6)));
+                    if ($category) {
+                        $newField['typesettings']['source'] = $category->handle;
+                    }
+                }
+            }
+        }
+
+        if ($field->type == 'Entries') {
+            if ($newField['typesettings']['sources']) {
+                if (is_array($newField['typesettings']['sources'])) {
+                    foreach ($newField['typesettings']['sources'] as $key => $value) {
+                        if (substr($value, 0, 8) == 'section:') {
+                            $section = craft()->sections->getSectionById(intval(substr($value, 8)));
+                            if ($section) {
+                                $newField['typesettings']['sources'][$key] = $section->handle;
+                            }
+                        }
+                    }
+                } else if ($newField['typesettings']['sources'] == '*') {
+                    $newField['typesettings']['sources'] = [];
+                }
+            }
+        }
+
+        if ($field->type == 'Tags') {
+            if ($newField['typesettings']['source']) {
+                if (substr($newField['typesettings']['source'], 0, 9) == 'taggroup:') {
+                    $tag = craft()->tags->getTagGroupById(intval(substr($newField['typesettings']['source'], 9)));
+                    if ($tag) {
+                        $newField['typesettings']['source'] = $tag->handle;
+                    }
+                }
+            }
+        }
+
+        if ($field->type == 'Users') {
+            if ($newField['typesettings']['sources']) {
+                foreach ($newField['typesettings']['sources'] as $key => $value) {
+                    if (substr($value, 0, 6) == 'group:') {
+                        $userGroup = craft()->userGroups->getGroupById(intval(substr($value, 6)));
+                        if ($userGroup) {
+                            $newField['typesettings']['sources'][$key] = $userGroup->handle;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private function assetSourceExport($post) {
