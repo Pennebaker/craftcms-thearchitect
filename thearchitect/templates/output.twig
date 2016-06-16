@@ -34,5 +34,32 @@
         autofocus: true,
         rows: 24
     }) }}
+    {% if similarFields | length %}
+    <h2>Found some similar fields you might want to look at and combine manually.</h2>
+    <table class="data fullwidth collapsible">
+        <thead>
+            <tr>
+                <th scope="col">
+                    Field A
+                </th>
+                <th scope="col">
+                    Field B
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fields in similarFields %}
+            <tr>
+                <td>
+                    <pre class="text nicetext code" style="white-space: pre-wrap;">{{ fields.A }}</pre>
+                </td>
+                <td>
+                    <pre class="text nicetext code" style="white-space: pre-wrap;">{{ fields.B }}</pre>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 
 {% endset %}

@@ -250,12 +250,17 @@ class TheArchitectService extends BaseApplicationComponent
                         }
                     }
                 }
-                foreach ($fields as $fAId => $fieldA) {
-                    foreach ($fields as $fBId => $fieldB) {
-                        if ($fieldA != $fieldB && !(isset($fieldLinks[$fBId]) && $fieldLinks[$fBId] == $fAId)) {
+                foreach ($fields as $fieldA) {
+                    $fAId = $fieldA->handle;
+                    foreach ($fields as $fieldB) {
+                        $fBId = $fieldB->handle;
+                        if ($fieldA != $fieldB && !(in_array([$fAId,$fBId], $fieldLinks) || in_array([$fBId,$fAId], $fieldLinks))) {
                             if ($fieldA->type == $fieldB->type) {
                                 if ($fieldA->typesettings == $fieldB->typesettings) {
-                                    $fieldLinks[$fAId] = $fBId;
+                                    $fieldLinks[] = [
+                                        $fAId,
+                                        $fBId
+                                    ];
                                     $similarFields[] = [
                                         'A' => json_encode($fieldA, JSON_PRETTY_PRINT),
                                         'B' => json_encode($fieldB, JSON_PRETTY_PRINT)
