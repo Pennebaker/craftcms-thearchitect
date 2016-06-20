@@ -34,7 +34,7 @@
         autofocus: true,
         rows: 24
     }) }}
-    {% if similarFields | length %}
+    {% if similarFields is defined and similarFields | length %}
     <h2>Found some similar fields you might want to look at and combine manually.</h2>
     <table id="similarFields" class="data fullwidth collapsible">
         <thead>
