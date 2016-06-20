@@ -83,6 +83,28 @@ $(function() {
       $('#allGlobals').prop('checked', false);
     }
   });
+
+  $('#similarFields tbody tr').each(function() {
+    var leftEle = $(this).find('td:first-child > pre');
+    var rightEle = $(this).find('td:last-child > pre');
+
+    var leftStr = leftEle.html();
+    var rightStr = rightEle.html();
+
+    var diff = JsDiff.diffLines(leftStr, rightStr);
+
+    diff.forEach(function(_diff) {
+      if (_diff.removed) {
+        leftStr = leftStr.replace(_diff.value, '<span class="highlight">' + _diff.value + '</span>');
+      }
+      if (_diff.added) {
+        rightStr = rightStr.replace(_diff.value, '<span class="highlight">' + _diff.value + '</span>');
+      }
+    });
+
+    leftEle.html(leftStr);
+    rightEle.html(rightStr);
+  });
 });
 
 (function($) {

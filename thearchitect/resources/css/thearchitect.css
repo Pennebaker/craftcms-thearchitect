@@ -1,3 +1,8 @@
 th [type="checkbox"] + label {
     margin-right: 6px;
 }
+
+#similarFields .highlight {
+    background: #ffe38f;
+    color: #705400;
+}

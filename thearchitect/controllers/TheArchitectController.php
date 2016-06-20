@@ -31,6 +31,7 @@ class TheArchitectController extends BaseController
             'assetTransforms' => craft()->assetTransforms->getAllTransforms(),
         );
 
+        craft()->templates->includeJsResource('thearchitect/js/diff.min.js');
         craft()->templates->includeJsResource('thearchitect/js/thearchitect.js');
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
 
@@ -74,6 +75,7 @@ class TheArchitectController extends BaseController
             'assetTransforms' => craft()->assetTransforms->getAllTransforms(),
         );
 
+        craft()->templates->includeJsResource('thearchitect/js/diff.min.js');
         craft()->templates->includeJsResource('thearchitect/js/thearchitect.js');
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
 
@@ -99,6 +101,10 @@ class TheArchitectController extends BaseController
             'newFieldCount' => sizeof($fields),
             'similarFields' => $similarFields,
         );
+
+        craft()->templates->includeJsResource('thearchitect/js/diff.min.js');
+        craft()->templates->includeJsResource('thearchitect/js/thearchitect.js');
+        craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
 
         $this->renderTemplate('thearchitect/output', $variables);
     }

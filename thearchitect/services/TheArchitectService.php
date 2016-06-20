@@ -250,6 +250,18 @@ class TheArchitectService extends BaseApplicationComponent
                         }
                     }
                 }
+                // Append the fields to the new exported fields section. If they don't already exist there.
+                foreach ($fields as $addField) {
+                    if ($addField->type != 'Matrix') {
+                        if (!isset($addField->group)) {
+                            $addField->group = $currentGroup;
+                            if (!$this->hasHandle($addField->handle, $newObject->fields)) {
+                                $newObject->fields[] = clone $addField;
+                            }
+                        }
+                    }
+                }
+                // Find and "link" similar fields.
                 foreach ($fields as $fieldA) {
                     $fAId = $fieldA->handle;
                     foreach ($fields as $fieldB) {
@@ -267,15 +279,6 @@ class TheArchitectService extends BaseApplicationComponent
                                     ];
                                 }
                             }
-                        }
-                    }
-                }
-                // Append the fields to the new exported fields section. If they don't already exist there.
-                foreach ($fields as $addField) {
-                    if ($addField->type != 'Matrix') {
-                        $addField->group = $currentGroup;
-                        if (!$this->hasHandle($addField->handle, $newObject->fields)) {
-                            $newObject->fields[] = clone $addField;
                         }
                     }
                 }
