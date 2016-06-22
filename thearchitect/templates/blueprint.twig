@@ -33,7 +33,17 @@
             </thead>
             <tbody class="fields">
                 {% for field in craft.fields.getAllFields() %}
-                <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
+                {% set utilizedFields = {} %}
+                {% if field.type == 'Neo' %}
+                    {% for blockType in craft.theArchitect.getNeoBlockTypesByFieldId(field.id) %}
+                        {% for blockTab in blockType.getFieldLayout().getTabs() %}
+                            {% for tabField in blockTab.getFields() %}
+                                {% set utilizedFields = utilizedFields | merge([tabField.fieldId]) %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+                <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
                         <div class="field checkboxfield">
                             <input type="checkbox" id="field{{ field.id }}" class="checkbox{% if field.type == 'SuperTable' %} disabled" disabled="{% endif %}" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
@@ -70,7 +80,13 @@
             </thead>
             <tbody class="sections">
                 {% for section in craft.sections.getAllSections() %}
-                <tr class="section" data-id="{{ section.id }}" data-name="{{ section }}">
+                {% set utilizedFields = {} %}
+                {% for entryType in section.getEntryTypes() %}
+                    {% for fieldId in craft.fields.getLayoutById(entryType.fieldLayoutId).getFieldIds() %}
+                        {% set utilizedFields = utilizedFields | merge([fieldId]) %}
+                    {% endfor %}
+                {% endfor %}
+                <tr class="section" data-id="{{ section.id }}" data-name="{{ section }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
                         <div class="section checkboxsection">
                             <input type="checkbox" id="section{{ section.id }}" class="checkbox" name="sectionSelection[]" value="{{ section.id }}"> <label for="section{{ section.id }}">{{ section }}</label>
@@ -106,7 +122,13 @@
             </thead>
             <tbody class="assetSources">
                 {% for assetSource in assetSources %}
-                <tr>
+                {% set utilizedFields = {} %}
+                {% for sourceTab in assetSource.getFieldLayout().getTabs() %}
+                    {% for tabField in sourceTab.getFields() %}
+                        {% set utilizedFields = utilizedFields | merge([tabField.fieldId]) %}
+                    {% endfor %}
+                {% endfor %}
+                <tr class="assetSource" data-id="{{ assetSource.id }}" data-name="{{ assetSource }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
                         <input type="checkbox" id="assetSource{{ assetSource.id }}" class="checkbox" name="assetSourceSelection[]" value="{{ assetSource.id }}"> <label for="assetSource{{ assetSource.id }}">{{ assetSource }}</label>
                     </th>
@@ -175,7 +197,13 @@
             </thead>
             <tbody class="globals">
                 {% for global in craft.globals.getAllSets() %}
-                <tr>
+                {% set utilizedFields = {} %}
+                {% for sourceTab in global.getFieldLayout().getTabs() %}
+                    {% for tabField in sourceTab.getFields() %}
+                        {% set utilizedFields = utilizedFields | merge([tabField.fieldId]) %}
+                    {% endfor %}
+                {% endfor %}
+                <tr class="global" data-id="{{ global.id }}" data-name="{{ global }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
                         <input type="checkbox" id="global{{ global.id }}" class="checkbox" name="globalSelection[]" value="{{ global.id }}"> <label for="global{{ global.id }}">{{ global }}</label>
                     </th>

@@ -1,0 +1,17 @@
+<?php
+namespace Craft;
+
+class TheArchitectVariable
+{
+    /**
+     * Returns a field layout by its ID.
+     *
+     * @param int $layoutId
+     *
+     * @return FieldLayoutModel|null
+     */
+    public function getNeoBlockTypesByFieldId($layoutId)
+    {
+        return craft()->neo->getBlockTypesByFieldId($layoutId);
+    }
+}

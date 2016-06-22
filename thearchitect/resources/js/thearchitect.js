@@ -2,8 +2,10 @@ $(function() {
   $('#allFields').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.fields [id^="field"]:not(:disabled)').prop('checked', true);
+      $('.fields [id^="field"]:not(:disabled)').change();
     } else {
       $('.fields [id^="field"]:not(:disabled)').prop('checked', false);
+      $('.fields [id^="field"]:not(:disabled)').change();
     }
   });
   $('.fields [id^="field"]:not(:disabled)').on('change', function(e) {
@@ -19,8 +21,10 @@ $(function() {
   $('#allSections').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.sections [id^="section"]:not(:disabled)').prop('checked', true);
+      $('.sections [id^="section"]:not(:disabled)').change();
     } else {
       $('.sections [id^="section"]:not(:disabled)').prop('checked', false);
+      $('.sections [id^="section"]:not(:disabled)').change();
     }
   });
   $('.sections [id^="section"]:not(:disabled)').on('change', function(e) {
@@ -36,8 +40,10 @@ $(function() {
   $('#allAssetSources').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.assetSources [id^="assetSource"]:not(:disabled)').prop('checked', true);
+      $('.assetSources [id^="assetSource"]:not(:disabled)').change();
     } else {
       $('.assetSources [id^="assetSource"]:not(:disabled)').prop('checked', false);
+      $('.assetSources [id^="assetSource"]:not(:disabled)').change();
     }
   });
   $('.assetSources [id^="assetSource"]:not(:disabled)').on('change', function(e) {
@@ -53,8 +59,10 @@ $(function() {
   $('#allAssetTransforms').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.assetTransforms [id^="assetTransform"]:not(:disabled)').prop('checked', true);
+      $('.assetTransforms [id^="assetTransform"]:not(:disabled)').change();
     } else {
       $('.assetTransforms [id^="assetTransform"]:not(:disabled)').prop('checked', false);
+      $('.assetTransforms [id^="assetTransform"]:not(:disabled)').change();
     }
   });
   $('.assetTransforms [id^="assetTransform"]:not(:disabled)').on('change', function(e) {
@@ -70,8 +78,10 @@ $(function() {
   $('#allGlobals').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.globals [id^="global"]:not(:disabled)').prop('checked', true);
+      $('.globals [id^="global"]:not(:disabled)').change();
     } else {
       $('.globals [id^="global"]:not(:disabled)').prop('checked', false);
+      $('.globals [id^="global"]:not(:disabled)').change();
     }
   });
   $('.globals [id^="global"]:not(:disabled)').on('change', function(e) {
@@ -81,6 +91,26 @@ $(function() {
       }
     } else {
       $('#allGlobals').prop('checked', false);
+    }
+  });
+
+  $('[data-fields] [type="checkbox"]').on('change', function(e) {
+    var parentRow = $(this).closest('[data-fields]');
+    if ($(this).prop('checked')) {
+      var utilizedFields = parentRow.data('fields').trim().split(' ');
+      utilizedFields.forEach(function(id) {
+        $('[data-id="' + id + '"] [type="checkbox"]').prop('checked', true);
+        $('[data-id="' + id + '"] [type="checkbox"]').change();
+      });
+    }
+  });
+
+  $('.field[data-id] [type="checkbox"]').on('change', function(e) {
+    var parentRow = $(this).closest('[data-id]');
+    var id = parentRow.data('id');
+    if (!$(this).prop('checked')) {
+      $('[data-fields*="' + id + '"] [type="checkbox"]').prop('checked', false);
+      $('[data-fields*="' + id + '"] [type="checkbox"]').change();
     }
   });
 
