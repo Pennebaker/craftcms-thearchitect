@@ -99,8 +99,8 @@ $(function() {
     if ($(this).prop('checked')) {
       var utilizedFields = parentRow.data('fields').trim().split(' ');
       utilizedFields.forEach(function(id) {
-        $('[data-id="' + id + '"] [type="checkbox"]').prop('checked', true);
-        $('[data-id="' + id + '"] [type="checkbox"]').change();
+        $('.fields [data-id="' + id + '"] [type="checkbox"]').prop('checked', true);
+        $('.fields [data-id="' + id + '"] [type="checkbox"]').change();
       });
     }
   });
