@@ -1298,13 +1298,14 @@ class TheArchitectService extends BaseApplicationComponent
         $sTFieldCount = 1;
         foreach ($blockTypes as $blockType) {
             foreach ($blockType->getFields() as $sTField) {
+                $columns = array_values($newField['typesettings']['columns']);
                 $newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount] = [
                     'name' => $sTField->name,
                     'handle' => $sTField->handle,
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => $newField['typesettings']['columns']['new'.$sTFieldCount]['width'],
+                    'width' => $columns[$sTFieldCount-1]['width'],
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'Matrix') {
