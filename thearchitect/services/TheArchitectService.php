@@ -1313,6 +1313,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($sTField->type == 'Neo') {
                     $this->setNeoField($newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
                 }
+                $this->parseFieldSources($sTField, $newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
                 $sTFieldCount++;
             }
         }
