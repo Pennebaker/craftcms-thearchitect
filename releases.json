@@ -1,4 +1,11 @@
 [{
+    "version": "1.3.3",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.3.zip",
+    "date": "2016-06-22T11:45:45-05:00",
+    "notes": [
+        "Fix yet another SuperTable export crash"
+    ]
+}, {
     "version": "1.3.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.2.zip",
     "date": "2016-06-22T11:09:18-05:00",
@@ -19,9 +26,9 @@
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.0.zip",
     "date": "2016-06-22T09:14:51-05:00",
     "notes": [
-        "Select all in category on export page.",
-        "Select fields used when selecting fields that require others to re-import properly.",
-        "Export Matrix fields as Neo fields."
+        "Avoid déjà vu by selecting all on the export page instead of selecting each field individually.",
+        "\"We are all victims of causality. I make fields that are dependent on other fields, I must export the dependent fields with the main field. Cause and effect.\" You don't remember that line? Either way now when you select a field with dependencies, the dependencies are automatically selected, too.",
+        "Take the red pill. The Architect permits you to export Matrix fields as Neo fields."
     ]
 }, {
     "version": "1.2.2",
