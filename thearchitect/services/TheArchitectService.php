@@ -1371,9 +1371,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setReasonsLabels($reasons) {
+    private function setReasonsLabels($argReasons) {
         $newReasons = [];
-        foreach ($reasons as $fieldId => $reasons) {
+        foreach ($argReasons as $fieldId => $reasons) {
             $newReasons[craft()->fields->getFieldById($fieldId)->handle] = $reasons;
             foreach ($newReasons[craft()->fields->getFieldById($fieldId)->handle] as &$reasonsOr) {
                 foreach ($reasonsOr as &$reason) {
@@ -1525,7 +1525,16 @@ class TheArchitectService extends BaseApplicationComponent
                     'fieldLayout' => []
                 ];
 
-                foreach ($assetSource->getFieldLayout()->getTabs() as $tab) {
+                $fieldLayout = $assetSource->getFieldLayout();
+
+                $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+                if ($fieldLayoutReasons) {
+                    $newAssetSource['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                }
+
+                $this->setRelabels($newAssetSource, $fieldLayout);
+
+                foreach ($fieldLayout->getTabs() as $tab) {
                     $newAssetSource['fieldLayout'][$tab->name] = [];
                     foreach ($tab->getFields() as $tabField) {
                         array_push($newAssetSource['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
