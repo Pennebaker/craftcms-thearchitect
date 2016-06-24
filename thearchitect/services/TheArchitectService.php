@@ -1313,19 +1313,6 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setReasonsLabels($reasons) {
-        $newReasons = [];
-        foreach ($reasons as $fieldId => $reasons) {
-            $newReasons[craft()->fields->getFieldById($fieldId)->handle] = $reasons;
-            foreach ($newReasons[craft()->fields->getFieldById($fieldId)->handle] as &$reasonsOr) {
-                foreach ($reasonsOr as &$reason) {
-                    $reason['fieldId'] = craft()->fields->getFieldById($reason['fieldId'])->handle;
-                }
-            }
-        }
-        return $newReasons;
-    }
-
     private function setRelabels(&$object, $fieldLayout) {
         if(craft()->plugins->getPlugin('relabel')) {
             $relabels = craft()->relabel->getLabels($fieldLayout->id);
@@ -1382,6 +1369,19 @@ class TheArchitectService extends BaseApplicationComponent
     			}
     		}
         }
+    }
+
+    private function setReasonsLabels($reasons) {
+        $newReasons = [];
+        foreach ($reasons as $fieldId => $reasons) {
+            $newReasons[craft()->fields->getFieldById($fieldId)->handle] = $reasons;
+            foreach ($newReasons[craft()->fields->getFieldById($fieldId)->handle] as &$reasonsOr) {
+                foreach ($reasonsOr as &$reason) {
+                    $reason['fieldId'] = craft()->fields->getFieldById($reason['fieldId'])->handle;
+                }
+            }
+        }
+        return $newReasons;
     }
 
     private function parseFieldSources(&$field, &$newField) {
