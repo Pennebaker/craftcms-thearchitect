@@ -83,6 +83,46 @@ class TheArchitectService extends BaseApplicationComponent
                     'errors' => $addFieldResult[1],
                     'errors_alt' => $addFieldResult[2],
                 );
+                /*
+                 * Neo Field Post Processing
+                 */
+                if ($field->type == 'Neo' && $addFieldResult[0]) {
+                    $generatedField = $addFieldResult[3];
+                    $blockTypes = craft()->neo->getBlockTypesByFieldId($generatedField->id);
+                    foreach ($field->typesettings['blockTypes'] as $key => $value) {
+                        $blockTypeKey = intval(substr($key, 3));
+                        $fieldLayoutId = $blockTypes[$blockTypeKey]->getFieldLayout()->id;
+                        if(craft()->plugins->getPlugin('relabel')) {
+                            if (isset($value['relabel'])) {
+                                foreach ($value['relabel'] as $relabel) {
+                                    $relabelModel = new RelabelModel();
+                                    $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel['field'])->id;
+                                    $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                    $relabelModel->name = $relabel['name'];
+                                    $relabelModel->instructions = $relabel['instructions'];
+                                    craft()->relabel->saveLabel($relabelModel);
+                                }
+                            }
+                        }
+                        if(craft()->plugins->getPlugin('reasons')) {
+                            if (isset($value['reasons'])) {
+                                $reasonsModel = [];
+                                foreach ($value['reasons'] as $fieldHandle => $reasons) {
+                                    foreach ($reasons as &$reasonOr) {
+                                        foreach ($reasonOr as &$reason) {
+                                            $reason['fieldId'] = intval(craft()->fields->getFieldByHandle($reason['fieldId'])->id);
+                                        }
+                                    }
+                                    $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                }
+                                $conditionalsModel = new Reasons_ConditionalsModel();
+                                $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                $conditionalsModel->conditionals = $reasonsModel;
+                                craft()->reasons->saveConditionals($conditionalsModel);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -99,6 +139,42 @@ class TheArchitectService extends BaseApplicationComponent
                     'result' => $assetSourceResult[0],
                     'errors' => $assetSourceResult[1],
                 );
+                /*
+                 * Asset Source Post Processing
+                 */
+                if ($assetSourceResult[0]) {
+                    $generatedAssetSource = $assetSourceResult[2];
+                    $fieldLayoutId = $generatedAssetSource->fieldLayoutId;
+                    if(craft()->plugins->getPlugin('relabel')) {
+                        if (isset($source->relabel)) {
+                            foreach ($source->relabel as $relabel) {
+                                $relabelModel = new RelabelModel();
+                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                $relabelModel->name = $relabel->name;
+                                $relabelModel->instructions = $relabel->instructions;
+                                craft()->relabel->saveLabel($relabelModel);
+                            }
+                        }
+                    }
+                    if(craft()->plugins->getPlugin('reasons')) {
+                        if (isset($source->reasons)) {
+                            $reasonsModel = [];
+                            foreach ($source->reasons as $fieldHandle => $reasons) {
+                                foreach ($reasons as &$reasonOr) {
+                                    foreach ($reasonOr as &$reason) {
+                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                    }
+                                }
+                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                            }
+                            $conditionalsModel = new Reasons_ConditionalsModel();
+                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                            $conditionalsModel->conditionals = $reasonsModel;
+                            craft()->reasons->saveConditionals($conditionalsModel);
+                        }
+                    }
+                }
             }
         }
 
@@ -121,6 +197,42 @@ class TheArchitectService extends BaseApplicationComponent
                     'result' => $addEntryTypeResult[0],
                     'errors' => $addEntryTypeResult[1],
                 );
+                /*
+                 * Entry Type Post Processing
+                 */
+                if ($addEntryTypeResult[0]) {
+                    $generatedEntryType = $addEntryTypeResult[2];
+                    $fieldLayoutId = $generatedEntryType->fieldLayoutId;
+                    if(craft()->plugins->getPlugin('relabel')) {
+                        if (isset($entryType->relabel)) {
+                            foreach ($entryType->relabel as $relabel) {
+                                $relabelModel = new RelabelModel();
+                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                $relabelModel->name = $relabel->name;
+                                $relabelModel->instructions = $relabel->instructions;
+                                craft()->relabel->saveLabel($relabelModel);
+                            }
+                        }
+                    }
+                    if(craft()->plugins->getPlugin('reasons')) {
+                        if (isset($entryType->reasons)) {
+                            $reasonsModel = [];
+                            foreach ($entryType->reasons as $fieldHandle => $reasons) {
+                                foreach ($reasons as &$reasonOr) {
+                                    foreach ($reasonOr as &$reason) {
+                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                    }
+                                }
+                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                            }
+                            $conditionalsModel = new Reasons_ConditionalsModel();
+                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                            $conditionalsModel->conditionals = $reasonsModel;
+                            craft()->reasons->saveConditionals($conditionalsModel);
+                        }
+                    }
+                }
             }
         }
 
@@ -140,13 +252,50 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Globals from JSON
         if (isset($result->globals)) {
             foreach ($result->globals as $global) {
+                $addGlobalResult = $this->addGlobalSet($global);
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'GlobalSet',
                     'name' => $global->name,
-                    'result' => $this->addGlobalSet($global),
+                    'result' => $addGlobalResult[0],
                     'errors' => false,
                 );
+                /*
+                 * Entry Type Post Processing
+                 */
+                if ($addGlobalResult[0]) {
+                    $generatedGlobalSet = $addGlobalResult[1];
+                    $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                    if(craft()->plugins->getPlugin('relabel')) {
+                        if (isset($global->relabel)) {
+                            foreach ($global->relabel as $relabel) {
+                                $relabelModel = new RelabelModel();
+                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                $relabelModel->name = $relabel->name;
+                                $relabelModel->instructions = $relabel->instructions;
+                                craft()->relabel->saveLabel($relabelModel);
+                            }
+                        }
+                    }
+                    if(craft()->plugins->getPlugin('reasons')) {
+                        if (isset($global->reasons)) {
+                            $reasonsModel = [];
+                            foreach ($global->reasons as $fieldHandle => $reasons) {
+                                foreach ($reasons as &$reasonOr) {
+                                    foreach ($reasonOr as &$reason) {
+                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                    }
+                                }
+                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                            }
+                            $conditionalsModel = new Reasons_ConditionalsModel();
+                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                            $conditionalsModel->conditionals = $reasonsModel;
+                            craft()->reasons->saveConditionals($conditionalsModel);
+                        }
+                    }
+                }
             }
         }
 
@@ -384,9 +533,9 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Save Field to DB
         if (craft()->fields->saveField($field)) {
-            return [true, false, false];
+            return [true, false, false, $field];
         } else {
-            return [false, $field->getErrors(), $field->getSettingErrors()];
+            return [false, $field->getErrors(), $field->getSettingErrors(), $field];
         }
     }
 
@@ -573,9 +722,9 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Save Entry Type to DB
         if (craft()->sections->saveEntryType($entryType)) {
-            return [true, false];
+            return [true, false, $entryType];
         } else {
-            return [false, $entryType->getErrors()];
+            return [false, $entryType->getErrors(), $entryType];
         }
     }
 
@@ -654,9 +803,9 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Save Asset Source to DB
         if (craft()->assetSources->saveSource($source)) {
-            return [true, null];
+            return [true, null, $source];
         } else {
-            return [false, $source->getErrors()];
+            return [false, $source->getErrors(), $source];
         }
     }
 
@@ -791,9 +940,9 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Save Asset Source to DB
         if (craft()->globals->saveSet($globalSet)) {
-            return true;
+            return [true, $globalSet];
         } else {
-            return false;
+            return [false, $globalSet];
         }
     }
 
