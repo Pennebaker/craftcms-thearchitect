@@ -1165,7 +1165,17 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($newEntryType['titleFormat'] === null) {
                         unset($newEntryType['titleFormat']);
                     }
-                    foreach ($entryType->getFieldLayout()->getTabs() as $tab) {
+
+                    $fieldLayout = $entryType->getFieldLayout();
+
+                    $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+                    if ($fieldLayoutReasons) {
+                        $newEntryType['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                    }
+
+                    $this->setRelabels($newEntryType, $fieldLayout);
+
+                    foreach ($fieldLayout->getTabs() as $tab) {
                         $newEntryType['fieldLayout'][$tab->name] = [];
                         foreach ($tab->getFields() as $tabField) {
                             array_push($newEntryType['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
