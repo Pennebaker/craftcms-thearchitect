@@ -1,25 +1,35 @@
 [{
+    "version": "1.4.0",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.0.zip",
+    "date": "2016-06-24T17:06:09-05:00",
+    "notes": [
+        "[Feature] Fruit LinkIt import / export support.",
+        "[Feature] Reasons import / export support.",
+        "[Feature] Relabel import / export support.",
+        "[Fix] Fix exporting of RichText fields missing some settings."
+    ]
+}, {
     "version": "1.3.3",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.3.zip",
     "date": "2016-06-22T11:45:45-05:00",
     "notes": [
-        "Fix yet another SuperTable export crash"
+        "[Fix] yet another SuperTable export crash"
     ]
 }, {
     "version": "1.3.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.2.zip",
     "date": "2016-06-22T11:09:18-05:00",
     "notes": [
-        "Fix javascript dependent field selection",
-        "Fix SuperTable field sources exporting"
+        "[Fix] javascript dependent field selection",
+        "[Fix] SuperTable field sources exporting"
     ]
 }, {
     "version": "1.3.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.1.zip",
     "date": "2016-06-22T10:43:48-05:00",
     "notes": [
-        "Fix crashes related to requiredFields missing or not being arrays",
-        "SuperTable exporting"
+        "[Fix] crashes related to requiredFields missing or not being arrays",
+        "[Feature] SuperTable exporting"
     ]
 }, {
     "version": "1.3.0",
