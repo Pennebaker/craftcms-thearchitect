@@ -1221,10 +1221,6 @@ class TheArchitectService extends BaseApplicationComponent
                     $this->setSuperTableField($newField, $id);
                 }
 
-                if ($field->type == 'FruitLinkIt') {
-                    craft()->kint->d($field);
-                }
-
                 // If Field Type is Neo store it for pushing last. This is needed because Neo fields reference other fields.
                 if ($field->type == 'Neo') {
                     array_push($fieldsLast, $newField);
