@@ -1594,7 +1594,16 @@ class TheArchitectService extends BaseApplicationComponent
                     'fieldLayout' => []
                 ];
 
-                foreach ($globalSet->getFieldLayout()->getTabs() as $tab) {
+                $fieldLayout = $globalSet->getFieldLayout();
+
+                $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+                if ($fieldLayoutReasons) {
+                    $newGlobalSet['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                }
+
+                $this->setRelabels($newGlobalSet, $fieldLayout);
+
+                foreach ($fieldLayout->getTabs() as $tab) {
                     $newGlobalSet['fieldLayout'][$tab->name] = [];
                     foreach ($tab->getFields() as $tabField) {
                         array_push($newGlobalSet['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
