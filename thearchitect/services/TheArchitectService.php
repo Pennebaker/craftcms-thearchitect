@@ -1296,6 +1296,11 @@ class TheArchitectService extends BaseApplicationComponent
 
             $fieldLayout = $blockType->getFieldLayout();
 
+            $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+            if ($fieldLayoutReasons) {
+                $newField['typesettings']['blockTypes']['new'.$blockCount]['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+            }
+
             $this->setRelabels($newField['typesettings']['blockTypes']['new'.$blockCount], $fieldLayout);
 
             foreach ($fieldLayout->getTabs() as $tab) {
@@ -1306,6 +1311,19 @@ class TheArchitectService extends BaseApplicationComponent
             }
             ++$blockCount;
         }
+    }
+
+    private function setReasonsLabels($reasons) {
+        $newReasons = [];
+        foreach ($reasons as $fieldId => $reasons) {
+            $newReasons[craft()->fields->getFieldById($fieldId)->handle] = $reasons;
+            foreach ($newReasons[craft()->fields->getFieldById($fieldId)->handle] as &$reasonsOr) {
+                foreach ($reasonsOr as &$reason) {
+                    $reason['fieldId'] = craft()->fields->getFieldById($reason['fieldId'])->handle;
+                }
+            }
+        }
+        return $newReasons;
     }
 
     private function setRelabels(&$object, $fieldLayout) {
@@ -1350,6 +1368,20 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
         unset($newField['typesettings']['columns']);
+    }
+
+    private function getConditionalsByFieldLayoutId($fieldLayoutId) {
+        if(craft()->plugins->getPlugin('reasons')) {
+            $conditionalsRecord = Reasons_ConditionalsRecord::model()->findByAttributes(array('fieldLayoutId'=>$fieldLayoutId));
+    		if($conditionalsRecord)
+    		{
+    			$conditionalsModel = Reasons_ConditionalsModel::populateModel($conditionalsRecord);
+    			if($conditionalsModel->conditionals && $conditionalsModel->conditionals != '')
+    			{
+    				return $conditionalsModel->conditionals;
+    			}
+    		}
+        }
     }
 
     private function parseFieldSources(&$field, &$newField) {
