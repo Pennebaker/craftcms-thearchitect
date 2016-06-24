@@ -1102,6 +1102,16 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
         }
+        if ($object->type == 'FruitLinkIt') {
+            if (isset($object->typesettings->entrySources)) {
+                foreach ($object->typesettings->entrySources as $k => &$v) {
+                    $section = craft()->sections->getSectionByHandle($v);
+                    if ($section) {
+                        $v = 'section:'.$section->id;
+                    }
+                }
+            }
+        }
     }
 
     private function sectionExport($post)
@@ -1209,6 +1219,10 @@ class TheArchitectService extends BaseApplicationComponent
 
                 if ($field->type == 'SuperTable') {
                     $this->setSuperTableField($newField, $id);
+                }
+
+                if ($field->type == 'FruitLinkIt') {
+                    craft()->kint->d($field);
                 }
 
                 // If Field Type is Neo store it for pushing last. This is needed because Neo fields reference other fields.
@@ -1424,6 +1438,23 @@ class TheArchitectService extends BaseApplicationComponent
                             $newField['typesettings']['sources'][$key] = $userGroup->handle;
                         }
                     }
+                }
+            }
+        }
+
+        if ($field->type == 'FruitLinkIt') {
+            if ($newField['typesettings']['entrySources']) {
+                if (is_array($newField['typesettings']['entrySources'])) {
+                    foreach ($newField['typesettings']['entrySources'] as $key => $value) {
+                        if (substr($value, 0, 8) == 'section:') {
+                            $section = craft()->sections->getSectionById(intval(substr($value, 8)));
+                            if ($section) {
+                                $newField['typesettings']['entrySources'][$key] = $section->handle;
+                            }
+                        }
+                    }
+                } else if ($newField['typesettings']['entrySources'] == '*') {
+                    $newField['typesettings']['entrySources'] = [];
                 }
             }
         }
