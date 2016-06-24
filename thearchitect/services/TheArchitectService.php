@@ -1293,13 +1293,34 @@ class TheArchitectService extends BaseApplicationComponent
                 'topLevel' => $blockType->topLevel,
                 'fieldLayout' => [],
             ];
-            foreach ($blockType->getFieldLayout()->getTabs() as $tab) {
+
+            $fieldLayout = $blockType->getFieldLayout();
+
+            $this->setRelabels($newField['typesettings']['blockTypes']['new'.$blockCount], $fieldLayout);
+
+            foreach ($fieldLayout->getTabs() as $tab) {
                 $newField['typesettings']['blockTypes']['new'.$blockCount]['fieldLayout'][$tab->name] = [];
                 foreach ($tab->getFields() as $tabField) {
                     array_push($newField['typesettings']['blockTypes']['new'.$blockCount]['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
                 }
             }
             ++$blockCount;
+        }
+    }
+
+    private function setRelabels(&$object, $fieldLayout) {
+        if(craft()->plugins->getPlugin('relabel')) {
+            $relabels = craft()->relabel->getLabels($fieldLayout->id);
+            if ($relabels) {
+                $object['relabel'] = [];
+                foreach ($relabels as $relabel) {
+                    $object['relabel'][] = [
+                        'field' => craft()->fields->getFieldById($relabel->fieldId)->handle,
+                        'name' => $relabel->name,
+                        'instructions' => $relabel->instructions
+                    ];
+                }
+            }
         }
     }
 
