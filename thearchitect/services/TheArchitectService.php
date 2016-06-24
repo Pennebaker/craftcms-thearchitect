@@ -1348,24 +1348,30 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         if ($field->type == 'RichText') {
-            if ($newField['typesettings']['availableAssetSources'] !== "*") {
-                foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
-                    $source = craft()->assetSources->getSourceById($value);
-                    if ($source) {
-                        $newField['typesettings']['availableAssetSources'][$key] = $source->handle;
+            if (isset($newField['typesettings']['availableAssetSources'])) {
+                if ($newField['typesettings']['availableAssetSources'] !== "*") {
+                    foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
+                        $source = craft()->assetSources->getSourceById($value);
+                        if ($source) {
+                            $newField['typesettings']['availableAssetSources'][$key] = $source->handle;
+                        }
                     }
                 }
             }
-            if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
-                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
-                if ($source) {
-                    $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+            if (isset($newField['typesettings']['defaultUploadLocationSource'])) {
+                if (isset($newField['typesettings']['defaultUploadLocationSource']) && $newField['typesettings']['defaultUploadLocationSource']) {
+                    $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['defaultUploadLocationSource']));
+                    if ($source) {
+                        $newField['typesettings']['defaultUploadLocationSource'] = $source->handle;
+                    }
                 }
             }
-            if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
-                $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
-                if ($source) {
-                    $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+            if (isset($newField['typesettings']['singleUploadLocationSource'])) {
+                if (isset($newField['typesettings']['singleUploadLocationSource']) && $newField['typesettings']['singleUploadLocationSource']) {
+                    $source = craft()->assetSources->getSourceById(intval($newField['typesettings']['singleUploadLocationSource']));
+                    if ($source) {
+                        $newField['typesettings']['singleUploadLocationSource'] = $source->handle;
+                    }
                 }
             }
         }
