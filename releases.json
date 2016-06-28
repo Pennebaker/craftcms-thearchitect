@@ -3,42 +3,42 @@
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.0.zip",
     "date": "2016-06-24T17:06:09-05:00",
     "notes": [
-        "[Feature] Fruit LinkIt import / export support.",
-        "[Feature] Reasons import / export support.",
-        "[Feature] Relabel import / export support.",
-        "[Fix] Fix exporting of RichText fields missing some settings."
+        "[Added] Fruit LinkIt import / export support.",
+        "[Added] Reasons import / export support.",
+        "[Added] Relabel import / export support.",
+        "[Fixed] Fix exporting of RichText fields missing some settings."
     ]
 }, {
     "version": "1.3.3",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.3.zip",
     "date": "2016-06-22T11:45:45-05:00",
     "notes": [
-        "[Fix] yet another SuperTable export crash"
+        "[Fixed] yet another SuperTable export crash"
     ]
 }, {
     "version": "1.3.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.2.zip",
     "date": "2016-06-22T11:09:18-05:00",
     "notes": [
-        "[Fix] javascript dependent field selection",
-        "[Fix] SuperTable field sources exporting"
+        "[Fixed] javascript dependent field selection",
+        "[Fixed] SuperTable field sources exporting"
     ]
 }, {
     "version": "1.3.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.1.zip",
     "date": "2016-06-22T10:43:48-05:00",
     "notes": [
-        "[Fix] crashes related to requiredFields missing or not being arrays",
-        "[Feature] SuperTable exporting"
+        "[Fixed] crashes related to requiredFields missing or not being arrays",
+        "[Added] SuperTable exporting"
     ]
 }, {
     "version": "1.3.0",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.3.0.zip",
     "date": "2016-06-22T09:14:51-05:00",
     "notes": [
-        "Avoid déjà vu by selecting all on the export page instead of selecting each field individually.",
-        "\"We are all victims of causality. I make fields that are dependent on other fields, I must export the dependent fields with the main field. Cause and effect.\" You don't remember that line? Either way now when you select a field with dependencies, the dependencies are automatically selected, too.",
-        "Take the red pill. The Architect permits you to export Matrix fields as Neo fields."
+        "[Improved] Avoid déjà vu by selecting all on the export page instead of selecting each field individually.",
+        "[Improved] \"We are all victims of causality. I make fields that are dependent on other fields, I must export the dependent fields with the main field. Cause and effect.\" You don't remember that line? Either way now when you select a field with dependencies, the dependencies are automatically selected, too.",
+        "[Improved] Take the red pill. The Architect permits you to export Matrix fields as Neo fields."
     ]
 }, {
     "version": "1.2.2",
@@ -52,16 +52,16 @@
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.2.1.zip",
     "date": "2016-06-08T08:47:58-05:00",
     "notes": [
-        "[Change] Disable checkbox for SuperTables since they do not export correctly.",
-        "[Improvement] Plugin Icons"
+        "[Improved] Disable checkbox for SuperTables since they do not export correctly.",
+        "[Improved] Plugin Icons"
     ]
 }, {
     "version": "1.2.0",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.2.0.zip",
     "date": "2016-06-03T12:08:30-05:00",
     "notes": [
-        "[Improvement] Import assets and set field layouts in a specific order to allow fields that reference assets to be imported while allowing assets to reference fields itself.",
-        "[Feature] Check field layouts for missing fields to prevent database errors from craft."
+        "[Improved] Import assets and set field layouts in a specific order to allow fields that reference assets to be imported while allowing assets to reference fields itself.",
+        "[Added] Check field layouts for missing fields to prevent database errors from craft."
     ]
 }, {
     "version": "1.1.2",
@@ -76,7 +76,7 @@
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.1.1.zip",
     "date": "2016-06-02T11:30:12-05:00",
     "notes": [
-        "[Improvement] Import Sections before fields"
+        "[Improved] Import Sections before fields"
     ]
 }, {
     "version": "1.1.0",
@@ -93,7 +93,7 @@
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.0.2.zip",
     "date": "2016-06-01T11:50:29-05:00",
     "notes": [
-        "[Improvement] JSON_NUMERIC_CHECK flag for json_encode"
+        "[Improved] JSON_NUMERIC_CHECK flag for json_encode"
     ]
 }, {
     "version": "1.0.1",
@@ -108,6 +108,6 @@
     "date": "2016-06-01T10:24:15-05:00",
     "notes": [
         "[Added] Import and construct fields",
-        "[Feature] Exporting of fields"
+        "[Added] Exporting of fields"
     ]
 }]
