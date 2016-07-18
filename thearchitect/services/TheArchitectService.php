@@ -1368,6 +1368,14 @@ class TheArchitectService extends BaseApplicationComponent
 
                 $this->parseFieldSources($field, $newField);
 
+                if ($field->type == 'PositionSelect') {
+                    $options = [];
+                    foreach ($newField['typesettings']['options'] as $value) {
+                        $options[$value] = true;
+                    }
+                    $newField['typesettings']['options'] = $options;
+                }
+
                 if ($field->type == 'Neo') {
                     $this->setNeoField($newField, $id);
                 }
