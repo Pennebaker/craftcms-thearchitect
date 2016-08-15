@@ -1,4 +1,11 @@
 [{
+    "version": "1.4.2",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.2.zip",
+    "date": "2016-08-15T10:55:25-05:00",
+    "notes": [
+        "[Fixed] Fix exporting of Sections urlFormat."
+    ]
+}, {
     "version": "1.4.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.1.zip",
     "date": "2016-07-18T14:28:46-05:00",
