@@ -1274,6 +1274,8 @@ class TheArchitectService extends BaseApplicationComponent
                     continue;
                 }
 
+                $urlFormat = $section->getUrlFormat();
+
                 $newSection = [
                     'name' => $section->attributes['name'],
                     'handle' => $section->attributes['handle'],
@@ -1281,7 +1283,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'enableVersioning' => $section->attributes['enableVersioning'],
                     'typesettings' => [
                         'hasUrls' => $section->attributes['hasUrls'],
-                        'urlFormat' => $section->getUrlFormat(),
+                        'urlFormat' => ($urlFormat !== null) ? $urlFormat : "",
                         'nestedUrlFormat' => $section->locales[craft()->i18n->getPrimarySiteLocaleId()]->attributes['nestedUrlFormat'],
                         'template' => $section->attributes['template'],
                         'maxLevels' => $section->attributes['maxLevels'],
