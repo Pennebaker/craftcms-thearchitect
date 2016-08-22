@@ -27,6 +27,15 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
+     * getSchemaVersion
+     * @return string
+     */
+    public function getSchemaVersion()
+    {
+        return '1.3.0';
+    }
+
+    /**
      * getDeveloper
      * @return string
      */
