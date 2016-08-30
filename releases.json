@@ -1,4 +1,11 @@
 [{
+    "version": "1.4.3",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.3.zip",
+    "date": "2016-08-30T09:19:37-05:00",
+    "notes": [
+        "[Fixed] Fix importing section entry types that used identical handles."
+    ]
+}, {
     "version": "1.4.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.2.zip",
     "date": "2016-08-15T10:55:25-05:00",
