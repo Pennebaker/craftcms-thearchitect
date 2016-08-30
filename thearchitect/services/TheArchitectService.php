@@ -684,9 +684,13 @@ class TheArchitectService extends BaseApplicationComponent
 
         // If the Entry Type exists load it so that it udpates it.
         $sectionHandle = $this->getSectionHandle($entryType->sectionId);
-        $entryTypes = craft()->sections->getEntryTypesByHandle($entryType->handle);
-        if ($entryTypes) {
-            $entryType = craft()->sections->getEntryTypeById($entryTypes[0]->attributes['id']);
+        $sectionEntryTypes = craft()->sections->getEntryTypesByHandle($entryType->handle);
+        if ($sectionEntryTypes) {
+            foreach ($sectionEntryTypes as $sectionEntryType) {
+                if ($sectionEntryType->sectionId == $entryType->sectionId) {
+                    $entryType = craft()->sections->getEntryTypeById($sectionEntryType->attributes['id']);
+                }
+            }
         }
 
         $entryType->name = $jsonEntryType->name;
