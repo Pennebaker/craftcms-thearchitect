@@ -1653,11 +1653,13 @@ class TheArchitectService extends BaseApplicationComponent
 
         if ($field->type == 'Users') {
             if ($newField['typesettings']['sources']) {
-                foreach ($newField['typesettings']['sources'] as $key => $value) {
-                    if (substr($value, 0, 6) == 'group:') {
-                        $userGroup = craft()->userGroups->getGroupById(intval(substr($value, 6)));
-                        if ($userGroup) {
-                            $newField['typesettings']['sources'][$key] = $userGroup->handle;
+                if (is_array($newField['typesettings']['sources'])) {
+                    foreach ($newField['typesettings']['sources'] as $key => $value) {
+                        if (substr($value, 0, 6) == 'group:') {
+                            $userGroup = craft()->userGroups->getGroupById(intval(substr($value, 6)));
+                            if ($userGroup) {
+                                $newField['typesettings']['sources'][$key] = $userGroup->handle;
+                            }
                         }
                     }
                 }
