@@ -172,7 +172,7 @@
                         {{ assetTransform.mode }}
                     </td>
                     <td>
-                        {{ assetTransform.width }} &times; {{ assetTransform.height }}
+                        <code>{{ assetTransform.width }} &times; {{ assetTransform.height }}</code>
                     </td>
                     <td>
                         {{ (assetTransform.format) ? assetTransform.format : 'auto' }}
@@ -209,6 +209,68 @@
                     </th>
                     <td>
                         <code>{{ global.handle }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>Users</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allUsers" class="checkbox" name="allUsers" value="all"><label for="allUsers"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Username</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody class="users">
+                {% for user in craft.users %}
+                {% set utilizedGroups = {} %}
+                {% for group in user.getGroups() %}
+                    {% set utilizedGroups = utilizedGroups | merge([group.id]) %}
+                {% endfor %}
+                <tr class="user" data-id="{{ user.id }}" data-name="{{ user }}" data-groups="{% for id in utilizedGroups %}{{ id }} {% endfor %}">
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="user{{ user.id }}" class="checkbox" name="userSelection[]" value="{{ user.id }}"> <label for="user{{ user.id }}">{{ user.firstName }} {{ user.lastName }}</label>
+                    </th>
+                    <td>
+                        {{ user.username }}
+                    </td>
+                    <td>
+                        {{ user.email }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>User Groups</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allGroups" class="checkbox" name="allGroups" value="all"><label for="allGroups"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody class="groups">
+                {% for group in craft.userGroups.getAllGroups() %}
+                <tr class="group" data-id="{{ group.id }}" data-name="{{ group }}">
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="group{{ group.id }}" class="checkbox" name="groupSelection[]" value="{{ group.id }}"> <label for="group{{ group.id }}">{{ group }}</label>
+                    </th>
+                    <td>
+                        <code>{{ group.handle }}</code>
                     </td>
                 </tr>
                 {% endfor %}

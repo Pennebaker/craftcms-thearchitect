@@ -299,6 +299,23 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
+        // Add UserGroups from JSON
+        if (isset($result->userGroups)) {
+            foreach ($result->userGroups as $key => $userGroup) {
+                $userGroupResult = $this->addUserGroup($userGroup);
+                if ($userGroupResult[0] === false) {
+                    unset($result->userGroups[$key]);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Asset Source',
+                    'name' => $userGroup->name,
+                    'result' => $userGroupResult[0],
+                    'errors' => $userGroupResult[1],
+                );
+            }
+        }
+
         return $notice;
     }
 
@@ -316,6 +333,8 @@ class TheArchitectService extends BaseApplicationComponent
         $sources = $this->assetSourceExport($post);
         $transforms = $this->transformExport($post);
         $globals = $this->globalSetExport($post);
+        $users = $this->usersExport($post);
+        $userGroups = $this->userGroupsExport($post);
 
         // Add all Arrays into the final output array
         $output = [
@@ -326,6 +345,8 @@ class TheArchitectService extends BaseApplicationComponent
             'sources' => $sources,
             'transforms' => $transforms,
             'globals' => $globals,
+            'users' => $users,
+            'userGroups' => $userGroups,
         ];
 
         // Remove empty sections from the output array
@@ -948,6 +969,298 @@ class TheArchitectService extends BaseApplicationComponent
         } else {
             return [false, $globalSet];
         }
+    }
+
+    /**
+     * usersExport.
+     *
+     * @return array [json]
+     */
+    public function usersExport($post)
+    {
+        if (isset($post['userSelection'])) {
+            $users = [];
+            $allUsers = craft()->theArchitect->getAllUsers();
+
+            foreach ($allUsers as $user) {
+                if (in_array($user->id, $post['userSelection'])) {
+                    $userJson = [
+                        'enabled' => $user->enabled,
+                        'archived' => $user->archived,
+                        'locale' => $user->locale,
+                        'localeEnabled' => $user->localeEnabled,
+                        'slug' => $user->slug,
+                        'uri' => $user->uri,
+                        // 'dateCreated' => $user->dateCreated,
+                        // 'dateUpdated' => $user->dateUpdated,
+                        'root' => $user->root,
+                        'lft' => $user->lft,
+                        'rgt' => $user->rgt,
+                        'level' => $user->level,
+                        'searchScore' => $user->searchScore,
+                        'username' => $user->username,
+                        // 'photo' => $user->photo,
+                        'firstName' => $user->firstName,
+                        'lastName' => $user->lastName,
+                        'email' => $user->email,
+                        // 'password' => $user->password,
+                        'preferredLocale' => $user->preferredLocale,
+                        'weekStartDay' => $user->weekStartDay,
+                        'admin' => $user->admin,
+                        'client' => $user->client,
+                        'locked' => $user->locked,
+                        'suspended' => $user->suspended,
+                        'pending' => $user->pending,
+                        // 'lastLoginDate' => $user->lastLoginDate,
+                        // 'invalidLoginCount' => $user->invalidLoginCount,
+                        // 'lockoutDate' => $user->lockoutDate,
+                        // 'passwordResetRequired' => $user->passwordResetRequired,
+                        // 'passwordResetRequired' => $user->passwordResetRequired,
+                        // 'lastPasswordChangeDate' => $user->lastPasswordChangeDate,
+                        // 'unverifiedEmail' => $user->unverifiedEmail,
+                        // 'newPassword' => $user->newPassword,
+                        // 'currentPassword' => $user->currentPassword,
+                        // 'verificationCodeIssuedDate' => $user->verificationCodeIssuedDate,
+                        'groups' => [],
+                    ];
+                    foreach ($user->getGroups() as $userGroup) {
+                        array_push($userJson['groups'], $userGroup->handle);
+                    }
+                    array_push($users, $userJson);
+                }
+            }
+            return $this->arrayStripNullEmpty($users);
+        }
+    }
+
+    /**
+     * userGroupsExport.
+     *
+     * @return array [json]
+     */
+    public function userGroupsExport($post)
+    {
+        if (isset($post['groupSelection'])) {
+            $userGroups = [];
+            $allUsersGroups = craft()->userGroups->allGroups;
+
+            $this->sections = craft()->sections->getAllSections();
+
+            $userGroups = [];
+
+            foreach ($allUsersGroups as $userGroup) {
+                if (in_array($userGroup->id, $post['groupSelection'])) {
+                    $userPermissions = craft()->userPermissions->getPermissionsByGroupId($userGroup->id);
+                    $userGroupJson = [
+                        'name' => $userGroup->name,
+                        'handle' => $userGroup->handle,
+                        'permissions' => $this->deconstructPermissions($userPermissions),
+                    ];
+                    array_push($userGroups, $userGroupJson);
+                }
+            }
+            return $userGroups;
+        }
+    }
+
+    private function deconstructPermissions($userPermissions)
+    {
+        $userPermissions = $this->fixPermissions($userPermissions);
+
+        $global_perms = [
+            'editGlobalSet',
+        ];
+        $assetsource_perms = [
+            'removeFromAssetSource',
+            'uploadToAssetSource',
+            'viewAssetSource',
+        ];
+        $section_perms = [
+            'createEntries',
+            'createSubfoldersInAssetSource',
+            'deleteEntries',
+            'deletePeerEntries',
+            'deletePeerEntryDrafts',
+            'editEntries',
+            'editPeerEntries',
+            'editPeerEntryDrafts',
+            'publishEntries',
+            'publishPeerEntries',
+            'publishPeerEntryDrafts',
+        ];
+        $newUserPermissions = [
+            'general' => [],
+            'globals' => [],
+            'assetSources' => [],
+            'sections' => [],
+        ];
+        foreach ($userPermissions as $k => $userPermission) {
+            $splitPermission = explode(':', $userPermission);
+            if (sizeof($splitPermission) > 1)
+            {
+                if (in_array($splitPermission[0], $global_perms)) {
+                    $handle = craft()->globals->getSetById($splitPermission[1])->handle;
+                    if (!isset($newUserPermissions['globals'][$handle])) $newUserPermissions['globals'][$handle] = [];
+                    array_push($newUserPermissions['globals'][$handle], $splitPermission[0]);
+                } else if (in_array($splitPermission[0], $assetsource_perms)) {
+                    $handle = craft()->assetSources->getSourceById($splitPermission[1])->handle;
+                    if (!isset($newUserPermissions['assetSources'][$handle])) $newUserPermissions['assetSources'][$handle] = [];
+                    array_push($newUserPermissions['assetSources'][$handle], $splitPermission[0]);
+                } else if (in_array($splitPermission[0], $section_perms)) {
+                    $handle = $this->getSectionHandle($splitPermission[1]);
+                    if (!isset($newUserPermissions['sections'][$handle])) $newUserPermissions['sections'][$handle] = [];
+                    array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
+                }
+            } else {
+                array_push($newUserPermissions['general'], $userPermission);
+            }
+        }
+        return $this->arrayStripNullEmpty($newUserPermissions);
+    }
+
+    private function constructPermissions($userPermissions)
+    {
+        $newUserPermissions = [];
+        foreach ($userPermissions as $k => $permissionGroup) {
+            if ($k == 'globals') {
+                foreach ($permissionGroup as $globalHandle => $permissions) {
+                    $globalId = craft()->globals->getSetByHandle($globalHandle)->id;
+                    foreach ($permissions as $permission) {
+                        array_push($newUserPermissions, $permission . ':' . $globalId);
+                    }
+                }
+            } else if ($k == 'assetSources') {
+                foreach ($permissionGroup as $assetSourceHandle => $permissions) {
+                    $assetSourceId = $this->getSourceByHandle($assetSourceHandle)->id;
+                    foreach ($permissions as $permission) {
+                        array_push($newUserPermissions, $permission . ':' . $assetSourceId);
+                    }
+                }
+            } else if ($k == 'sections') {
+                foreach ($permissionGroup as $sectionHandle => $permissions) {
+                    $sectionId = craft()->sections->getSectionByHandle($sectionHandle)->id;
+                    foreach ($permissions as $permission) {
+                        array_push($newUserPermissions, $permission . ':' . $sectionId);
+                    }
+                }
+            } else if ($k == 'general') {
+                foreach ($permissionGroup as $permission) {
+                    array_push($newUserPermissions, $permission);
+                }
+            }
+        }
+        return $newUserPermissions;
+    }
+
+    public function arrayStripNullEmpty($ary)
+    {
+        $newAry = [];
+        foreach ($ary as $key => $value) {
+            if ($value != null && $value != []) {
+                if (is_array($value)) {
+                    $newAry[$key] = $this->arrayStripNullEmpty($value);
+                } else {
+                    $newAry[$key] = $value;
+                }
+            }
+        }
+        return $newAry;
+    }
+
+    /**
+     * addUser.
+     *
+     * @param ArrayObject $jsonUser
+     *
+     * @return bool [success]
+     */
+    public function addUser($jsonUser)
+    {
+        $user = new UserModel();
+    }
+
+    /**
+     * addUserGroup.
+     *
+     * @param ArrayObject $jsonUser
+     *
+     * @return bool [success]
+     */
+    public function addUserGroup($jsonUserGroup)
+    {
+        $userGroup = new UserGroupModel();
+
+        $userGroup->name = $jsonUserGroup->name;
+
+        // Set handle if it was provided
+        if (isset($jsonUserGroup->handle)) {
+            $userGroup->handle = $jsonUserGroup->handle;
+        }
+        // Construct handle if one wasn't provided
+        else {
+            $userGroup->handle = $this->constructHandle($jsonUserGroup->name);
+        }
+
+        // Weirdly enough group handles aren't required to be unique in craft. TODO: Remove if fixed by PnT.
+        if (craft()->userGroups->getGroupByHandle($userGroup->handle) === null) {
+            // Save Asset Source to DB
+            if (craft()->userGroups->saveGroup($userGroup)) {
+                if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($userGroup->handle)->id, $this->constructPermissions($jsonUserGroup->permissions))) {
+                    return [true, null];
+                } else {
+                    return [false, null];
+                }
+            } else {
+                return [false, $userGroup->getErrors()];
+            }
+        } else {
+            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']]];
+        }
+    }
+
+    private function fixPermissions($permissions) {
+        $newPermissions = [];
+        $allPermissions = craft()->userPermissions->getAllPermissions();
+        foreach ($permissions as $permission) {
+            array_push($newPermissions, $this->checkKeyIsInArray($permission, $allPermissions));
+        }
+        return $newPermissions;
+    }
+
+    private function checkKeyIsInArray($dataItemName, $array)
+    {
+        foreach ($array as $key => $value)
+            {
+                if (strcasecmp($key, $dataItemName) == 0)
+                    return $key;
+
+                if (is_array($value) && $this->checkKeyIsInArray($dataItemName, $value))
+                    return $this->checkKeyIsInArray($dataItemName, $value);
+            }
+        return false;
+    }
+
+    /**
+     * addUserGroup.
+     *
+     * @param ArrayObject $jsonUser
+     *
+     * @return array [UserModel]
+     */
+    public function getAllUsers()
+    {
+        $userRecords = UserRecord::model()->findAll();
+        $users = [];
+
+		if ($userRecords)
+		{
+            foreach ($userRecords as $userRecord) {
+                array_push($users, UserModel::populateModel($userRecord));
+            }
+            return $users;
+		}
+
+		return null;
     }
 
     /**

@@ -94,6 +94,44 @@ $(function() {
     }
   });
 
+  $('#allUsers').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.users [id^="user"]:not(:disabled)').prop('checked', true);
+      $('.users [id^="user"]:not(:disabled)').change();
+    } else {
+      $('.users [id^="user"]:not(:disabled)').prop('checked', false);
+      $('.users [id^="user"]:not(:disabled)').change();
+    }
+  });
+  $('.users [id^="user"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.users [id^="user"]:checked:not(:disabled)').length == $('.users [id^="user"]:not(:disabled)').length) {
+        $('#allUsers').prop('checked', true);
+      }
+    } else {
+      $('#allUsers').prop('checked', false);
+    }
+  });
+
+  $('#allGroups').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.groups [id^="group"]:not(:disabled)').prop('checked', true);
+      $('.groups [id^="group"]:not(:disabled)').change();
+    } else {
+      $('.groups [id^="group"]:not(:disabled)').prop('checked', false);
+      $('.groups [id^="group"]:not(:disabled)').change();
+    }
+  });
+  $('.groups [id^="group"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.groups [id^="group"]:checked:not(:disabled)').length == $('.groups [id^="group"]:not(:disabled)').length) {
+        $('#allGroups').prop('checked', true);
+      }
+    } else {
+      $('#allGroups').prop('checked', false);
+    }
+  });
+
   $('[data-fields] [type="checkbox"]').on('change', function(e) {
     var parentRow = $(this).closest('[data-fields]');
     if ($(this).prop('checked')) {
@@ -101,6 +139,17 @@ $(function() {
       utilizedFields.forEach(function(id) {
         $('.fields [data-id="' + id + '"] [type="checkbox"]').prop('checked', true);
         $('.fields [data-id="' + id + '"] [type="checkbox"]').change();
+      });
+    }
+  });
+
+  $('[data-groups] [type="checkbox"]').on('change', function(e) {
+    var parentRow = $(this).closest('[data-groups]');
+    if ($(this).prop('checked')) {
+      var utilizedFields = parentRow.data('groups').trim().split(' ');
+      utilizedFields.forEach(function(id) {
+        $('.groups [data-id="' + id + '"] [type="checkbox"]').prop('checked', true);
+        $('.groups [data-id="' + id + '"] [type="checkbox"]').change();
       });
     }
   });
