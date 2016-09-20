@@ -255,7 +255,7 @@ class TheArchitectService extends BaseApplicationComponent
                 $addGlobalResult = $this->addGlobalSet($global);
                 // Append Notice to Display Results
                 $notice[] = array(
-                    'type' => 'GlobalSet',
+                    'type' => 'Global Set',
                     'name' => $global->name,
                     'result' => $addGlobalResult[0],
                     'errors' => false,
@@ -308,10 +308,27 @@ class TheArchitectService extends BaseApplicationComponent
                 }
                 // Append Notice to Display Results
                 $notice[] = array(
-                    'type' => 'Asset Source',
+                    'type' => 'User Group',
                     'name' => $userGroup->name,
                     'result' => $userGroupResult[0],
                     'errors' => $userGroupResult[1],
+                );
+            }
+        }
+
+        // Add Users from JSON
+        if (isset($result->users)) {
+            foreach ($result->users as $key => $user) {
+                $userResult = $this->addUser($user);
+                if ($userResult[0] === false) {
+                    unset($result->users[$key]);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'User',
+                    'name' => $user->username,
+                    'result' => $userResult[0],
+                    'errors' => $userResult[1],
                 );
             }
         }
@@ -1218,6 +1235,33 @@ class TheArchitectService extends BaseApplicationComponent
     public function addUser($jsonUser)
     {
         $user = new UserModel();
+
+        foreach ($jsonUser as $key => $value) {
+            if ($key != 'permissions' && $key != 'groups') {
+                $user->setAttribute($key, $value);
+            }
+        }
+
+        $groupIds = [];
+        if (isset($jsonUser->groups)) {
+            foreach ($jsonUser->groups as $groupHandle) {
+                array_push($groupIds, craft()->userGroups->getGroupByHandle($groupHandle)->id);
+            }
+        }
+
+        if (craft()->users->saveUser($user)) {
+            if (craft()->userGroups->assignUserToGroups($user->id, $groupIds)) {
+                if (craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
+                    return [true, null];
+                } else {
+                    return [false, 'Failed assigning user permissions.'];
+                }
+            } else {
+                return [false, 'Failed to add user to groups.'];
+            }
+        } else {
+            return [false, $user->getErrors()];
+        }
     }
 
     /**
@@ -1282,7 +1326,7 @@ class TheArchitectService extends BaseApplicationComponent
     }
 
     /**
-     * addUserGroup.
+     * getAllUsers.
      *
      * @param ArrayObject $jsonUser
      *
