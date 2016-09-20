@@ -1183,6 +1183,7 @@ class TheArchitectService extends BaseApplicationComponent
                     array_push($newUserPermissions, $permission);
                 }
             }
+            // There is also a "unknown" group but those will usually contain permissions TheArchitect did not know how to process. If you end up with these please report them
         }
         return $newUserPermissions;
     }
