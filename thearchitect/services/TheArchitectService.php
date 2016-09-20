@@ -974,7 +974,7 @@ class TheArchitectService extends BaseApplicationComponent
     /**
      * usersExport.
      *
-     * @return array [json]
+     * @return array []
      */
     public function usersExport($post)
     {
@@ -982,8 +982,12 @@ class TheArchitectService extends BaseApplicationComponent
             $users = [];
             $allUsers = craft()->theArchitect->getAllUsers();
 
+            $this->sections = craft()->sections->getAllSections();
+
             foreach ($allUsers as $user) {
                 if (in_array($user->id, $post['userSelection'])) {
+                    $userPermissions = craft()->userPermissions->getPermissionsByUserId($user->id);
+                    $userPermissions = $this->stripGroupPermissions($userPermissions, $user->getGroups());
                     $userJson = [
                         'enabled' => $user->enabled,
                         'archived' => $user->archived,
@@ -1026,6 +1030,7 @@ class TheArchitectService extends BaseApplicationComponent
                     foreach ($user->getGroups() as $userGroup) {
                         array_push($userJson['groups'], $userGroup->handle);
                     }
+                    $userJson['permissions'] = $this->deconstructPermissions($userPermissions);
                     array_push($users, $userJson);
                 }
             }
@@ -1036,7 +1041,7 @@ class TheArchitectService extends BaseApplicationComponent
     /**
      * userGroupsExport.
      *
-     * @return array [json]
+     * @return array []
      */
     public function userGroupsExport($post)
     {
@@ -1050,11 +1055,11 @@ class TheArchitectService extends BaseApplicationComponent
 
             foreach ($allUsersGroups as $userGroup) {
                 if (in_array($userGroup->id, $post['groupSelection'])) {
-                    $userPermissions = craft()->userPermissions->getPermissionsByGroupId($userGroup->id);
+                    $userGroupPermissions = craft()->userPermissions->getPermissionsByGroupId($userGroup->id);
                     $userGroupJson = [
                         'name' => $userGroup->name,
                         'handle' => $userGroup->handle,
-                        'permissions' => $this->deconstructPermissions($userPermissions),
+                        'permissions' => $this->deconstructPermissions($userGroupPermissions),
                     ];
                     array_push($userGroups, $userGroupJson);
                 }
@@ -1063,6 +1068,11 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
+    /**
+     * deconstructPermissions.
+     *
+     * @return array []
+     */
     private function deconstructPermissions($userPermissions)
     {
         $userPermissions = $this->fixPermissions($userPermissions);
@@ -1093,6 +1103,7 @@ class TheArchitectService extends BaseApplicationComponent
             'globals' => [],
             'assetSources' => [],
             'sections' => [],
+            'unknown' => [],
         ];
         foreach ($userPermissions as $k => $userPermission) {
             $splitPermission = explode(':', $userPermission);
@@ -1110,6 +1121,8 @@ class TheArchitectService extends BaseApplicationComponent
                     $handle = $this->getSectionHandle($splitPermission[1]);
                     if (!isset($newUserPermissions['sections'][$handle])) $newUserPermissions['sections'][$handle] = [];
                     array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
+                } else {
+                    array_push($newUserPermissions['unknown'], $userPermission);
                 }
             } else {
                 array_push($newUserPermissions['general'], $userPermission);
@@ -1118,6 +1131,11 @@ class TheArchitectService extends BaseApplicationComponent
         return $this->arrayStripNullEmpty($newUserPermissions);
     }
 
+    /**
+     * constructPermissions.
+     *
+     * @return array []
+     */
     private function constructPermissions($userPermissions)
     {
         $newUserPermissions = [];
@@ -1152,6 +1170,29 @@ class TheArchitectService extends BaseApplicationComponent
         return $newUserPermissions;
     }
 
+    /**
+     * stripGroupPermissions.
+     *
+     * @return array []
+     */
+    private function stripGroupPermissions($userPermissions, $userGroups)
+    {
+        foreach ($userGroups as $group) {
+            $userGroupPermissions = craft()->userPermissions->getPermissionsByGroupId($group->id);
+            foreach ($userPermissions as &$permission) {
+                if (in_array($permission, $userGroupPermissions)) {
+                    $permission = null;
+                }
+            }
+        }
+        return $userPermissions;
+    }
+
+    /**
+     * arrayStripNullEmpty.
+     *
+     * @return array []
+     */
     public function arrayStripNullEmpty($ary)
     {
         $newAry = [];
@@ -1201,7 +1242,7 @@ class TheArchitectService extends BaseApplicationComponent
             $userGroup->handle = $this->constructHandle($jsonUserGroup->name);
         }
 
-        // Weirdly enough group handles aren't required to be unique in craft. TODO: Remove if fixed by PnT.
+        // Weirdly enough group handles weren't required to be unique in craft. TODO: Has been fixed will leave for a few releases though just to be sure.
         if (craft()->userGroups->getGroupByHandle($userGroup->handle) === null) {
             // Save Asset Source to DB
             if (craft()->userGroups->saveGroup($userGroup)) {
