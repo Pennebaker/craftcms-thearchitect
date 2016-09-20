@@ -1389,6 +1389,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         if (craft()->users->saveUser($user)) {
+            craft()->users->sendActivationEmail($user);
             if (craft()->userGroups->assignUserToGroups($user->id, $groupIds)) {
                 if (craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
                     return [true, null];
