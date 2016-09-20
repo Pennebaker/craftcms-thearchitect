@@ -1,4 +1,14 @@
 [{
+    "version": "1.5.0",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.0.zip",
+    "date": "2016-09-20T12:45:02-05:00",
+    "notes": [
+      "[Added] Import / Exporting of Users",
+      "[Added] Import / Exporting of User Groups",
+      "[Added] Import / Exporting of Category Groups",
+      "[Added] Some more graceful errors with sections and fields."
+    ]
+}, {
     "version": "1.4.3",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.4.3.zip",
     "date": "2016-08-30T09:19:37-05:00",
