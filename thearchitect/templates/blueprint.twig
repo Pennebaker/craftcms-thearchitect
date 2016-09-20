@@ -215,6 +215,41 @@
             </tbody>
         </table>
         <hr>
+        <h1>Categories</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allCategories" class="checkbox" name="allCategories" value="all"><label for="allCategories"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody class="categories">
+                {% for category in craft.categoryGroups.getAllGroups() %}
+                {% set utilizedFields = {} %}
+                {% for sourceTab in category.getFieldLayout().getTabs() %}
+                    {% for tabField in sourceTab.getFields() %}
+                        {% set utilizedFields = utilizedFields | merge([tabField.fieldId]) %}
+                    {% endfor %}
+                {% endfor %}
+                <tr class="category" data-id="{{ category.id }}" data-name="{{ category }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
+                    <th scope="row" class="name">
+                        <div class="category checkboxcategory">
+                            <input type="checkbox" id="category{{ category.id }}" class="checkbox" name="categorySelection[]" value="{{ category.id }}"> <label for="category{{ category.id }}">{{ category }}</label>
+                        </div>
+                    </th>
+                    <td>
+                        <code>{{ category.handle }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
         <h1>Users</h1>
         <table class="data fullwidth collapsible">
             <thead>

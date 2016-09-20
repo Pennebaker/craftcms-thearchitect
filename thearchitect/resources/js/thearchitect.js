@@ -94,6 +94,25 @@ $(function() {
     }
   });
 
+  $('#allCategories').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.categories [id^="category"]:not(:disabled)').prop('checked', true);
+      $('.categories [id^="category"]:not(:disabled)').change();
+    } else {
+      $('.categories [id^="category"]:not(:disabled)').prop('checked', false);
+      $('.categories [id^="category"]:not(:disabled)').change();
+    }
+  });
+  $('.categories [id^="category"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.categories [id^="category"]:checked:not(:disabled)').length == $('.categories [id^="category"]:not(:disabled)').length) {
+        $('#allCategories').prop('checked', true);
+      }
+    } else {
+      $('#allCategories').prop('checked', false);
+    }
+  });
+
   $('#allUsers').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.users [id^="user"]:not(:disabled)').prop('checked', true);

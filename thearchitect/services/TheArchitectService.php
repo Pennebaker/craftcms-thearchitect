@@ -350,6 +350,7 @@ class TheArchitectService extends BaseApplicationComponent
         $sources = $this->assetSourceExport($post);
         $transforms = $this->transformExport($post);
         $globals = $this->globalSetExport($post);
+        $categories = $this->categoryGroupExport($post);
         $users = $this->usersExport($post);
         $userGroups = $this->userGroupsExport($post);
 
@@ -362,6 +363,7 @@ class TheArchitectService extends BaseApplicationComponent
             'sources' => $sources,
             'transforms' => $transforms,
             'globals' => $globals,
+            'categories' => $categories,
             'users' => $users,
             'userGroups' => $userGroups,
         ];
@@ -2196,5 +2198,53 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
         return $globals;
+    }
+
+    private function categoryGroupExport($post) {
+        $categories = [];
+        if (isset($post['categorySelection'])) {
+            foreach ($post['categorySelection'] as $id) {
+                $categoryGroup = craft()->categories->getGroupById($id);
+                $categoryGroupLocales = $categoryGroup->getLocales();
+                $newCategory = [
+                    'name' => $categoryGroup->name,
+                    'handle' => $categoryGroup->handle,
+                    'hasUrls' => $categoryGroup->hasUrls,
+                    'template' => $categoryGroup->template,
+                    'maxLevels' => $categoryGroup->maxLevels,
+                    'locales' => [],
+                    'fieldLayout' => [],
+                ];
+
+                // Set Group Locales
+                foreach ($categoryGroupLocales as $locale => $groupLocale) {
+                    $newCategory['locales'][$locale] = [
+                        'urlFormat' => $groupLocale->urlFormat,
+                        'nestedUrlFormat' => $groupLocale->nestedUrlFormat,
+                    ];
+                }
+
+                // Set Group fieldLayout
+                $fieldLayout = $categoryGroup->getFieldLayout();
+
+                // Set reasons
+                $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+                if ($fieldLayoutReasons) {
+                    $newCategory['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                }
+
+                // Set relabels
+                $this->setRelabels($newCategory, $fieldLayout);
+
+                foreach ($fieldLayout->getTabs() as $tab) {
+                    $newCategory['fieldLayout'][$tab->name] = [];
+                    foreach ($tab->getFields() as $tabField) {
+                        array_push($newCategory['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                    }
+                }
+                array_push($categories, $newCategory);
+            }
+        }
+        return $categories;
     }
 }
