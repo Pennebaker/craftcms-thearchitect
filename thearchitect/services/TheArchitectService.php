@@ -258,13 +258,13 @@ class TheArchitectService extends BaseApplicationComponent
                     'type' => 'Global Set',
                     'name' => $global->name,
                     'result' => $addGlobalResult[0],
-                    'errors' => false,
+                    'errors' => $addGlobalResult[1],
                 );
                 /*
-                 * Entry Type Post Processing
+                 * Global Set Post Processing
                  */
                 if ($addGlobalResult[0]) {
-                    $generatedGlobalSet = $addGlobalResult[1];
+                    $generatedGlobalSet = $addGlobalResult[2];
                     $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
                     if(craft()->plugins->getPlugin('relabel')) {
                         if (isset($global->relabel)) {
@@ -282,6 +282,56 @@ class TheArchitectService extends BaseApplicationComponent
                         if (isset($global->reasons)) {
                             $reasonsModel = [];
                             foreach ($global->reasons as $fieldHandle => $reasons) {
+                                foreach ($reasons as &$reasonOr) {
+                                    foreach ($reasonOr as &$reason) {
+                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                    }
+                                }
+                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                            }
+                            $conditionalsModel = new Reasons_ConditionalsModel();
+                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                            $conditionalsModel->conditionals = $reasonsModel;
+                            craft()->reasons->saveConditionals($conditionalsModel);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add CategoryGroup from JSON
+        if (isset($result->categories)) {
+            foreach ($result->categories as $categoryGroup) {
+                $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Global Set',
+                    'name' => $categoryGroup->name,
+                    'result' => $addCategoryGroupResult[0],
+                    'errors' => $addCategoryGroupResult[1],
+                );
+                /*
+                 * Category Group Post Processing
+                 */
+                if ($addCategoryGroupResult[0]) {
+                    $generatedGlobalSet = $addCategoryGroupResult[2];
+                    $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                    if(craft()->plugins->getPlugin('relabel')) {
+                        if (isset($categoryGroup->relabel)) {
+                            foreach ($categoryGroup->relabel as $relabel) {
+                                $relabelModel = new RelabelModel();
+                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                $relabelModel->name = $relabel->name;
+                                $relabelModel->instructions = $relabel->instructions;
+                                craft()->relabel->saveLabel($relabelModel);
+                            }
+                        }
+                    }
+                    if(craft()->plugins->getPlugin('reasons')) {
+                        if (isset($categoryGroup->reasons)) {
+                            $reasonsModel = [];
+                            foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
                                 foreach ($reasons as &$reasonOr) {
                                     foreach ($reasonOr as &$reason) {
                                         $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
@@ -1001,11 +1051,78 @@ class TheArchitectService extends BaseApplicationComponent
             $globalSet->setFieldLayout($fieldLayout);
         }
 
-        // Save Asset Source to DB
+        // Save Gobal Set to DB
         if (craft()->globals->saveSet($globalSet)) {
-            return [true, $globalSet];
+            return [true, false, $globalSet];
         } else {
-            return [false, $globalSet];
+            return [false, $globalSet->getErrors(), $globalSet];
+        }
+    }
+
+    /**
+     * addCategoryGroup.
+     *
+     * @param ArrayObject $jsonCategoryGroup
+     *
+     * @return bool [success]
+     */
+    public function addCategoryGroup($jsonCategoryGroup)
+    {
+        $categoryGroup = new CategoryGroupModel();
+
+        $categoryGroup->name = $jsonCategoryGroup->name;
+
+        // Set handle if it was provided
+        if (isset($jsonCategoryGroup->handle)) {
+            $categoryGroup->handle = $jsonCategoryGroup->handle;
+        }
+        // Construct handle if one wasn't provided
+        else {
+            $categoryGroup->handle = $this->constructHandle($jsonCategoryGroup->name);
+        }
+
+        if (isset($jsonCategoryGroup->hasUrls))
+            $categoryGroup->hasUrls = $jsonCategoryGroup->hasUrls;
+        if (isset($jsonCategoryGroup->template))
+            $categoryGroup->template = $jsonCategoryGroup->template;
+        if (isset($jsonCategoryGroup->maxLevels))
+            $categoryGroup->maxLevels = $jsonCategoryGroup->maxLevels;
+
+        $problemFields = $this->checkFieldLayout($jsonCategoryGroup->fieldLayout);
+        if ($problemFields !== ["handle"=>[]]) {
+            return [false, $problemFields, false];
+        }
+
+        // Parse & Set Field Layout if Provided
+        if (isset($jsonCategoryGroup->fieldLayout)) {
+            $requiredFields = [];
+            if (isset($jsonCategoryGroup->requiredFields) && is_array($jsonCategoryGroup->requiredFields)) {
+                foreach ($jsonCategoryGroup->requiredFields as $requirdField) {
+                    array_push($requiredFields, $this->getFieldId($requirdField));
+                }
+            }
+            $fieldLayout = $this->assembleLayout($jsonCategoryGroup->fieldLayout, $requiredFields);
+            $fieldLayout->type = ElementType::GlobalSet;
+            $categoryGroup->setFieldLayout($fieldLayout);
+        }
+
+        if (isset($jsonCategoryGroup->locales)) {
+            $categoryGroupLocale = [];
+            foreach ($jsonCategoryGroup->locales as $locale => $localeAttributes) {
+                $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel();
+                $categoryGroupLocale[$locale]->urlFormat = $localeAttributes->urlFormat;
+                $categoryGroupLocale[$locale]->nestedUrlFormat = $localeAttributes->nestedUrlFormat;
+            }
+            $categoryGroup->setLocales($categoryGroupLocale);
+        } else {
+            return [false, ["locale" => ["Locales are missing."]], false];
+        }
+
+        // Save Category Group to DB
+        if (craft()->categories->saveGroup($categoryGroup)) {
+            return [true, false, $categoryGroup];
+        } else {
+            return [false, $categoryGroup->getErrors(), false];
         }
     }
 
