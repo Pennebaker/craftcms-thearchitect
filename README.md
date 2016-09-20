@@ -1,7 +1,7 @@
 ![The Architect](/the-architect.png?raw=true)
 # The Architect for [Craft CMS](http://buildwithcraft.com/)
 
-CraftCMS Plugin to Construct Groups, Fields, Sections, EntryTypes, Transforms, Globals, and Assets from JSON data.
+CraftCMS Plugin to Construct Groups, Fields, Sections, EntryTypes, Transforms, Globals, Assets, Categories, and Users & User Groups from JSON data.
 
 ## Installation
 1. Move the `thearchitect` directory into your `craft/plugins` directory.
