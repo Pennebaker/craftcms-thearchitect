@@ -522,6 +522,15 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
+    public function fieldTypes()
+    {
+        $fieldTypes = [];
+        foreach (craft()->fields->allFieldTypes as $key => $value) {
+            array_push($fieldTypes, $key);
+        }
+        return $fieldTypes;
+    }
+
     /**
      * addField.
      *
@@ -532,6 +541,11 @@ class TheArchitectService extends BaseApplicationComponent
     public function addField($jsonField)
     {
         $field = new FieldModel();
+
+        // Make sure the field type attempting to import is available.
+        if (!in_array($jsonField->type, $this->fieldTypes())) {
+            return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
+        }
 
         // If group is set find groupId
         if (isset($jsonField->group)) {
@@ -573,7 +587,7 @@ class TheArchitectService extends BaseApplicationComponent
         if (craft()->fields->saveField($field)) {
             return [true, false, false, $field];
         } else {
-            return [false, $field->getErrors(), $field->getSettingErrors(), $field];
+            return [false, $field->getErrors(), $field->getSettingErrors(), false];
         }
     }
 
@@ -708,6 +722,11 @@ class TheArchitectService extends BaseApplicationComponent
     public function addEntryType($jsonEntryType)
     {
         $entryType = new EntryTypeModel();
+
+        // Make sure section adding entry type to exists.
+        if (!$this->getSectionid($jsonEntryType->sectionHandle)) {
+            return [false, ['Section' => ['Section "' . $jsonEntryType->sectionHandle . '" not available']], false, false];
+        }
 
         // Set handle if it was provided
         if (isset($jsonEntryType->handle)) {
@@ -1255,10 +1274,10 @@ class TheArchitectService extends BaseApplicationComponent
                 if (craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
                     return [true, null];
                 } else {
-                    return [false, 'Failed assigning user permissions.'];
+                    return [false, ['Permissions' => ['Failed assigning user permissions.']]];
                 }
             } else {
-                return [false, 'Failed to add user to groups.'];
+                return [false, ['User Group' => ['Failed to add user to groups.']]];
             }
         } else {
             return [false, $user->getErrors()];
