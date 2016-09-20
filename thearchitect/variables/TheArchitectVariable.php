@@ -14,4 +14,14 @@ class TheArchitectVariable
     {
         return craft()->neo->getBlockTypesByFieldId($layoutId);
     }
+
+    /**
+     * Returns an array of all the users.
+     *
+     * @return array[UserModel]
+     */
+   public function getAllUsers()
+   {
+       return craft()->theArchitect->getAllUsers();
+   }
 }
