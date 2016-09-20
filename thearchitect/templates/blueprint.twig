@@ -230,7 +230,7 @@
                 </tr>
             </thead>
             <tbody class="users">
-                {% for user in craft.users %}
+                {% for user in craft.theArchitect.getAllUsers() %}
                 {% set utilizedGroups = {} %}
                 {% for group in user.getGroups() %}
                     {% set utilizedGroups = utilizedGroups | merge([group.id]) %}
