@@ -71,17 +71,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         // Add UserGroups from JSON
-        $addedUserGroups = [
-            'groups' => [],
-            'permissions' => [],
-        ];
         if (isset($result->userGroups)) {
             foreach ($result->userGroups as $key => $userGroup) {
                 $userGroupResult = $this->addUserGroup($userGroup);
-                if ($userGroupResult[0] === true) {
-                    array_push($addedUserGroups['groups'], $userGroupResult[2]);
-                    array_push($addedUserGroups['permissions'], $userGroup->permissions);
-                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'User Group',
@@ -372,15 +364,17 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         // Add UserGroupsPermissions from JSON
-        foreach ($addedUserGroups['groups'] as $key => $userGroup) {
-            $userGroupResult = $this->addUserGroupPermissions($userGroup, $addedUserGroups['permissions'][$key]);
-            // Append Notice to Display Results
-            $notice[] = array(
-                'type' => 'User Group Permissions',
-                'name' => $userGroup->name,
-                'result' => $userGroupResult[0],
-                'errors' => $userGroupResult[1],
-            );
+        if (isset($result->userGroupPermissions)) {
+            foreach ($result->userGroupPermissions as $key => $userGroup) {
+                $userGroupResult = $this->addUserGroupPermissions($userGroup);
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'User Group Permissions',
+                    'name' => $userGroup->handle,
+                    'result' => $userGroupResult[0],
+                    'errors' => $userGroupResult[1],
+                );
+            }
         }
 
         // Add Users from JSON
@@ -429,7 +423,8 @@ class TheArchitectService extends BaseApplicationComponent
             'globals' => $globals,
             'categories' => $categories,
             'users' => $users,
-            'userGroups' => $userGroups,
+            'userGroups' => $userGroups[0],
+            'userGroupPermissions' => $userGroups[1],
         ];
 
         // Remove empty sections from the output array
@@ -1220,7 +1215,7 @@ class TheArchitectService extends BaseApplicationComponent
 
             $this->sections = craft()->sections->getAllSections();
 
-            $userGroups = [];
+            $userGroups = [[],[]];
 
             foreach ($allUsersGroups as $userGroup) {
                 if (in_array($userGroup->id, $post['groupSelection'])) {
@@ -1228,9 +1223,13 @@ class TheArchitectService extends BaseApplicationComponent
                     $userGroupJson = [
                         'name' => $userGroup->name,
                         'handle' => $userGroup->handle,
+                    ];
+                    $userGroupPermissionsJson = [
+                        'handle' => $userGroup->handle,
                         'permissions' => $this->deconstructPermissions($userGroupPermissions),
                     ];
-                    array_push($userGroups, $userGroupJson);
+                    array_push($userGroups[0], $userGroupJson);
+                    array_push($userGroups[1], $userGroupPermissionsJson);
                 }
             }
             return $userGroups;
@@ -1444,12 +1443,12 @@ class TheArchitectService extends BaseApplicationComponent
         if (craft()->userGroups->getGroupByHandle($userGroup->handle) === null) {
             // Save Asset Source to DB
             if (craft()->userGroups->saveGroup($userGroup)) {
-                return [true, null, $userGroup];
+                return [true, null];
             } else {
-                return [false, $userGroup->getErrors(), false];
+                return [false, $userGroup->getErrors()];
             }
         } else {
-            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']], false];
+            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']]];
         }
     }
 
@@ -1460,9 +1459,9 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addUserGroupPermissions($userGroup, $userGroupPermissions)
+    public function addUserGroupPermissions($jsonUserGroupPermissions)
     {
-        if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($userGroup->handle)->id, $this->constructPermissions($userGroupPermissions))) {
+        if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($jsonUserGroupPermissions->handle)->id, $this->constructPermissions($jsonUserGroupPermissions->permissions))) {
             return [true, null];
         } else {
             return [false, null];

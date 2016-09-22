@@ -32,7 +32,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getSchemaVersion()
     {
-        return '1.3.0';
+        return '1.5.1';
     }
 
     /**

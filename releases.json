@@ -1,4 +1,11 @@
 [{
+    "version": "1.5.1",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.1.zip",
+    "date": "2016-09-20T12:45:02-05:00",
+    "notes": [
+      "[Fixed] Fix UserGroup import order to ensure User Fields can select a group as a source during import."
+    ]
+}, {
     "version": "1.5.0",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.0.zip",
     "date": "2016-09-20T12:45:02-05:00",
