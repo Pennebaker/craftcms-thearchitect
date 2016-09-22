@@ -70,6 +70,28 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
+        // Add UserGroups from JSON
+        $addedUserGroups = [
+            'groups' => [],
+            'permissions' => [],
+        ];
+        if (isset($result->userGroups)) {
+            foreach ($result->userGroups as $key => $userGroup) {
+                $userGroupResult = $this->addUserGroup($userGroup);
+                if ($userGroupResult[0] === true) {
+                    array_push($addedUserGroups['groups'], $userGroupResult[2]);
+                    array_push($addedUserGroups['permissions'], $userGroup->permissions);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'User Group',
+                    'name' => $userGroup->name,
+                    'result' => $userGroupResult[0],
+                    'errors' => $userGroupResult[1],
+                );
+            }
+        }
+
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
@@ -349,30 +371,22 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
-        // Add UserGroups from JSON
-        if (isset($result->userGroups)) {
-            foreach ($result->userGroups as $key => $userGroup) {
-                $userGroupResult = $this->addUserGroup($userGroup);
-                if ($userGroupResult[0] === false) {
-                    unset($result->userGroups[$key]);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'User Group',
-                    'name' => $userGroup->name,
-                    'result' => $userGroupResult[0],
-                    'errors' => $userGroupResult[1],
-                );
-            }
+        // Add UserGroupsPermissions from JSON
+        foreach ($addedUserGroups['groups'] as $key => $userGroup) {
+            $userGroupResult = $this->addUserGroupPermissions($userGroup, $addedUserGroups['permissions'][$key]);
+            // Append Notice to Display Results
+            $notice[] = array(
+                'type' => 'User Group Permissions',
+                'name' => $userGroup->name,
+                'result' => $userGroupResult[0],
+                'errors' => $userGroupResult[1],
+            );
         }
 
         // Add Users from JSON
         if (isset($result->users)) {
             foreach ($result->users as $key => $user) {
                 $userResult = $this->addUser($user);
-                if ($userResult[0] === false) {
-                    unset($result->users[$key]);
-                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'User',
@@ -1430,16 +1444,28 @@ class TheArchitectService extends BaseApplicationComponent
         if (craft()->userGroups->getGroupByHandle($userGroup->handle) === null) {
             // Save Asset Source to DB
             if (craft()->userGroups->saveGroup($userGroup)) {
-                if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($userGroup->handle)->id, $this->constructPermissions($jsonUserGroup->permissions))) {
-                    return [true, null];
-                } else {
-                    return [false, null];
-                }
+                return [true, null, $userGroup];
             } else {
-                return [false, $userGroup->getErrors()];
+                return [false, $userGroup->getErrors(), false];
             }
         } else {
-            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']]];
+            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']], false];
+        }
+    }
+
+    /**
+     * addUserGroup.
+     *
+     * @param ArrayObject $jsonUser
+     *
+     * @return bool [success]
+     */
+    public function addUserGroupPermissions($userGroup, $userGroupPermissions)
+    {
+        if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($userGroup->handle)->id, $this->constructPermissions($userGroupPermissions))) {
+            return [true, null];
+        } else {
+            return [false, null];
         }
     }
 
