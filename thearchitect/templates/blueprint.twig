@@ -299,16 +299,18 @@
                 </tr>
             </thead>
             <tbody class="groups">
-                {% for group in craft.userGroups.getAllGroups() %}
-                <tr class="group" data-id="{{ group.id }}" data-name="{{ group }}">
-                    <th scope="row" class="name">
-                        <input type="checkbox" id="group{{ group.id }}" class="checkbox" name="groupSelection[]" value="{{ group.id }}"> <label for="group{{ group.id }}">{{ group }}</label>
-                    </th>
-                    <td>
-                        <code>{{ group.handle }}</code>
-                    </td>
-                </tr>
-                {% endfor %}
+                {% if craft.userGroups|length %}
+                    {% for group in craft.userGroups.getAllGroups() %}
+                    <tr class="group" data-id="{{ group.id }}" data-name="{{ group }}">
+                        <th scope="row" class="name">
+                            <input type="checkbox" id="group{{ group.id }}" class="checkbox" name="groupSelection[]" value="{{ group.id }}"> <label for="group{{ group.id }}">{{ group }}</label>
+                        </th>
+                        <td>
+                            <code>{{ group.handle }}</code>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
             </tbody>
         </table>
         <hr>
