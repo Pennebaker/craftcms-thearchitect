@@ -299,7 +299,7 @@
                 </tr>
             </thead>
             <tbody class="groups">
-                {% if craft.userGroups|length %}
+                {% if craft.userGroups is not null %}
                     {% for group in craft.userGroups.getAllGroups() %}
                     <tr class="group" data-id="{{ group.id }}" data-name="{{ group }}">
                         <th scope="row" class="name">
