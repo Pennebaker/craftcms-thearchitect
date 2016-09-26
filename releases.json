@@ -1,4 +1,12 @@
 [{
+    "version": "1.5.2",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.2.zip",
+    "date": "2016-09-26T07:39:34-05:00",
+    "notes": [
+      "[Fixed] Fix UserGroup error on Export tab when not using Pro edition of craft.",
+      "[Fixed] Fix User field requiring an array to be imported successfully."
+    ]
+}, {
     "version": "1.5.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.1.zip",
     "date": "2016-09-22T09:11:11-05:00",
