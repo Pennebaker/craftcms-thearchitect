@@ -1809,7 +1809,7 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
         if ($object->type == 'Users') {
-            if (isset($object->typesettings->sources)) {
+            if (isset($object->typesettings->sources) && is_array($object->typesettings->sources)) {
                 foreach ($object->typesettings->sources as $k => &$v) {
                     $userGroup = $this->getUserGroupByHandle($v);
                     if ($userGroup) {
