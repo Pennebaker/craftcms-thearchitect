@@ -1266,6 +1266,9 @@ class TheArchitectService extends BaseApplicationComponent
             'publishPeerEntries',
             'publishPeerEntryDrafts',
         ];
+        $general_perms = [
+            'editLocale'
+        ];
         $newUserPermissions = [
             'general' => [],
             'globals' => [],
@@ -1289,6 +1292,8 @@ class TheArchitectService extends BaseApplicationComponent
                     $handle = $this->getSectionHandle($splitPermission[1]);
                     if (!isset($newUserPermissions['sections'][$handle])) $newUserPermissions['sections'][$handle] = [];
                     array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
+                } else if (in_array($splitPermission[0], $general_perms)) {
+                    array_push($newUserPermissions['general'], $userPermission);
                 } else {
                     array_push($newUserPermissions['unknown'], $userPermission);
                 }
