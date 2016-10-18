@@ -114,7 +114,7 @@ class TheArchitectController extends BaseController
      */
     public function actionMigrations()
     {
-        $migrationsEnabled = $this->migrationsEnabled();
+        $migrationsEnabled = craft()->theArchitect->migrationsEnabled();
 
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
@@ -239,10 +239,5 @@ class TheArchitectController extends BaseController
 
             $this->renderTemplate('thearchitect/index', $variables);
         }
-    }
-
-    public function migrationsEnabled()
-    {
-        return craft()->plugins->getPlugin('theArchitect')->getSettings()['enableMigrations'];
     }
 }

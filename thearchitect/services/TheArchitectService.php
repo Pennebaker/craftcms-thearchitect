@@ -2548,4 +2548,9 @@ class TheArchitectService extends BaseApplicationComponent
 
         return $field;
     }
+
+    public function migrationsEnabled()
+    {
+        return craft()->plugins->getPlugin('theArchitect')->getSettings()['enableMigrations'];
+    }
 }
