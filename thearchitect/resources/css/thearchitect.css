@@ -6,3 +6,8 @@ th [type="checkbox"] + label {
     background: #ffe38f;
     color: #705400;
 }
+
+form.quick-action {
+    display: inline-block;
+    margin: 0 16px;
+}

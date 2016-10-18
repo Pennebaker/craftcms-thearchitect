@@ -92,11 +92,27 @@ class TheArchitectPlugin extends BasePlugin
 		}
 	}
 
+    public function init()
+    {
+        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
+        if (!file_exists($jsonPath)) {
+            mkdir($jsonPath);
+        }
+    }
+
+    protected function defineSettings()
+    {
+        return array(
+            'enableMigrations' => array(AttributeType::Bool)
+        );
+    }
+
     public function registerCpRoutes()
     {
         return array(
             'thearchitect/files' => array('action' => 'theArchitect/constructList'),
             'thearchitect/blueprint' => array('action' => 'theArchitect/blueprint'),
+            'thearchitect/migrations' => array('action' => 'theArchitect/migrations'),
             'thearchitect/convert' => array('action' => 'theArchitect/convert'),
         );
     }

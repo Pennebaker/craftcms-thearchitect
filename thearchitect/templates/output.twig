@@ -7,14 +7,16 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
-    tab4: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
+    tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
 } %}
 
 {% set selectedTab = tab %}
 
 {% set content %}
+<div class="the-architect">
 
-    {% if selectedTab == 'tab4' %}
+    {% if selectedTab == 'tab5' %}
     <p>
         To import this json back into Craft you will need the <a href="https://github.com/benjamminf/craft-neo" target="_blank">Neo Plugin</a> installed.
     </p>
@@ -22,7 +24,7 @@
         If you plan on re-importing this json directly into this instance of Craft remember to rename the handle either in this json model or on the old matrix field.
     </p>
     <p>
-        {{ oldFieldCount }} fields found in matrix field(s) reduced to {{ newFieldCount }} fields used by Neo
+        <code class="output">{{ oldFieldCount }} fields found in matrix field(s) reduced to {{ newFieldCount }} fields used by Neo</code>
     </p>
     {% endif %}
     {# Text Area for Output Data #}
@@ -62,4 +64,5 @@
     </table>
     {% endif %}
 
+</div>
 {% endset %}

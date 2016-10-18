@@ -9,6 +9,9 @@ CraftCMS Plugin to Construct Groups, Fields, Sections, EntryTypes, Transforms, G
 
 Example files can be found in the `library` directory
 
+## Exported Constructs
+If you want to provide json files to be loaded throught the CP. Put the files in `craft/config/thearchitect`.
+
 ## JSON Schema
 The example / syntax schemas are located on the [Repo's Wiki](https://github.com/Pennebaker/craftcms-thearchitect/wiki)
 

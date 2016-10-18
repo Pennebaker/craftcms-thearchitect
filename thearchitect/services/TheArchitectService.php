@@ -401,16 +401,16 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return array [output]
      */
-    public function exportConstruct($post)
+    public function exportConstruct($post, $includeID = false)
     {
-        list($sections, $entryTypes) = $this->sectionExport($post);
-        list($groups, $fields) = $this->fieldExport($post);
-        $sources = $this->assetSourceExport($post);
-        $transforms = $this->transformExport($post);
-        $globals = $this->globalSetExport($post);
-        $categories = $this->categoryGroupExport($post);
-        $users = $this->usersExport($post);
-        $userGroups = $this->userGroupsExport($post);
+        list($sections, $entryTypes) = $this->sectionExport($post, $includeID);
+        list($groups, $fields) = $this->fieldExport($post, $includeID);
+        $sources = $this->assetSourceExport($post, $includeID);
+        $transforms = $this->transformExport($post, $includeID);
+        $globals = $this->globalSetExport($post, $includeID);
+        $categories = $this->categoryGroupExport($post, $includeID);
+        $users = $this->usersExport($post, $includeID);
+        $userGroups = $this->userGroupsExport($post, $includeID);
 
         // Add all Arrays into the final output array
         $output = [
@@ -1140,7 +1140,7 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return array []
      */
-    public function usersExport($post)
+    public function usersExport($post, $includeID = false)
     {
         if (isset($post['userSelection'])) {
             $users = [];
@@ -1191,6 +1191,9 @@ class TheArchitectService extends BaseApplicationComponent
                         // 'verificationCodeIssuedDate' => $user->verificationCodeIssuedDate,
                         'groups' => [],
                     ];
+                    if ($includeID) {
+                        $userJson = array_merge(['id' => $user->id], $userJson);
+                    }
                     foreach ($user->getGroups() as $userGroup) {
                         array_push($userJson['groups'], $userGroup->handle);
                     }
@@ -1207,7 +1210,7 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return array []
      */
-    public function userGroupsExport($post)
+    public function userGroupsExport($post, $includeID = false)
     {
         if (isset($post['groupSelection'])) {
             $userGroups = [];
@@ -1228,6 +1231,9 @@ class TheArchitectService extends BaseApplicationComponent
                         'handle' => $userGroup->handle,
                         'permissions' => $this->deconstructPermissions($userGroupPermissions),
                     ];
+                    if ($includeID) {
+                        $userGroupJson = array_merge(['id' => $userGroup->id], $userGroupJson);
+                    }
                     array_push($userGroups[0], $userGroupJson);
                     array_push($userGroups[1], $userGroupPermissionsJson);
                 }
@@ -1476,8 +1482,10 @@ class TheArchitectService extends BaseApplicationComponent
     private function fixPermissions($permissions) {
         $newPermissions = [];
         $allPermissions = craft()->userPermissions->getAllPermissions();
-        foreach ($permissions as $permission) {
-            array_push($newPermissions, $this->checkKeyIsInArray($permission, $allPermissions));
+        if (count($permissions) > 0) {
+            foreach ($permissions as $permission) {
+                array_push($newPermissions, $this->checkKeyIsInArray($permission, $allPermissions));
+            }
         }
         return $newPermissions;
     }
@@ -1835,7 +1843,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function sectionExport($post)
+    private function sectionExport($post, $includeID = false)
     {
         $sections = [];
         $entryTypes = [];
@@ -1861,6 +1869,9 @@ class TheArchitectService extends BaseApplicationComponent
                         'maxLevels' => $section->attributes['maxLevels'],
                     ],
                 ];
+                if ($includeID) {
+                    $newSection = array_merge(['id' => $section->id], $newSection);
+                }
                 if ($newSection['typesettings']['maxLevels'] === null) {
                     unset($newSection['typesettings']['maxLevels']);
                 }
@@ -1913,7 +1924,7 @@ class TheArchitectService extends BaseApplicationComponent
         return [$sections, $entryTypes];
     }
 
-    private function fieldExport($post)
+    private function fieldExport($post, $includeID = false)
     {
         $groups = [];
         $fields = [];
@@ -1939,6 +1950,9 @@ class TheArchitectService extends BaseApplicationComponent
                     'type' => $field->type,
                     'typesettings' => $field->settings,
                 ];
+                if ($includeID) {
+                    $newField = array_merge(['id' => $field->id], $newField);
+                }
 
                 $this->parseFieldSources($field, $newField);
 
@@ -2252,7 +2266,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function assetSourceExport($post) {
+    private function assetSourceExport($post, $includeID = false) {
         $sources = [];
         if (isset($post['assetSourceSelection'])) {
             foreach ($post['assetSourceSelection'] as $id) {
@@ -2267,6 +2281,9 @@ class TheArchitectService extends BaseApplicationComponent
                     'settings' => $assetSource->settings,
                     'fieldLayout' => []
                 ];
+                if ($includeID) {
+                    $newAssetSource = array_merge(['id' => $assetSource->id], $newAssetSource);
+                }
 
                 $fieldLayout = $assetSource->getFieldLayout();
 
@@ -2289,7 +2306,7 @@ class TheArchitectService extends BaseApplicationComponent
         return $sources;
     }
 
-    private function transformExport($post) {
+    private function transformExport($post, $includeID = false) {
         $transforms = [];
         if (isset($post['assetTransformSelection'])) {
             foreach ($post['assetTransformSelection'] as $id) {
@@ -2307,13 +2324,16 @@ class TheArchitectService extends BaseApplicationComponent
                     'quality' => $transform->quality,
                     'format' => $transform->format
                 ];
+                if ($includeID) {
+                    $newTransform = array_merge(['id' => $transform->id], $newTransform);
+                }
                 array_push($transforms, $newTransform);
             }
         }
         return $transforms;
     }
 
-    private function globalSetExport($post) {
+    private function globalSetExport($post, $includeID = false) {
         $globals = [];
         if (isset($post['globalSelection'])) {
             foreach ($post['globalSelection'] as $id) {
@@ -2326,6 +2346,9 @@ class TheArchitectService extends BaseApplicationComponent
                     'handle' => $globalSet->handle,
                     'fieldLayout' => []
                 ];
+                if ($includeID) {
+                    $newGlobalSet = array_merge(['id' => $globalSet->id], $newGlobalSet);
+                }
 
                 $fieldLayout = $globalSet->getFieldLayout();
 
@@ -2348,7 +2371,7 @@ class TheArchitectService extends BaseApplicationComponent
         return $globals;
     }
 
-    private function categoryGroupExport($post) {
+    private function categoryGroupExport($post, $includeID = false) {
         $categories = [];
         if (isset($post['categorySelection'])) {
             foreach ($post['categorySelection'] as $id) {
@@ -2363,6 +2386,9 @@ class TheArchitectService extends BaseApplicationComponent
                     'locales' => [],
                     'fieldLayout' => [],
                 ];
+                if ($includeID) {
+                    $newCategory = array_merge(['id' => $categoryGroup->id], $newCategory);
+                }
 
                 // Set Group Locales
                 foreach ($categoryGroupLocales as $locale => $groupLocale) {

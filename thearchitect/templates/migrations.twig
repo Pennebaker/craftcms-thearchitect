@@ -1,0 +1,43 @@
+{% extends "_layouts/cp" %}
+{% set title = "The Architect"|t %}
+
+{% macro quickActionForm(action, buttonText) %}
+<form action="" method="post" accept-charset="UTF-8" class="quick-action">
+    <input type="hidden" name="action" value="plugins/savePluginSettings">
+    <input type="hidden" name="pluginClass" value="TheArchitect">
+    <input type="hidden" name="redirect" value="thearchitect/migrations">
+    {{ getCsrfInput() }}
+    <input type="hidden" name="settings[enableMigrations]" value="{{ action }}">
+    <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
+</form>
+{% endmacro %}
+
+{% import "_includes/forms" as forms %}
+{% from _self import quickActionForm %}
+
+{% set tabs = {
+    tab1: { label: "Raw Input"|t, url: url('thearchitect') },
+    tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
+    tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
+    tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
+} %}
+
+{% set selectedTab = 'tab4' %}
+
+{% set docsUrl = 'https://github.com/Pennebaker/craftcms-thearchitect/wiki' %}
+
+{% set content %}
+<div class="the-architect">
+
+    <h1>Migration</h1>
+    {% if migrationsEnabled %}<span class="status green"></span>Enabled{{ quickActionForm(0, 'Disable') }}{% else %}<span class="status red"></span>Disabled{{ quickActionForm(1, 'Enable') }}{% endif %}
+    <p>
+        Last Export on {{ exportTime|date("F d Y @ g:i a") }}
+    </p>
+    <p>
+        Last Import on {{ importTime|date("F d Y @ g:i a") }}
+    </p>
+
+</div>
+{% endset %}

@@ -7,12 +7,15 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
-    tab4: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
+    tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
 } %}
 
 {% set docsUrl = 'https://github.com/Pennebaker/craftcms-thearchitect/wiki' %}
 
 {% set content %}
+<div class="the-architect">
+
 
     {# Output of Submitted Data #}
     {% if result is defined %}
@@ -86,8 +89,11 @@
             autofocus: true,
             rows: 24
         }) }}
-
-        <input type="submit" class="btn submit" value="Construct">
+        <hr>
+        <div class="buttons clearafter">
+            <input type="submit" class="btn submit" value="Construct">
+        </div>
     </form>
 
+</div>
 {% endset %}
