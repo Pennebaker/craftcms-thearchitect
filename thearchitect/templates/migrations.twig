@@ -1,19 +1,28 @@
 {% extends "_layouts/cp" %}
 {% set title = "The Architect"|t %}
 
-{% macro quickActionForm(action, buttonText) %}
+{% macro migrationsToggleForm(value, buttonText) %}
 <form action="" method="post" accept-charset="UTF-8" class="quick-action">
     <input type="hidden" name="action" value="plugins/savePluginSettings">
     <input type="hidden" name="pluginClass" value="TheArchitect">
     <input type="hidden" name="redirect" value="thearchitect/migrations">
     {{ getCsrfInput() }}
-    <input type="hidden" name="settings[enableMigrations]" value="{{ action }}">
+    <input type="hidden" name="settings[enableMigrations]" value="{{ value }}">
+    <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
+</form>
+{% endmacro %}
+
+{% macro quickActionForm(action, buttonText) %}
+<form action="" method="post" accept-charset="UTF-8" class="quick-action">
+    <input type="hidden" name="action" value="theArchitect/{{ action }}">
+    <input type="hidden" name="redirect" value="thearchitect/migrations">
+    {{ getCsrfInput() }}
     <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
 </form>
 {% endmacro %}
 
 {% import "_includes/forms" as forms %}
-{% from _self import quickActionForm %}
+{% from _self import quickActionForm, migrationsToggleForm %}
 
 {% set tabs = {
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
@@ -31,13 +40,13 @@
 <div class="the-architect">
 
     <h1>Migration</h1>
-    {% if migrationsEnabled %}<span class="status green"></span>Enabled{{ quickActionForm(0, 'Disable') }}{% else %}<span class="status red"></span>Disabled{{ quickActionForm(1, 'Enable') }}{% endif %}
-    <p>
-        Last Export on {{ exportTime|date("F d Y @ g:i a") }}
-    </p>
-    <p>
+    {% if migrationsEnabled %}<span class="status green"></span>Enabled{{ migrationsToggleForm(0, 'Disable') }}{% else %}<span class="status red"></span>Disabled{{ migrationsToggleForm(1, 'Enable') }}{% endif %}
+    <div>
+        Last Export on {{ exportTime|date("F d Y @ g:i a") }}{{ quickActionForm('migrationExport', 'Run Export') }}
+    </div>
+    <div>
         Last Import on {{ importTime|date("F d Y @ g:i a") }}
-    </p>
+    </div>
 
 </div>
 {% endset %}

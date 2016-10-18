@@ -588,6 +588,8 @@ class TheArchitectService extends BaseApplicationComponent
         foreach ($output->fields as $field) {
             $this->addField($field, $field->id);
         }
+
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
     }
 
     /**
@@ -2549,8 +2551,13 @@ class TheArchitectService extends BaseApplicationComponent
         return $field;
     }
 
-    public function migrationsEnabled()
+    public function getMigrationsEnabled()
     {
         return craft()->plugins->getPlugin('theArchitect')->getSettings()['enableMigrations'];
+    }
+
+    public function getLastImport()
+    {
+        return craft()->plugins->getPlugin('theArchitect')->getSettings()['lastImport'];
     }
 }

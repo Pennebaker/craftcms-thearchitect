@@ -114,20 +114,24 @@ class TheArchitectController extends BaseController
      */
     public function actionMigrations()
     {
-        $migrationsEnabled = craft()->theArchitect->migrationsEnabled();
+        $migrationsEnabled = craft()->theArchitect->getMigrationsEnabled();
 
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
 
-        if ($migrationsEnabled) {
-            craft()->theArchitect->exportMigrationConstruct();
+        $lastImport = craft()->theArchitect->getLastImport();
+        $exportTime = filemtime($masterJson);
+
+        if ($migrationsEnabled && $lastImport < $exportTime) {
             craft()->theArchitect->importMigrationConstruct();
         }
 
+        $lastImport = craft()->theArchitect->getLastImport();
+
         $variables = array(
             'migrationsEnabled' => $migrationsEnabled,
-            'exportTime' => filemtime($masterJson),
-            'importTime' => fileatime($masterJson),
+            'exportTime' => $exportTime,
+            'importTime' => $lastImport,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
@@ -135,22 +139,13 @@ class TheArchitectController extends BaseController
         $this->renderTemplate('thearchitect/migrations', $variables);
     }
 
-    /**
-     * actionEnableMigrations [Enable migrations].
-     */
-    public function actionEnableMigrations()
+    public function actionMigrationExport()
     {
-        craft()->plugins->getPlugin('theArchitect')->setSettings(array('enableMigrations' => true));
+        // Run Migration Export
+        craft()->theArchitect->exportMigrationConstruct();
 
-        $this->redirect('thearchitect/migrations');
-    }
-
-    /**
-     * actionFarm [Disable migrations].
-     */
-    public function actionDisableMigrations()
-    {
-        craft()->plugins->getPlugin('theArchitect')->setSettings(array('enableMigrations' => false));
+        // Set last import to match this export time.
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
 
         $this->redirect('thearchitect/migrations');
     }
