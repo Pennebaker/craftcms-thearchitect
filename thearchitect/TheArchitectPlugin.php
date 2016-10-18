@@ -94,9 +94,9 @@ class TheArchitectPlugin extends BasePlugin
 
     public function init()
     {
-        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
-        if (!file_exists($jsonPath)) {
-            mkdir($jsonPath);
+        $modelsPath = craft()->config->get('modelsPath', 'theArchitect');
+        if (!file_exists($modelsPath)) {
+            mkdir($modelsPath);
         }
     }
 

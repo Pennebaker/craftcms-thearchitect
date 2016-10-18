@@ -563,6 +563,32 @@ class TheArchitectService extends BaseApplicationComponent
         return [$newObject, $allFields, $fields, $similarFields];
     }
 
+    public function exportMigrationConstruct()
+    {
+        $post = $this->getAllIDs();
+
+        $output = $this->exportConstruct($post, true);
+        $json = json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT);
+
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect') . '_master_.json';
+        file_put_contents($masterJson, $json);
+    }
+
+    public function importMigrationConstruct()
+    {
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect') . '_master_.json';
+        $json = file_get_contents($masterJson);
+        $output = json_decode($json);
+
+        $this->groups = craft()->fields->getAllGroups();
+        $this->fields = craft()->fields->getAllFields();
+        $this->sections = craft()->sections->getAllSections();
+
+        foreach ($output->fields as $field) {
+            $this->addField($field, $field->id);
+        }
+    }
+
     /**
      * addGroup.
      *
@@ -599,9 +625,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addField($jsonField)
+    public function addField($jsonField, $fieldID = false)
     {
-        $field = new FieldModel();
+        if ($fieldID) {
+            $field = $this->getFieldById($fieldID);
+        } else {
+            $field = new FieldModel();
+        }
 
         // Make sure the field type attempting to import is available.
         if (!in_array($jsonField->type, $this->fieldTypes())) {
@@ -1144,7 +1174,7 @@ class TheArchitectService extends BaseApplicationComponent
     {
         if (isset($post['userSelection'])) {
             $users = [];
-            $allUsers = craft()->theArchitect->getAllUsers();
+            $allUsers = $this->getAllUsers();
 
             $this->sections = craft()->sections->getAllSections();
 
@@ -2420,5 +2450,61 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
         return $categories;
+    }
+
+    public function getAllIDs()
+    {
+        // Generate all IDs available for export.
+        $post = [
+            'fieldSelection' => [],
+            'sectionSelection' => [],
+            'assetSourceSelection' => [],
+            'assetTransformSelection' => [],
+            'globalSelection' => [],
+            'categorySelection' => [],
+            'userSelection' => [],
+            'groupSelection' => [],
+        ];
+
+        foreach (craft()->fields->getAllFields() as $field) {
+            array_push($post['fieldSelection'], $field->id);
+        }
+        foreach (craft()->sections->getAllSections() as $section) {
+            array_push($post['sectionSelection'], $section->id);
+        }
+        foreach (craft()->assetSources->getAllSources() as $field) {
+            array_push($post['assetSourceSelection'], $field->id);
+        }
+        foreach (craft()->assetTransforms->getAllTransforms() as $section) {
+            array_push($post['assetTransformSelection'], $section->id);
+        }
+        foreach (craft()->globals->getAllSets() as $section) {
+            array_push($post['globalSelection'], $section->id);
+        }
+        foreach (craft()->categories->getAllGroups() as $section) {
+            array_push($post['categorySelection'], $section->id);
+        }
+        foreach (craft()->theArchitect->getAllUsers() as $section) {
+            array_push($post['userSelection'], $section->id);
+        }
+        foreach (craft()->userGroups->getAllGroups() as $section) {
+            array_push($post['groupSelection'], $section->id);
+        }
+
+        return $post;
+    }
+
+    public function getFieldById($fieldID) {
+        foreach ($this->fields as $field) {
+            if ($field->id == $fieldID) {
+                return $field;
+            }
+        }
+        craft()->db->createCommand()->insert('fields',array(
+            'id' => $fieldID
+        ));
+        $field = new FieldModel();
+        $field->id = $fieldID;
+        return $field;
     }
 }

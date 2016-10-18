@@ -19,4 +19,5 @@
  */
 
 return array(
+    'modelsPath' => __dir__ . '/../../config/thearchitect/'
 );
