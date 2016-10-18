@@ -1,15 +1,15 @@
 <?php
+
 namespace Craft;
 
 /**
- * Class TheArchitectPlugin
- *
- * @package Craft
+ * Class TheArchitectPlugin.
  */
 class TheArchitectPlugin extends BasePlugin
 {
     /**
-     * getName
+     * getName.
+     *
      * @return null|string
      */
     public function getName()
@@ -18,7 +18,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getVersion
+     * getVersion.
+     *
      * @return string
      */
     public function getVersion()
@@ -27,7 +28,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getSchemaVersion
+     * getSchemaVersion.
+     *
      * @return string
      */
     public function getSchemaVersion()
@@ -36,7 +38,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getDeveloper
+     * getDeveloper.
+     *
      * @return string
      */
     public function getDeveloper()
@@ -45,7 +48,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getDeveloperUrl
+     * getDeveloperUrl.
+     *
      * @return string
      */
     public function getDeveloperUrl()
@@ -54,7 +58,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getPluginUrl
+     * getPluginUrl.
+     *
      * @return string
      */
     public function getPluginUrl()
@@ -63,34 +68,36 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getReleaseFeedUrl
+     * getReleaseFeedUrl.
+     *
      * @return string
      */
-	public function getReleaseFeedUrl()
-	{
-		return 'https://raw.githubusercontent.com/Pennebaker/craftcms-thearchitect/master/releases.json';
-	}
+    public function getReleaseFeedUrl()
+    {
+        return 'https://raw.githubusercontent.com/Pennebaker/craftcms-thearchitect/master/releases.json';
+    }
 
     /**
-     * getDocumentationUrl
+     * getDocumentationUrl.
+     *
      * @return string
      */
     public function getDocumentationUrl()
     {
-        return $this->getPluginUrl() . '/wiki';
+        return $this->getPluginUrl().'/wiki';
     }
 
     /**
-     * hasCpSection
-     * @return boolean
+     * hasCpSection.
+     *
+     * @return bool
      */
-	public function hasCpSection()
-	{
-		if (craft()->userSession->isAdmin())
-		{
-			return true;
-		}
-	}
+    public function hasCpSection()
+    {
+        if (craft()->userSession->isAdmin()) {
+            return true;
+        }
+    }
 
     public function init()
     {
@@ -103,7 +110,7 @@ class TheArchitectPlugin extends BasePlugin
     protected function defineSettings()
     {
         return array(
-            'enableMigrations' => array(AttributeType::Bool)
+            'enableMigrations' => array(AttributeType::Bool),
         );
     }
 

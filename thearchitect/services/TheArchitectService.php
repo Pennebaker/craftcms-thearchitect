@@ -106,7 +106,7 @@ class TheArchitectService extends BaseApplicationComponent
                     foreach ($field->typesettings['blockTypes'] as $key => $value) {
                         $blockTypeKey = intval(substr($key, 3));
                         $fieldLayoutId = $blockTypes[$blockTypeKey]->getFieldLayout()->id;
-                        if(craft()->plugins->getPlugin('relabel')) {
+                        if (craft()->plugins->getPlugin('relabel')) {
                             if (isset($value['relabel'])) {
                                 foreach ($value['relabel'] as $relabel) {
                                     $relabelModel = new RelabelModel();
@@ -118,7 +118,7 @@ class TheArchitectService extends BaseApplicationComponent
                                 }
                             }
                         }
-                        if(craft()->plugins->getPlugin('reasons')) {
+                        if (craft()->plugins->getPlugin('reasons')) {
                             if (isset($value['reasons'])) {
                                 $reasonsModel = [];
                                 foreach ($value['reasons'] as $fieldHandle => $reasons) {
@@ -159,7 +159,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($assetSourceResult[0]) {
                     $generatedAssetSource = $assetSourceResult[2];
                     $fieldLayoutId = $generatedAssetSource->fieldLayoutId;
-                    if(craft()->plugins->getPlugin('relabel')) {
+                    if (craft()->plugins->getPlugin('relabel')) {
                         if (isset($source->relabel)) {
                             foreach ($source->relabel as $relabel) {
                                 $relabelModel = new RelabelModel();
@@ -171,7 +171,7 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                    if(craft()->plugins->getPlugin('reasons')) {
+                    if (craft()->plugins->getPlugin('reasons')) {
                         if (isset($source->reasons)) {
                             $reasonsModel = [];
                             foreach ($source->reasons as $fieldHandle => $reasons) {
@@ -217,7 +217,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($addEntryTypeResult[0]) {
                     $generatedEntryType = $addEntryTypeResult[2];
                     $fieldLayoutId = $generatedEntryType->fieldLayoutId;
-                    if(craft()->plugins->getPlugin('relabel')) {
+                    if (craft()->plugins->getPlugin('relabel')) {
                         if (isset($entryType->relabel)) {
                             foreach ($entryType->relabel as $relabel) {
                                 $relabelModel = new RelabelModel();
@@ -229,7 +229,7 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                    if(craft()->plugins->getPlugin('reasons')) {
+                    if (craft()->plugins->getPlugin('reasons')) {
                         if (isset($entryType->reasons)) {
                             $reasonsModel = [];
                             foreach ($entryType->reasons as $fieldHandle => $reasons) {
@@ -280,7 +280,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($addGlobalResult[0]) {
                     $generatedGlobalSet = $addGlobalResult[2];
                     $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                    if(craft()->plugins->getPlugin('relabel')) {
+                    if (craft()->plugins->getPlugin('relabel')) {
                         if (isset($global->relabel)) {
                             foreach ($global->relabel as $relabel) {
                                 $relabelModel = new RelabelModel();
@@ -292,7 +292,7 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                    if(craft()->plugins->getPlugin('reasons')) {
+                    if (craft()->plugins->getPlugin('reasons')) {
                         if (isset($global->reasons)) {
                             $reasonsModel = [];
                             foreach ($global->reasons as $fieldHandle => $reasons) {
@@ -330,7 +330,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($addCategoryGroupResult[0]) {
                     $generatedGlobalSet = $addCategoryGroupResult[2];
                     $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                    if(craft()->plugins->getPlugin('relabel')) {
+                    if (craft()->plugins->getPlugin('relabel')) {
                         if (isset($categoryGroup->relabel)) {
                             foreach ($categoryGroup->relabel as $relabel) {
                                 $relabelModel = new RelabelModel();
@@ -342,7 +342,7 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                    if(craft()->plugins->getPlugin('reasons')) {
+                    if (craft()->plugins->getPlugin('reasons')) {
                         if (isset($categoryGroup->reasons)) {
                             $reasonsModel = [];
                             foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
@@ -438,14 +438,14 @@ class TheArchitectService extends BaseApplicationComponent
     }
 
     /**
-     * exportMatrixAsNeo
+     * exportMatrixAsNeo.
      *
      * @param array $post
      *
      * @return array [output, allFields, fields, similarFields]
      */
-    public function exportMatrixAsNeo($post) {
-
+    public function exportMatrixAsNeo($post)
+    {
         $export = $this->exportConstruct($post);
 
         // Converting arrays to objects.
@@ -471,15 +471,15 @@ class TheArchitectService extends BaseApplicationComponent
                     foreach ($block->fields as $blockFieldId => $blockField) {
                         $allFields[] = $blockField;
                         $fieldLoc = array_search($blockField, $fields);
-                        for ($i=0; $i < $maxCount; $i++) {
+                        for ($i = 0; $i < $maxCount; ++$i) {
                             if ($fieldLoc !== false) {
                                 break;
                             }
                             $testBlockField = clone $blockField;
-                            $testBlockField->handle = $blockField->handle . '_' . $i;
+                            $testBlockField->handle = $blockField->handle.'_'.$i;
                             $fieldLoc = array_search($testBlockField, $fields);
                             if ($fieldLoc !== false) {
-                                $blockField->handle = $testBlockField->handle;;
+                                $blockField->handle = $testBlockField->handle;
                             }
                         }
                         if ($fieldLoc === false) {
@@ -487,8 +487,8 @@ class TheArchitectService extends BaseApplicationComponent
                                 $count = 0;
                                 $originalHandle = $blockField->handle;
                                 while ($this->hasHandle($blockField->handle, $fields)) {
-                                    $blockField->handle = $originalHandle . '_' . $count;
-                                    $count++;
+                                    $blockField->handle = $originalHandle.'_'.$count;
+                                    ++$count;
                                 }
                                 if ($count > $maxCount) {
                                     $maxCount = $count;
@@ -514,16 +514,16 @@ class TheArchitectService extends BaseApplicationComponent
                     $fAId = $fieldA->handle;
                     foreach ($fields as $fieldB) {
                         $fBId = $fieldB->handle;
-                        if ($fieldA != $fieldB && !(in_array([$fAId,$fBId], $fieldLinks) || in_array([$fBId,$fAId], $fieldLinks))) {
+                        if ($fieldA != $fieldB && !(in_array([$fAId, $fBId], $fieldLinks) || in_array([$fBId, $fAId], $fieldLinks))) {
                             if ($fieldA->type == $fieldB->type) {
                                 if ($fieldA->typesettings == $fieldB->typesettings) {
                                     $fieldLinks[] = [
                                         $fAId,
-                                        $fBId
+                                        $fBId,
                                     ];
                                     $similarFields[] = [
                                         'A' => json_encode($fieldA, JSON_PRETTY_PRINT),
-                                        'B' => json_encode($fieldB, JSON_PRETTY_PRINT)
+                                        'B' => json_encode($fieldB, JSON_PRETTY_PRINT),
                                     ];
                                 }
                             }
@@ -534,7 +534,7 @@ class TheArchitectService extends BaseApplicationComponent
                 $addedMatrixFields[] = $field->handle;
                 $newField = clone $field;
                 $newField->type = 'Neo';
-                $newField->typesettings = [ "maxBlocks" => $field->typesettings->maxBlocks, "groups" => [], "blockTypes" => [] ];
+                $newField->typesettings = ['maxBlocks' => $field->typesettings->maxBlocks, 'groups' => [], 'blockTypes' => []];
                 $count = 0;
                 foreach ($field->typesettings->blockTypes as $blockId => $block) {
                     $blockFields = [];
@@ -545,21 +545,22 @@ class TheArchitectService extends BaseApplicationComponent
                             $requiredFields[] = $blockField->handle;
                         }
                     }
-                    $newField->typesettings['blockTypes']["new".$count] = [
-                        "sortOrder" => strval($count+1),
-                        "name" => $block->name,
-                        "handle" => $block->handle,
-                        "maxBlocks" => "",
-                        "childBlocks" => [],
-                        "topLevel" => true,
-                        "fieldLayout" => [ "Tab" => $blockFields ],
-                        "requiredFields" => $requiredFields
+                    $newField->typesettings['blockTypes']['new'.$count] = [
+                        'sortOrder' => strval($count + 1),
+                        'name' => $block->name,
+                        'handle' => $block->handle,
+                        'maxBlocks' => '',
+                        'childBlocks' => [],
+                        'topLevel' => true,
+                        'fieldLayout' => ['Tab' => $blockFields],
+                        'requiredFields' => $requiredFields,
                     ];
-                    $count++;
+                    ++$count;
                 }
                 $newObject->fields[] = $newField;
             }
         }
+
         return [$newObject, $allFields, $fields, $similarFields];
     }
 
@@ -570,13 +571,13 @@ class TheArchitectService extends BaseApplicationComponent
         $output = $this->exportConstruct($post, true);
         $json = json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT);
 
-        $masterJson = craft()->config->get('modelsPath', 'theArchitect') . '_master_.json';
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
         file_put_contents($masterJson, $json);
     }
 
     public function importMigrationConstruct()
     {
-        $masterJson = craft()->config->get('modelsPath', 'theArchitect') . '_master_.json';
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
         $json = file_get_contents($masterJson);
         $output = json_decode($json);
 
@@ -615,6 +616,7 @@ class TheArchitectService extends BaseApplicationComponent
         foreach (craft()->fields->allFieldTypes as $key => $value) {
             array_push($fieldTypes, $key);
         }
+
         return $fieldTypes;
     }
 
@@ -635,7 +637,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Make sure the field type attempting to import is available.
         if (!in_array($jsonField->type, $this->fieldTypes())) {
-            return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
+            return [false, ['Field Type' => ['Field type "'.$jsonField->type.'" not available']], false, false];
         }
 
         // If group is set find groupId
@@ -783,7 +785,6 @@ class TheArchitectService extends BaseApplicationComponent
                 $defaultLocaleStatus = true;
             }
 
-
             if ($urlFormat !== null || $nestedUrlFormat !== null) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
@@ -816,7 +817,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Make sure section adding entry type to exists.
         if (!$this->getSectionid($jsonEntryType->sectionHandle)) {
-            return [false, ['Section' => ['Section "' . $jsonEntryType->sectionHandle . '" not available']], false, false];
+            return [false, ['Section' => ['Section "'.$jsonEntryType->sectionHandle.'" not available']], false, false];
         }
 
         // Set handle if it was provided
@@ -855,7 +856,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         $problemFields = $this->checkFieldLayout($jsonEntryType->fieldLayout);
-        if ($problemFields !== ["handle"=>[]]) {
+        if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields];
         }
 
@@ -936,7 +937,7 @@ class TheArchitectService extends BaseApplicationComponent
         $source = $this->getSourceByHandle($handle);
 
         $problemFields = $this->checkFieldLayout($jsonSource->fieldLayout);
-        if ($problemFields !== ["handle"=>[]]) {
+        if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields];
         }
 
@@ -961,17 +962,19 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function checkFieldLayout($fieldLayout) {
+    private function checkFieldLayout($fieldLayout)
+    {
         $problemFields = [];
-        $problemFields["handle"] = [];
+        $problemFields['handle'] = [];
         foreach ($fieldLayout as $tab => $fields) {
             foreach ($fields as $fieldHandle) {
                 $field = craft()->fields->getFieldByHandle($fieldHandle);
                 if ($field === null) {
-                    array_push($problemFields["handle"], 'Handle "' . $fieldHandle . '" is not a valid field.');
+                    array_push($problemFields['handle'], 'Handle "'.$fieldHandle.'" is not a valid field.');
                 }
             }
         }
+
         return $problemFields;
     }
 
@@ -1073,7 +1076,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         $problemFields = $this->checkFieldLayout($jsonGlobalSet->fieldLayout);
-        if ($problemFields !== ["handle"=>[]]) {
+        if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields];
         }
 
@@ -1120,15 +1123,18 @@ class TheArchitectService extends BaseApplicationComponent
             $categoryGroup->handle = $this->constructHandle($jsonCategoryGroup->name);
         }
 
-        if (isset($jsonCategoryGroup->hasUrls))
+        if (isset($jsonCategoryGroup->hasUrls)) {
             $categoryGroup->hasUrls = $jsonCategoryGroup->hasUrls;
-        if (isset($jsonCategoryGroup->template))
+        }
+        if (isset($jsonCategoryGroup->template)) {
             $categoryGroup->template = $jsonCategoryGroup->template;
-        if (isset($jsonCategoryGroup->maxLevels))
+        }
+        if (isset($jsonCategoryGroup->maxLevels)) {
             $categoryGroup->maxLevels = $jsonCategoryGroup->maxLevels;
+        }
 
         $problemFields = $this->checkFieldLayout($jsonCategoryGroup->fieldLayout);
-        if ($problemFields !== ["handle"=>[]]) {
+        if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields, false];
         }
 
@@ -1154,7 +1160,7 @@ class TheArchitectService extends BaseApplicationComponent
             }
             $categoryGroup->setLocales($categoryGroupLocale);
         } else {
-            return [false, ["locale" => ["Locales are missing."]], false];
+            return [false, ['locale' => ['Locales are missing.']], false];
         }
 
         // Save Category Group to DB
@@ -1231,6 +1237,7 @@ class TheArchitectService extends BaseApplicationComponent
                     array_push($users, $userJson);
                 }
             }
+
             return $this->arrayStripNullEmpty($users);
         }
     }
@@ -1248,7 +1255,7 @@ class TheArchitectService extends BaseApplicationComponent
 
             $this->sections = craft()->sections->getAllSections();
 
-            $userGroups = [[],[]];
+            $userGroups = [[], []];
 
             foreach ($allUsersGroups as $userGroup) {
                 if (in_array($userGroup->id, $post['groupSelection'])) {
@@ -1268,6 +1275,7 @@ class TheArchitectService extends BaseApplicationComponent
                     array_push($userGroups[1], $userGroupPermissionsJson);
                 }
             }
+
             return $userGroups;
         }
     }
@@ -1303,7 +1311,7 @@ class TheArchitectService extends BaseApplicationComponent
             'publishPeerEntryDrafts',
         ];
         $general_perms = [
-            'editLocale'
+            'editLocale',
         ];
         $newUserPermissions = [
             'general' => [],
@@ -1314,21 +1322,26 @@ class TheArchitectService extends BaseApplicationComponent
         ];
         foreach ($userPermissions as $k => $userPermission) {
             $splitPermission = explode(':', $userPermission);
-            if (sizeof($splitPermission) > 1)
-            {
+            if (sizeof($splitPermission) > 1) {
                 if (in_array($splitPermission[0], $global_perms)) {
                     $handle = craft()->globals->getSetById($splitPermission[1])->handle;
-                    if (!isset($newUserPermissions['globals'][$handle])) $newUserPermissions['globals'][$handle] = [];
+                    if (!isset($newUserPermissions['globals'][$handle])) {
+                        $newUserPermissions['globals'][$handle] = [];
+                    }
                     array_push($newUserPermissions['globals'][$handle], $splitPermission[0]);
-                } else if (in_array($splitPermission[0], $assetsource_perms)) {
+                } elseif (in_array($splitPermission[0], $assetsource_perms)) {
                     $handle = craft()->assetSources->getSourceById($splitPermission[1])->handle;
-                    if (!isset($newUserPermissions['assetSources'][$handle])) $newUserPermissions['assetSources'][$handle] = [];
+                    if (!isset($newUserPermissions['assetSources'][$handle])) {
+                        $newUserPermissions['assetSources'][$handle] = [];
+                    }
                     array_push($newUserPermissions['assetSources'][$handle], $splitPermission[0]);
-                } else if (in_array($splitPermission[0], $section_perms)) {
+                } elseif (in_array($splitPermission[0], $section_perms)) {
                     $handle = $this->getSectionHandle($splitPermission[1]);
-                    if (!isset($newUserPermissions['sections'][$handle])) $newUserPermissions['sections'][$handle] = [];
+                    if (!isset($newUserPermissions['sections'][$handle])) {
+                        $newUserPermissions['sections'][$handle] = [];
+                    }
                     array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
-                } else if (in_array($splitPermission[0], $general_perms)) {
+                } elseif (in_array($splitPermission[0], $general_perms)) {
                     array_push($newUserPermissions['general'], $userPermission);
                 } else {
                     array_push($newUserPermissions['unknown'], $userPermission);
@@ -1337,6 +1350,7 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($newUserPermissions['general'], $userPermission);
             }
         }
+
         return $this->arrayStripNullEmpty($newUserPermissions);
     }
 
@@ -1353,30 +1367,31 @@ class TheArchitectService extends BaseApplicationComponent
                 foreach ($permissionGroup as $globalHandle => $permissions) {
                     $globalId = craft()->globals->getSetByHandle($globalHandle)->id;
                     foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission . ':' . $globalId);
+                        array_push($newUserPermissions, $permission.':'.$globalId);
                     }
                 }
-            } else if ($k == 'assetSources') {
+            } elseif ($k == 'assetSources') {
                 foreach ($permissionGroup as $assetSourceHandle => $permissions) {
                     $assetSourceId = $this->getSourceByHandle($assetSourceHandle)->id;
                     foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission . ':' . $assetSourceId);
+                        array_push($newUserPermissions, $permission.':'.$assetSourceId);
                     }
                 }
-            } else if ($k == 'sections') {
+            } elseif ($k == 'sections') {
                 foreach ($permissionGroup as $sectionHandle => $permissions) {
                     $sectionId = craft()->sections->getSectionByHandle($sectionHandle)->id;
                     foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission . ':' . $sectionId);
+                        array_push($newUserPermissions, $permission.':'.$sectionId);
                     }
                 }
-            } else if ($k == 'general') {
+            } elseif ($k == 'general') {
                 foreach ($permissionGroup as $permission) {
                     array_push($newUserPermissions, $permission);
                 }
             }
             // There is also a "unknown" group but those will usually contain permissions TheArchitect did not know how to process. If you end up with these please report them
         }
+
         return $newUserPermissions;
     }
 
@@ -1395,6 +1410,7 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
         }
+
         return $userPermissions;
     }
 
@@ -1415,6 +1431,7 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
         }
+
         return $newAry;
     }
 
@@ -1489,7 +1506,7 @@ class TheArchitectService extends BaseApplicationComponent
                 return [false, $userGroup->getErrors()];
             }
         } else {
-            return [false, ['handle' => ['Handle "' . $userGroup->handle . '" has already been taken.']]];
+            return [false, ['handle' => ['Handle "'.$userGroup->handle.'" has already been taken.']]];
         }
     }
 
@@ -1509,7 +1526,8 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function fixPermissions($permissions) {
+    private function fixPermissions($permissions)
+    {
         $newPermissions = [];
         $allPermissions = craft()->userPermissions->getAllPermissions();
         if (count($permissions) > 0) {
@@ -1517,19 +1535,22 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($newPermissions, $this->checkKeyIsInArray($permission, $allPermissions));
             }
         }
+
         return $newPermissions;
     }
 
     private function checkKeyIsInArray($dataItemName, $array)
     {
-        foreach ($array as $key => $value)
-            {
-                if (strcasecmp($key, $dataItemName) == 0)
-                    return $key;
-
-                if (is_array($value) && $this->checkKeyIsInArray($dataItemName, $value))
-                    return $this->checkKeyIsInArray($dataItemName, $value);
+        foreach ($array as $key => $value) {
+            if (strcasecmp($key, $dataItemName) == 0) {
+                return $key;
             }
+
+            if (is_array($value) && $this->checkKeyIsInArray($dataItemName, $value)) {
+                return $this->checkKeyIsInArray($dataItemName, $value);
+            }
+        }
+
         return false;
     }
 
@@ -1545,15 +1566,15 @@ class TheArchitectService extends BaseApplicationComponent
         $userRecords = UserRecord::model()->findAll();
         $users = [];
 
-		if ($userRecords)
-		{
+        if ($userRecords) {
             foreach ($userRecords as $userRecord) {
                 array_push($users, UserModel::populateModel($userRecord));
             }
-            return $users;
-		}
 
-		return null;
+            return $users;
+        }
+
+        return;
     }
 
     /**
@@ -1727,7 +1748,8 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function getTransformById($id) {
+    private function getTransformById($id)
+    {
         $transforms = craft()->assetTransforms->getAllTransforms();
         foreach ($transforms as $key => $transform) {
             if ($transform->id == $id) {
@@ -1739,22 +1761,25 @@ class TheArchitectService extends BaseApplicationComponent
     private function stripHandleSpaces(&$object)
     {
         foreach ($object as $key => &$value) {
-            if ($key === "handle") {
+            if ($key === 'handle') {
                 $value = preg_replace("/\s/", '', $value);
             }
             if (gettype($value) == 'array' || gettype($value) == 'object') {
                 $value = $this->stripHandleSpaces($value);
             }
         }
+
         return $object;
     }
 
-    private function hasHandle($handle, $fields) {
+    private function hasHandle($handle, $fields)
+    {
         foreach ($fields as $field) {
             if ($field->handle == $handle) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -1893,7 +1918,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'enableVersioning' => $section->attributes['enableVersioning'],
                     'typesettings' => [
                         'hasUrls' => $section->attributes['hasUrls'],
-                        'urlFormat' => ($urlFormat !== null) ? $urlFormat : "",
+                        'urlFormat' => ($urlFormat !== null) ? $urlFormat : '',
                         'nestedUrlFormat' => $section->locales[craft()->i18n->getPrimarySiteLocaleId()]->attributes['nestedUrlFormat'],
                         'template' => $section->attributes['template'],
                         'maxLevels' => $section->attributes['maxLevels'],
@@ -2024,7 +2049,8 @@ class TheArchitectService extends BaseApplicationComponent
         return [$groups, $fields];
     }
 
-    private function setMatrixField(&$newField, $fieldId) {
+    private function setMatrixField(&$newField, $fieldId)
+    {
         $blockTypes = craft()->matrix->getBlockTypesByFieldId($fieldId);
         $blockCount = 1;
         foreach ($blockTypes as $blockType) {
@@ -2056,7 +2082,8 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setNeoField(&$newField, $fieldId) {
+    private function setNeoField(&$newField, $fieldId)
+    {
         $neoGroups = craft()->neo->getGroupsByFieldId($fieldId);
         $newField['typesettings']['groups']['name'] = [];
         $newField['typesettings']['groups']['sortOrder'] = [];
@@ -2098,8 +2125,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setRelabels(&$object, $fieldLayout) {
-        if(craft()->plugins->getPlugin('relabel')) {
+    private function setRelabels(&$object, $fieldLayout)
+    {
+        if (craft()->plugins->getPlugin('relabel')) {
             $relabels = craft()->relabel->getLabels($fieldLayout->id);
             if ($relabels) {
                 $object['relabel'] = [];
@@ -2107,14 +2135,15 @@ class TheArchitectService extends BaseApplicationComponent
                     $object['relabel'][] = [
                         'field' => craft()->fields->getFieldById($relabel->fieldId)->handle,
                         'name' => $relabel->name,
-                        'instructions' => $relabel->instructions
+                        'instructions' => $relabel->instructions,
                     ];
                 }
             }
         }
     }
 
-    private function setSuperTableField(&$newField, $fieldId) {
+    private function setSuperTableField(&$newField, $fieldId)
+    {
         $blockTypes = craft()->superTable->getBlockTypesByFieldId($fieldId);
         $sTFieldCount = 1;
         foreach ($blockTypes as $blockType) {
@@ -2126,7 +2155,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => $columns[$sTFieldCount-1]['width'],
+                    'width' => $columns[$sTFieldCount - 1]['width'],
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'Matrix') {
@@ -2136,27 +2165,27 @@ class TheArchitectService extends BaseApplicationComponent
                     $this->setNeoField($newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
                 }
                 $this->parseFieldSources($sTField, $newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
-                $sTFieldCount++;
+                ++$sTFieldCount;
             }
         }
         unset($newField['typesettings']['columns']);
     }
 
-    private function getConditionalsByFieldLayoutId($fieldLayoutId) {
-        if(craft()->plugins->getPlugin('reasons')) {
-            $conditionalsRecord = Reasons_ConditionalsRecord::model()->findByAttributes(array('fieldLayoutId'=>$fieldLayoutId));
-    		if($conditionalsRecord)
-    		{
-    			$conditionalsModel = Reasons_ConditionalsModel::populateModel($conditionalsRecord);
-    			if($conditionalsModel->conditionals && $conditionalsModel->conditionals != '')
-    			{
-    				return $conditionalsModel->conditionals;
-    			}
-    		}
+    private function getConditionalsByFieldLayoutId($fieldLayoutId)
+    {
+        if (craft()->plugins->getPlugin('reasons')) {
+            $conditionalsRecord = Reasons_ConditionalsRecord::model()->findByAttributes(array('fieldLayoutId' => $fieldLayoutId));
+            if ($conditionalsRecord) {
+                $conditionalsModel = Reasons_ConditionalsModel::populateModel($conditionalsRecord);
+                if ($conditionalsModel->conditionals && $conditionalsModel->conditionals != '') {
+                    return $conditionalsModel->conditionals;
+                }
+            }
         }
     }
 
-    private function setReasonsLabels($argReasons) {
+    private function setReasonsLabels($argReasons)
+    {
         $newReasons = [];
         foreach ($argReasons as $fieldId => $reasons) {
             $newReasons[craft()->fields->getFieldById($fieldId)->handle] = $reasons;
@@ -2166,12 +2195,14 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
         }
+
         return $newReasons;
     }
 
-    private function parseFieldSources(&$field, &$newField) {
+    private function parseFieldSources(&$field, &$newField)
+    {
         if ($field->type == 'Assets') {
-            if ($newField['typesettings']['sources'] !== "*") {
+            if ($newField['typesettings']['sources'] !== '*') {
                 foreach ($newField['typesettings']['sources'] as $key => $value) {
                     if (substr($value, 0, 7) == 'folder:') {
                         $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
@@ -2197,7 +2228,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         if ($field->type == 'RichText') {
             if (isset($newField['typesettings']['availableAssetSources'])) {
-                if ($newField['typesettings']['availableAssetSources'] !== "*") {
+                if ($newField['typesettings']['availableAssetSources'] !== '*') {
                     foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
                         $source = craft()->assetSources->getSourceById($value);
                         if ($source) {
@@ -2246,7 +2277,7 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                } else if ($newField['typesettings']['sources'] == '*') {
+                } elseif ($newField['typesettings']['sources'] == '*') {
                     $newField['typesettings']['sources'] = [];
                 }
             }
@@ -2289,14 +2320,15 @@ class TheArchitectService extends BaseApplicationComponent
                             }
                         }
                     }
-                } else if ($newField['typesettings']['entrySources'] == '*') {
+                } elseif ($newField['typesettings']['entrySources'] == '*') {
                     $newField['typesettings']['entrySources'] = [];
                 }
             }
         }
     }
 
-    private function assetSourceExport($post, $includeID = false) {
+    private function assetSourceExport($post, $includeID = false)
+    {
         $sources = [];
         if (isset($post['assetSourceSelection'])) {
             foreach ($post['assetSourceSelection'] as $id) {
@@ -2309,7 +2341,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'handle' => $assetSource->handle,
                     'type' => $assetSource->type,
                     'settings' => $assetSource->settings,
-                    'fieldLayout' => []
+                    'fieldLayout' => [],
                 ];
                 if ($includeID) {
                     $newAssetSource = array_merge(['id' => $assetSource->id], $newAssetSource);
@@ -2333,10 +2365,12 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($sources, $newAssetSource);
             }
         }
+
         return $sources;
     }
 
-    private function transformExport($post, $includeID = false) {
+    private function transformExport($post, $includeID = false)
+    {
         $transforms = [];
         if (isset($post['assetTransformSelection'])) {
             foreach ($post['assetTransformSelection'] as $id) {
@@ -2352,7 +2386,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'width' => $transform->width,
                     'height' => $transform->height,
                     'quality' => $transform->quality,
-                    'format' => $transform->format
+                    'format' => $transform->format,
                 ];
                 if ($includeID) {
                     $newTransform = array_merge(['id' => $transform->id], $newTransform);
@@ -2360,10 +2394,12 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($transforms, $newTransform);
             }
         }
+
         return $transforms;
     }
 
-    private function globalSetExport($post, $includeID = false) {
+    private function globalSetExport($post, $includeID = false)
+    {
         $globals = [];
         if (isset($post['globalSelection'])) {
             foreach ($post['globalSelection'] as $id) {
@@ -2374,7 +2410,7 @@ class TheArchitectService extends BaseApplicationComponent
                 $newGlobalSet = [
                     'name' => $globalSet->name,
                     'handle' => $globalSet->handle,
-                    'fieldLayout' => []
+                    'fieldLayout' => [],
                 ];
                 if ($includeID) {
                     $newGlobalSet = array_merge(['id' => $globalSet->id], $newGlobalSet);
@@ -2398,10 +2434,12 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($globals, $newGlobalSet);
             }
         }
+
         return $globals;
     }
 
-    private function categoryGroupExport($post, $includeID = false) {
+    private function categoryGroupExport($post, $includeID = false)
+    {
         $categories = [];
         if (isset($post['categorySelection'])) {
             foreach ($post['categorySelection'] as $id) {
@@ -2449,6 +2487,7 @@ class TheArchitectService extends BaseApplicationComponent
                 array_push($categories, $newCategory);
             }
         }
+
         return $categories;
     }
 
@@ -2494,17 +2533,19 @@ class TheArchitectService extends BaseApplicationComponent
         return $post;
     }
 
-    public function getFieldById($fieldID) {
+    public function getFieldById($fieldID)
+    {
         foreach ($this->fields as $field) {
             if ($field->id == $fieldID) {
                 return $field;
             }
         }
-        craft()->db->createCommand()->insert('fields',array(
-            'id' => $fieldID
+        craft()->db->createCommand()->insert('fields', array(
+            'id' => $fieldID,
         ));
         $field = new FieldModel();
         $field->id = $fieldID;
+
         return $field;
     }
 }

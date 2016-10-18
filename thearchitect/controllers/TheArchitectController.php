@@ -117,7 +117,7 @@ class TheArchitectController extends BaseController
         $migrationsEnabled = $this->migrationsEnabled();
 
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
-        $masterJson = craft()->config->get('modelsPath', 'theArchitect') . '_master_.json';
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
 
         if ($migrationsEnabled) {
             craft()->theArchitect->exportMigrationConstruct();
