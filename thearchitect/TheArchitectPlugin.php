@@ -110,7 +110,7 @@ class TheArchitectPlugin extends BasePlugin
     protected function defineSettings()
     {
         return array(
-            'enableMigrations' => array(AttributeType::Bool, 'default' => null),
+            'automation' => array(AttributeType::Bool, 'default' => null),
             'lastImport' => array(AttributeType::Number, 'default' => null),
             'apiKey' => array(AttributeType::String, 'default' => null),
         );

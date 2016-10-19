@@ -7,7 +7,6 @@ namespace Craft;
  */
 class TheArchitectController extends BaseController
 {
-    protected $allowAnonymous = array('actionApiExport', 'actionApiImport');
 
     // Public Methods
     // =========================================================================
@@ -116,7 +115,7 @@ class TheArchitectController extends BaseController
      */
     public function actionMigrations()
     {
-        $migrationsEnabled = craft()->theArchitect->getMigrationsEnabled();
+        $automation = craft()->theArchitect->getAutomation();
 
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
@@ -124,7 +123,7 @@ class TheArchitectController extends BaseController
         $lastImport = craft()->theArchitect->getLastImport();
         $exportTime = filemtime($masterJson);
 
-        if ($migrationsEnabled && $lastImport < $exportTime) {
+        if ($automation && $lastImport < $exportTime) {
             craft()->theArchitect->importMigrationConstruct();
         }
 
@@ -133,7 +132,7 @@ class TheArchitectController extends BaseController
         $apiKey = craft()->theArchitect->getAPIKey();
 
         $variables = array(
-            'migrationsEnabled' => $migrationsEnabled,
+            'automation' => $automation,
             'exportTime' => $exportTime,
             'importTime' => $lastImport,
             'apiKey' => $apiKey,
@@ -163,40 +162,6 @@ class TheArchitectController extends BaseController
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('apiKey' => craft()->theArchitect->generateUUID4()));
 
         $this->redirect('thearchitect/migrations');
-    }
-
-    public function actionApiExport()
-    {
-        $apiKey = craft()->theArchitect->getAPIKey();
-        $key = craft()->request->getParam('key');
-
-        if (!$apiKey OR $key != $apiKey) {
-			die('Unauthorized key');
-		}
-
-        // Run Migration Export
-        craft()->theArchitect->exportMigrationConstruct();
-
-        // Set last import to match this export time.
-        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
-
-        die('Migration Exported!');
-    }
-
-    public function actionApiImport()
-    {
-        $apiKey = craft()->theArchitect->getAPIKey();
-        $key = craft()->request->getParam('key');
-        $force = craft()->request->getParam('force');
-
-        if (!$apiKey OR $key != $apiKey) {
-			die('Unauthorized key');
-		}
-
-        // Run Migration Import
-        craft()->theArchitect->importMigrationConstruct($force);
-
-        die('Migration Exported!');
     }
 
     /**

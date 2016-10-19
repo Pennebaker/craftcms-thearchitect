@@ -2551,9 +2551,9 @@ class TheArchitectService extends BaseApplicationComponent
         return $field;
     }
 
-    public function getMigrationsEnabled()
+    public function getAutomation()
     {
-        return craft()->plugins->getPlugin('theArchitect')->getSettings()['enableMigrations'];
+        return craft()->plugins->getPlugin('theArchitect')->getSettings()['automation'];
     }
 
     public function getLastImport()

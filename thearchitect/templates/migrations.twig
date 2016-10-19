@@ -7,7 +7,7 @@
     <input type="hidden" name="pluginClass" value="TheArchitect">
     <input type="hidden" name="redirect" value="thearchitect/migrations">
     {{ getCsrfInput() }}
-    <input type="hidden" name="settings[enableMigrations]" value="{{ value }}">
+    <input type="hidden" name="settings[automation]" value="{{ value }}">
     <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
 </form>
 {% endmacro %}
@@ -21,8 +21,12 @@
 </form>
 {% endmacro %}
 
+{% macro clipboardButton(clipboardText) %}
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" x="0" y="0" viewBox="0 0 650 650" width="32px" height="32px" xml:space="preserve" data-clipboard-text="{{ clipboardText }}"><path fill="#E89931" d="M527.4 53H120.6C95.2 53 75 76.2 75 101.6v479.9c0 25.4 20.2 46.5 45.6 46.5h406.8c25.4 0 46.6-21.1 46.6-46.5V101.6C574 76.2 552.8 53 527.4 53z"/><rect x="124.5" y="119.8" fill="#FFFFFF" width="399.1" height="446.4"/><path fill="#8D94A3" d="M471.4 89H368V53c0-23.1-20.4-41.9-43.5-41.9C301.4 11.1 281 29.9 281 53v36H176.7c-5.1 0-7.7 4.4-7.7 9.4v42.7c0 5.1 2.6 11.9 7.7 11.9h294.7c5.1 0 8.6-6.8 8.6-11.9V98.4C480 93.4 476.4 89 471.4 89zM324 37.5c8.9 0 16 7.2 16 16 0 8.9-7.2 16-16 16 -8.9 0-16-7.2-16-16C308 44.6 315.2 37.5 324 37.5z"/><rect x="324" y="196" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="324" y="254.6" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="324" y="313.2" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="167.5" y="371.8" fill="#DCE6EF" width="313" height="18.6"/><rect x="167.5" y="430.4" fill="#DCE6EF" width="269.2" height="18.6"/><rect x="167.5" y="489" fill="#DCE6EF" width="313" height="18.6"/><rect x="167.5" y="196" fill="#DCE6EF" width="134.6" height="134.6"/></svg>
+{% endmacro %}
+
 {% import "_includes/forms" as forms %}
-{% from _self import quickActionForm, migrationsToggleForm %}
+{% from _self import quickActionForm, migrationsToggleForm, clipboardButton %}
 
 {% set tabs = {
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
@@ -40,25 +44,73 @@
 <div class="the-architect">
 
     <h2>Status</h2>
-    {% if migrationsEnabled %}<span class="status green"></span>Enabled{{ migrationsToggleForm(0, 'Disable') }}{% else %}<span class="status red"></span>Disabled{{ migrationsToggleForm(1, 'Enable') }}{% endif %}
-    <div>
-        Last Export on {{ exportTime|date("F d Y @ g:i a") }}{{ quickActionForm('migrationExport', 'Run Export') }}
-    </div>
-    <div>
-        Last Import on {{ importTime|date("F d Y @ g:i a") }}
-    </div>
+    <table class="data collapsible">
+        <tbody>
+            <tr>
+                <td>
+                    Automatic Import
+                </td>
+                <td class="code">
+                    {% if automation %}<span class="status green"></span>Enabled{% else %}<span class="status red"></span>Disabled{% endif %}
+                </td>
+                <td>
+                    {% if automation %}{{ migrationsToggleForm(0, 'Disable') }}{% else %}{{ migrationsToggleForm(1, 'Enable') }}{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Last Export
+                </td>
+                <td class="code">
+                    {{ exportTime|date("F d Y @ g:i a") }}
+                </td>
+                <td>
+                    {{ quickActionForm('migrationExport', 'Run Export') }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Last Import
+                </td>
+                <td colspan="2" class="code">
+                    {{ importTime|date("F d Y @ g:i a") }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <h2>API</h2>
     {% if apiKey %}
-        <code class="token">{{ apiKey }}</code>{{ quickActionForm('generateKey', 'Generate New Key') }}
-        <p>
-            <code id="apiKey">{{ siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/apiExport', { key: apiKey }) }}</code>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 64 64" class="copyKey" data-clipboard-text="{{ siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/apiExport', { key: apiKey }) }}"><path fill="#231F20" d="M48 14H16c-2.2 0-4 1.8-4 4v32c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V18c0-2.2-1.8-4-4-4z" opacity=".2"/><path fill="#E0995E" d="M48 12H16c-2.2 0-4 1.8-4 4v32c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V16c0-2.2-1.8-4-4-4z"/><path fill="#231F20" d="M16 18h32v32H16z" opacity=".2"/><path fill="#FFF" d="M16 16h32v32H16z"/><path fill="#E0E0D1" d="M22 24h20v2H22zm0 4h20v2H22zm0 4h20v2H22zm0 4h20v2H22zm0 4h20v2H22z"/><path fill="#231F20" d="M37 12H24v5c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-5h-3z" opacity=".2"/><path fill="#4F5D73" d="M37 10H24v5c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-5h-3z"/></svg>
-        </p>
-        <p>
-            <code id="apiKey">{{ siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/apiImport', { key: apiKey, force: false }) }}</code>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 64 64" class="copyKey" data-clipboard-text="{{ siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/apiImport', { key: apiKey, force: false }) }}"><path fill="#231F20" d="M48 14H16c-2.2 0-4 1.8-4 4v32c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V18c0-2.2-1.8-4-4-4z" opacity=".2"/><path fill="#E0995E" d="M48 12H16c-2.2 0-4 1.8-4 4v32c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V16c0-2.2-1.8-4-4-4z"/><path fill="#231F20" d="M16 18h32v32H16z" opacity=".2"/><path fill="#FFF" d="M16 16h32v32H16z"/><path fill="#E0E0D1" d="M22 24h20v2H22zm0 4h20v2H22zm0 4h20v2H22zm0 4h20v2H22zm0 4h20v2H22z"/><path fill="#231F20" d="M37 12H24v5c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-5h-3z" opacity=".2"/><path fill="#4F5D73" d="M37 10H24v5c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-5h-3z"/></svg>
-        </p>
+    {% set apiExportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/export', { key: apiKey }) %}
+    {% set apiImportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/import', { key: apiKey, force: false }) %}
+    <table class="data collapsible">
+        <tbody>
+            <tr>
+                <td class="code">
+                    {{ apiKey }}
+                </td>
+                <td style="text-align:center;">
+                    {{ quickActionForm('generateKey', 'Generate New Key') }}
+                </td>
+            </tr>
+            <tr>
+                <td class="code">
+                    <code id="apiKey">{{ apiExportUrl }}</code>
+                </td>
+                <td style="text-align:center;">
+                    {{ clipboardButton(apiExportUrl) }}
+                </td>
+            </tr>
+            <tr>
+                <td class="code">
+                    <code id="apiKey">{{ apiImportUrl }}</code>
+                </td>
+                <td style="text-align:center;">
+                    {{ clipboardButton(apiImportUrl) }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
     {% else %}
         {{ quickActionForm('generateKey', 'Generate Key') }}
     {% endif %}
