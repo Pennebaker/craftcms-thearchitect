@@ -44,6 +44,8 @@
 <div class="the-architect">
 
     <h2>Status</h2>
+    <p>Migration file for import / export is located at: <code class="location">{{ jsonPath }}_master_.json</code>.</p>
+    <p>If automatic import is enabled this is the file that will be loaded into the DB whenever the files modified time is newer than the last import time.</p>
     <table class="data collapsible">
         <tbody>
             <tr>
@@ -58,7 +60,8 @@
             </tr>
             <tr>
                 <td>Last Import</td>
-                <td colspan="2" class="code">{{ importTime|date("F d Y @ g:i a") }}</td>
+                <td class="code">{{ importTime|date("F d Y @ g:i a") }}</td>
+                <td>{{ quickActionForm('migrationImport', 'Run Import') }}</td>
             </tr>
         </tbody>
     </table>

@@ -118,16 +118,10 @@ class TheArchitectController extends BaseController
         $automation = craft()->theArchitect->getAutomation();
 
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
-        $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
+        $masterJson = $jsonPath.'_master_.json';
 
         $lastImport = craft()->theArchitect->getLastImport();
         $exportTime = filemtime($masterJson);
-
-        if ($automation && $lastImport < $exportTime) {
-            craft()->theArchitect->importMigrationConstruct();
-        }
-
-        $lastImport = craft()->theArchitect->getLastImport();
 
         $apiKey = craft()->theArchitect->getAPIKey();
 
@@ -136,6 +130,7 @@ class TheArchitectController extends BaseController
             'exportTime' => $exportTime,
             'importTime' => $lastImport,
             'apiKey' => $apiKey,
+            'jsonPath' => $jsonPath,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
@@ -153,7 +148,14 @@ class TheArchitectController extends BaseController
         // Set last import to match this export time.
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
 
+        $this->redirect('thearchitect/migrations');
+    }
 
+    public function actionMigrationImport()
+    {
+        craft()->theArchitect->importMigrationConstruct();
+
+        $this->redirect('thearchitect/migrations');
     }
 
     public function actionGenerateKey()

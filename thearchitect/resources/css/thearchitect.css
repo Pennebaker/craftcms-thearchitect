@@ -14,3 +14,10 @@ form.quick-action {
 td > svg {
     vertical-align: middle;
 }
+
+code.location {
+    color: #8f98a3;
+    background-color: #EBEDEF;
+    border-radius: 3px;
+    padding: 2px 4px;
+}

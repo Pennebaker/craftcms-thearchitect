@@ -19,5 +19,5 @@
  */
 
 return array(
-    'modelsPath' => __dir__ . '/../../config/thearchitect/'
+    'modelsPath' => str_replace('plugins', 'config', __dir__.'/'),
 );

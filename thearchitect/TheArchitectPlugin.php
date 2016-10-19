@@ -105,6 +105,16 @@ class TheArchitectPlugin extends BasePlugin
         if (!file_exists($modelsPath)) {
             mkdir($modelsPath);
         }
+        $automation = craft()->theArchitect->getAutomation();
+
+        if ($automation) {
+            $lastImport = craft()->theArchitect->getLastImport();
+            $exportTime = filemtime($masterJson);
+
+            if ($lastImport < $exportTime) {
+                craft()->theArchitect->importMigrationConstruct();
+            }
+        }
     }
 
     protected function defineSettings()
