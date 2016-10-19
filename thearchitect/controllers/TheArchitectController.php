@@ -7,6 +7,8 @@ namespace Craft;
  */
 class TheArchitectController extends BaseController
 {
+    protected $allowAnonymous = array('actionApiExport', 'actionApiImport');
+
     // Public Methods
     // =========================================================================
 
@@ -128,13 +130,18 @@ class TheArchitectController extends BaseController
 
         $lastImport = craft()->theArchitect->getLastImport();
 
+        $apiKey = craft()->theArchitect->getAPIKey();
+
         $variables = array(
             'migrationsEnabled' => $migrationsEnabled,
             'exportTime' => $exportTime,
             'importTime' => $lastImport,
+            'apiKey' => $apiKey,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
+        craft()->templates->includeJsResource('thearchitect/js/clipboard.min.js');
+        craft()->templates->includeJs('var clipboard = new Clipboard("[data-clipboard-text]");clipboard.on("success",function(){Craft.cp.displayNotice("Copied to clipboard!");});clipboard.on("error",function(){Craft.cp.displayError("Error copying to clipboard.");});');
 
         $this->renderTemplate('thearchitect/migrations', $variables);
     }
@@ -147,7 +154,49 @@ class TheArchitectController extends BaseController
         // Set last import to match this export time.
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
 
+
+    }
+
+    public function actionGenerateKey()
+    {
+        // Generate a new API key for import / export url calls
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('apiKey' => craft()->theArchitect->generateUUID4()));
+
         $this->redirect('thearchitect/migrations');
+    }
+
+    public function actionApiExport()
+    {
+        $apiKey = craft()->theArchitect->getAPIKey();
+        $key = craft()->request->getParam('key');
+
+        if (!$apiKey OR $key != $apiKey) {
+			die('Unauthorized key');
+		}
+
+        // Run Migration Export
+        craft()->theArchitect->exportMigrationConstruct();
+
+        // Set last import to match this export time.
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
+
+        die('Migration Exported!');
+    }
+
+    public function actionApiImport()
+    {
+        $apiKey = craft()->theArchitect->getAPIKey();
+        $key = craft()->request->getParam('key');
+        $force = craft()->request->getParam('force');
+
+        if (!$apiKey OR $key != $apiKey) {
+			die('Unauthorized key');
+		}
+
+        // Run Migration Import
+        craft()->theArchitect->importMigrationConstruct($force);
+
+        die('Migration Exported!');
     }
 
     /**

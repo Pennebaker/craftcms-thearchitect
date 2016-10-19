@@ -112,6 +112,7 @@ class TheArchitectPlugin extends BasePlugin
         return array(
             'enableMigrations' => array(AttributeType::Bool, 'default' => null),
             'lastImport' => array(AttributeType::Number, 'default' => null),
+            'apiKey' => array(AttributeType::String, 'default' => null),
         );
     }
 
