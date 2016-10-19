@@ -7,7 +7,6 @@ namespace Craft;
  */
 class TheArchitectController extends BaseController
 {
-
     // Public Methods
     // =========================================================================
 
@@ -115,22 +114,16 @@ class TheArchitectController extends BaseController
      */
     public function actionMigrations()
     {
-        $automation = craft()->theArchitect->getAutomation();
-
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = $jsonPath.'_master_.json';
 
-        $lastImport = craft()->theArchitect->getLastImport();
-        $exportTime = filemtime($masterJson);
-
-        $apiKey = craft()->theArchitect->getAPIKey();
-
         $variables = array(
-            'automation' => $automation,
-            'exportTime' => $exportTime,
-            'importTime' => $lastImport,
-            'apiKey' => $apiKey,
+            'automation' => craft()->theArchitect->getAutomation(),
+            'exportTime' => filemtime($masterJson),
+            'importTime' => craft()->theArchitect->getLastImport(),
+            'apiKey' => craft()->theArchitect->getAPIKey(),
             'jsonPath' => $jsonPath,
+            'mismatch' => craft()->theArchitect->compareMigrationConstruct(),
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');

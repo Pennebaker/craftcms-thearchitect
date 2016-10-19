@@ -592,6 +592,30 @@ class TheArchitectService extends BaseApplicationComponent
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
     }
 
+    public function compareMigrationConstruct()
+    {
+        $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
+        $json = file_get_contents($masterJson);
+        $output = json_decode($json);
+
+        $this->groups = craft()->fields->getAllGroups();
+        $this->fields = craft()->fields->getAllFields();
+        $this->sections = craft()->sections->getAllSections();
+
+        $mismatchFields = [];
+
+        foreach ($output->fields as $field) {
+            $curField = craft()->fields->getFieldById($field->id);
+            if (!is_null($curField)) {
+                if ($field->type != $curField->type) {
+                    array_push($mismatchFields, [$curField, $field]);
+                }
+            }
+        }
+
+        return $mismatchFields;
+    }
+
     /**
      * addGroup.
      *
@@ -2566,25 +2590,26 @@ class TheArchitectService extends BaseApplicationComponent
         return craft()->plugins->getPlugin('theArchitect')->getSettings()['apiKey'];
     }
 
-    public function generateUUID4() {
-        return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+    public function generateUUID4()
+    {
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             // 32 bits for "time_low"
-            mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
 
             // 16 bits for "time_mid"
-            mt_rand( 0, 0xffff ),
+            mt_rand(0, 0xffff),
 
             // 16 bits for "time_hi_and_version",
             // four most significant bits holds version number 4
-            mt_rand( 0, 0x0fff ) | 0x4000,
+            mt_rand(0, 0x0fff) | 0x4000,
 
             // 16 bits, 8 bits for "clk_seq_hi_res",
             // 8 bits for "clk_seq_low",
             // two most significant bits holds zero and one for variant DCE1.1
-            mt_rand( 0, 0x3fff ) | 0x8000,
+            mt_rand(0, 0x3fff) | 0x8000,
 
             // 48 bits for "node"
-            mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
         );
     }
 }

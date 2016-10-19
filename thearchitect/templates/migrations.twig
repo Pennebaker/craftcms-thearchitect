@@ -12,12 +12,21 @@
 </form>
 {% endmacro %}
 
-{% macro quickActionForm(action, buttonText) %}
+{% macro quickActionForm(action, buttonText, additionalFields, bigButton) %}
 <form action="" method="post" accept-charset="UTF-8" class="quick-action">
     <input type="hidden" name="action" value="theArchitect/{{ action }}">
     <input type="hidden" name="redirect" value="thearchitect/migrations">
     {{ getCsrfInput() }}
+    {% for fieldName, fieldValue in additionalFields %}
+        <input type="hidden" name="{{ fieldName }}" value="{{ fieldValue }}">
+    {% endfor %}
+    {% if bigButton %}
+    <div class="buttons clearafter">
+        <input type="submit" class="btn submit" value="{{ buttonText }}">
+    </div>
+    {% else %}
     <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
+    {% endif %}
 </form>
 {% endmacro %}
 
@@ -65,6 +74,40 @@
             </tr>
         </tbody>
     </table>
+
+    {% if mismatch|length > 0 %}
+    <h2>Field Migration Problems</h2>
+    <p>Problems listed below are preventing standard and automation imports from running. Please review changes before forcing an import.</p>
+    <table class="shadow-box editable">
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Name</th>
+                <th>Handle</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fields in mismatch %}
+                <tr>
+                    <td>
+                        {{ fields[0].group }}{% if fields[0].group != fields[1].group %} &rarr; {{ fields[1].group }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].name }}{% if fields[0].name != fields[1].name %} &rarr; {{ fields[1].name }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].handle }}{% if fields[0].handle != fields[1].handle %} &rarr; {{ fields[1].handle }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].type }} &rarr; {{ fields[1].type }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ quickActionForm('migrationImport', 'Force Import', { force: 1 }, true) }}
+    {% endif %}
 
     <h2>API</h2>
     {% if apiKey %}
