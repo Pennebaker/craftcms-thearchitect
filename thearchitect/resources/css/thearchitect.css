@@ -10,3 +10,7 @@ th [type="checkbox"] + label {
 form.quick-action {
     display: inline-block;
 }
+
+td > svg {
+    vertical-align: middle;
+}
