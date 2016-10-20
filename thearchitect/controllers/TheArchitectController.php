@@ -130,6 +130,7 @@ class TheArchitectController extends BaseController
             'apiKey' => craft()->theArchitect->getAPIKey(),
             'jsonPath' => $jsonPath,
             'mismatch' => craft()->theArchitect->compareMigrationConstruct(),
+            'deletions' => craft()->theArchitect->getDeleteIds(file_get_contents($masterJson)),
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');

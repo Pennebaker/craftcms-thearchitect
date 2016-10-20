@@ -75,6 +75,33 @@
         </tbody>
     </table>
 
+    <h2>API</h2>
+    {% if apiKey %}
+    {% set apiExportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/export', { key: apiKey }) %}
+    {% set apiImportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/import', { key: apiKey, force: false }) %}
+    <table class="data collapsible">
+        <tbody>
+            <tr>
+                <td class="code">{{ apiKey }}</td>
+                <td style="text-align:center;">{{ quickActionForm('generateKey', 'Generate New Key') }}</td>
+            </tr>
+            <tr>
+                <td class="code">{{ apiExportUrl }}</td>
+                <td style="text-align:center;">{{ clipboardButton(apiExportUrl) }}</td>
+            </tr>
+            <tr>
+                <td class="code">{{ apiImportUrl }}</td>
+                <td style="text-align:center;">{{ clipboardButton(apiImportUrl) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+        {{ quickActionForm('generateKey', 'Generate Key') }}
+    {% endif %}
+
+    {% if deletions|length > 0 %}
+    {% include 'thearchitect/_deletions' %}
+    {% endif %}
     {% if mismatch|length > 0 %}
     <h2>Field Migration Problems</h2>
     <p>Problems listed below are preventing standard and automation imports from running. Please review changes before forcing an import.</p>
@@ -107,30 +134,6 @@
         </tbody>
     </table>
     {{ quickActionForm('migrationImport', 'Force Import', { force: null }, true) }}
-    {% endif %}
-
-    <h2>API</h2>
-    {% if apiKey %}
-    {% set apiExportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/export', { key: apiKey }) %}
-    {% set apiImportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/import', { key: apiKey, force: false }) %}
-    <table class="data collapsible">
-        <tbody>
-            <tr>
-                <td class="code">{{ apiKey }}</td>
-                <td style="text-align:center;">{{ quickActionForm('generateKey', 'Generate New Key') }}</td>
-            </tr>
-            <tr>
-                <td class="code">{{ apiExportUrl }}</td>
-                <td style="text-align:center;">{{ clipboardButton(apiExportUrl) }}</td>
-            </tr>
-            <tr>
-                <td class="code">{{ apiImportUrl }}</td>
-                <td style="text-align:center;">{{ clipboardButton(apiImportUrl) }}</td>
-            </tr>
-        </tbody>
-    </table>
-    {% else %}
-        {{ quickActionForm('generateKey', 'Generate Key') }}
     {% endif %}
 
 </div>

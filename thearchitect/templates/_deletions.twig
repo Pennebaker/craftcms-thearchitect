@@ -1,0 +1,274 @@
+{% if deletions['fieldIDs']|length > 0 or
+      deletions['sectionIDs']|length > 0 or
+      deletions['entryTypeIDs']|length > 0 or
+      deletions['assetSourceIDs']|length > 0 or
+      deletions['assetTransformIDs']|length > 0 or
+      deletions['globalIDs']|length > 0 or
+      deletions['categoryIDs']|length > 0 or
+      deletions['userIDs']|length > 0 or
+      deletions['groupIDs']|length > 0
+%}
+    <h2>Deletions</h2>
+
+    {% if deletions['fieldIDs']|length > 0 %}
+        <h3>Fields</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Group</th>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fieldID in deletions['fieldIDs'] %}
+                    {% set field = craft.fields.getFieldById(fieldID) %}
+                    <tr>
+                        <td>
+                            {{ field.group }}
+                        </td>
+                        <td>
+                            {{ field.name }}
+                        </td>
+                        <td>
+                            {{ field.handle }}
+                        </td>
+                        <td>
+                            {{ field.type }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['sectionIDs']|length > 0 %}
+        <h3>Sections</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Type</th>
+                    <th>URL Format</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sectionID in deletions['sectionIDs'] %}
+                    {% set section = craft.sections.getSectionById(sectionID) %}
+                    <tr>
+                        <td>
+                            {{ section.name }}
+                        </td>
+                        <td>
+                            {{ section.handle }}
+                        </td>
+                        <td>
+                            {{ section.type }}
+                        </td>
+                        <td>
+                            {{ section.urlFormat }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['entryTypeIDs']|length > 0 %}
+        <h3>Entry Types</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entryTypeID in deletions['entryTypeIDs'] %}
+                    {% set entryType = craft.theArchitect.getEntryTypeById(entryTypeID) %}
+                    <tr>
+                        <td>
+                            {{ entryType.name }}
+                        </td>
+                        <td>
+                            {{ entryType.handle }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['assetSourceIDs']|length > 0 %}
+        <h3>Asset Sources</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Path</th>
+                    <th>Url</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assetSourceID in deletions['assetSourceIDs'] %}
+                    {% set assetSource = craft.theArchitect.getSourceById(assetSourceID) %}
+                    <tr>
+                        <td>
+                            {{ assetSource.name }}
+                        </td>
+                        <td>
+                            {{ assetSource.handle }}
+                        </td>
+                        <td>
+                            {{ assetSource.settings.path }}
+                        </td>
+                        <td>
+                            {{ assetSource.settings.url }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['assetTransformIDs']|length > 0 %}
+        <h3>Asset Transforms</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                    <th>Mode</th>
+                    <th>Dimensions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assetTransformID in deletions['assetTransformIDs'] %}
+                    {% set assetTransform = craft.theArchitect.getTransformById(assetTransformID) %}
+                    <tr>
+                        <td>
+                            {{ assetTransform.name }}
+                        </td>
+                        <td>
+                            {{ assetTransform.handle }}
+                        </td>
+                        <td>
+                            {{ assetTransform.mode }}
+                        </td>
+                        <td>
+                            {{ assetTransform.width }} x {{ assetTransform.height }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['globalIDs']|length > 0 %}
+        <h3>Globals</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for globalID in deletions['globalIDs'] %}
+                    {% set global = craft.globals.getSetById(globalID) %}
+                    <tr>
+                        <td>
+                            {{ global.name }}
+                        </td>
+                        <td>
+                            {{ global.handle }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['categoryIDs']|length > 0 %}
+        <h3>Categories</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoryID in deletions['categoryIDs'] %}
+                    {% set category = craft.theArchitect.getCategoryGroupById(categoryID) %}
+                    <tr>
+                        <td>
+                            {{ category.name }}
+                        </td>
+                        <td>
+                            {{ category.handle }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if deletions['userIDs']|length > 0 %}
+        <h3>Users</h3>
+        <table class="shadow-box editable error">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for userID in deletions['userIDs'] %}
+                    {% set user = craft.theArchitect.getUserById(userID) %}
+                    <tr>
+                        <td>
+                            {{ user.username }}
+                        </td>
+                        <td>
+                            {{ user.firstName }} {{ user.lastName }}
+                        </td>
+                        <td>
+                            {{ user.email }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if craft.theArchitect.getEdition() == 2 and deletions['groupIDs']|length > 0 %}
+    <h3>User Groups</h3>
+    <table class="shadow-box editable error">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Handle</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for groupID in deletions['groupIDs'] %}
+                {% set group = craft.userGroups.getGroupById(groupID) %}
+                <tr>
+                    <td>
+                        {{ group.name }}
+                    </td>
+                    <td>
+                        {{ group.handle }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+{% endif %}

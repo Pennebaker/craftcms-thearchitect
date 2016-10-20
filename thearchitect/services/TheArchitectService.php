@@ -619,6 +619,7 @@ class TheArchitectService extends BaseApplicationComponent
         $output = json_decode($json);
 
         // Let's get a list of items to delete...
+        $deleteIDs = $this->getDeleteIds($json);
         // and delete them.
 
         $this->parseJson($json, true, $force);
@@ -2611,6 +2612,7 @@ class TheArchitectService extends BaseApplicationComponent
         $post = [
             'fieldSelection' => [],
             'sectionSelection' => [],
+            'entryTypeSelection' => [],
             'assetSourceSelection' => [],
             'assetTransformSelection' => [],
             'globalSelection' => [],
@@ -2624,6 +2626,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
         foreach (craft()->sections->getAllSections() as $section) {
             array_push($post['sectionSelection'], $section->id);
+            foreach ($section->getEntryTypes() as $entryType) {
+                array_push($post['entryTypeSelection'], $entryType->id);
+            }
         }
         foreach (craft()->assetSources->getAllSources() as $field) {
             array_push($post['assetSourceSelection'], $field->id);
@@ -2662,36 +2667,81 @@ class TheArchitectService extends BaseApplicationComponent
             'globalIDs' => [],
             'categoryIDs' => [],
             'userIDs' => [],
-            'groupIDs' => [],
         ];
 
-        foreach ($json->fields as $field) {
-            array_push($ids['fieldIDs'], $field->id);
+        if (isset($data->fields)) {
+            foreach ($data->fields as $field) {
+                array_push($ids['fieldIDs'], $field->id);
+            }
         }
 
-        foreach ($json->assetSources as $assetSource) {
-            array_push($ids['assetSourceIDs'], $assetSource->id);
+        if (isset($data->sections)) {
+            foreach ($data->sections as $section) {
+                array_push($ids['sectionIDs'], $section->id);
+            }
         }
 
-        foreach ($json->entryTypes as $entryType) {
-            array_push($ids['entryTypeIDs'], $entryType->id);
+        if (isset($data->entryTypes)) {
+            foreach ($data->entryTypes as $entryType) {
+                array_push($ids['entryTypeIDs'], $entryType->id);
+            }
         }
 
-        foreach ($json->sections as $section) {
-            array_push($ids['sectionIDs'], $section->id);
+        if (isset($data->sources)) {
+            foreach ($data->sources as $assetSource) {
+                array_push($ids['assetSourceIDs'], $assetSource->id);
+            }
         }
 
-        foreach ($json->sections as $section) {
-            array_push($ids['sectionIDs'], $section->id);
+        if (isset($data->transforms)) {
+            foreach ($data->transforms as $transform) {
+                array_push($ids['assetTransformIDs'], $transform->id);
+            }
         }
 
-        foreach ($json->sections as $section) {
-            array_push($ids['sectionIDs'], $section->id);
+        if (isset($data->globals)) {
+            foreach ($data->globals as $global) {
+                array_push($ids['globalIDs'], $global->id);
+            }
         }
 
-        foreach ($json->sections as $section) {
-            array_push($ids['sectionIDs'], $section->id);
+        if (isset($data->categories)) {
+            foreach ($data->categories as $category) {
+                array_push($ids['categoryIDs'], $category->id);
+            }
         }
+
+        if (isset($data->users)) {
+            foreach ($data->users as $user) {
+                array_push($ids['userIDs'], $user->id);
+            }
+        }
+
+        if (isset($data->userGroups)) {
+            $ids['groupIDs'] = [];
+            foreach ($data->userGroups as $userGroup) {
+                array_push($ids['groupIDs'], $userGroup->id);
+            }
+        }
+
+        return $ids;
+    }
+
+    public function getDeleteIds($json)
+    {
+        $allIds = $this->getAllIds();
+        $jsonIds = $this->getAllJsonIds($json);
+        $deleteIds = [];
+        foreach ($allIds as $type => $ids) {
+            $type = str_replace('Selection', 'IDs', $type);
+            $deleteIds[$type] = [];
+            foreach ($ids as $id) {
+                if (!in_array($id, $jsonIds[$type])) {
+                    $deleteIds[$type][] = $id;
+                }
+            }
+        }
+        return $deleteIds;
     }
 
     public function getFieldById($fieldID)
