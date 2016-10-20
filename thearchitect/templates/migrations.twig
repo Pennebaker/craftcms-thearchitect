@@ -18,7 +18,7 @@
     <input type="hidden" name="redirect" value="thearchitect/migrations">
     {{ getCsrfInput() }}
     {% for fieldName, fieldValue in additionalFields %}
-        <input type="hidden" name="{{ fieldName }}" value="{{ fieldValue }}">
+        <input type="hidden" name="{{ fieldName }}"{% if fieldValue %} value="{{ fieldValue }}"{% endif %}>
     {% endfor %}
     {% if bigButton %}
     <div class="buttons clearafter">
@@ -64,12 +64,12 @@
             </tr>
             <tr>
                 <td>Last Export</td>
-                <td class="code">{{ exportTime|date("F d Y @ g:i a") }}</td>
+                <td class="code">{% if exportTime %}{{ exportTime|date("F d Y @ g:i a") }}{% else %}n/a{% endif %}</td>
                 <td>{{ quickActionForm('migrationExport', 'Run Export') }}</td>
             </tr>
             <tr>
                 <td>Last Import</td>
-                <td class="code">{{ importTime|date("F d Y @ g:i a") }}</td>
+                <td class="code">{% if importTime %}{{ importTime|date("F d Y @ g:i a") }}{% else %}n/a{% endif %}</td>
                 <td>{{ quickActionForm('migrationImport', 'Run Import') }}</td>
             </tr>
         </tbody>
@@ -106,7 +106,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ quickActionForm('migrationImport', 'Force Import', { force: 1 }, true) }}
+    {{ quickActionForm('migrationImport', 'Force Import', { force: null }, true) }}
     {% endif %}
 
     <h2>API</h2>

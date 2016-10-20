@@ -108,11 +108,21 @@ class TheArchitectPlugin extends BasePlugin
         $automation = craft()->theArchitect->getAutomation();
 
         if ($automation) {
+            $masterJson = $modelsPath.'_master_.json';
             $lastImport = craft()->theArchitect->getLastImport();
-            $exportTime = filemtime($masterJson);
+            if (file_exists($masterJson)) {
+                $exportTime = filemtime($masterJson);
+            } else {
+                $exportTime = null;
+            }
 
             if ($lastImport < $exportTime) {
-                craft()->theArchitect->importMigrationConstruct();
+                $result = craft()->theArchitect->importMigrationConstruct();
+                if ($result) {
+                    craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+                } else {
+                    craft()->userSession->setError(Craft::t('There is some field type changes. Visit the Architect Migrations page to review.'));
+                }
             }
         }
     }

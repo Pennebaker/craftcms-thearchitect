@@ -15,7 +15,7 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return array [successfulness]
      */
-    public function parseJson($json)
+    public function parseJson($json, $migration = false, $force = false)
     {
         $result = json_decode($json);
 
@@ -42,7 +42,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Sections from JSON
         if (isset($result->sections)) {
             foreach ($result->sections as $section) {
-                $addSectionResult = $this->addSection($section);
+                if ($migration) {
+                    $addSectionResult = $this->addSection($section, $section->id);
+                } else {
+                    $addSectionResult = $this->addSection($section);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Sections',
@@ -56,7 +60,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Asset Sources from JSON
         if (isset($result->sources)) {
             foreach ($result->sources as $key => $source) {
-                $assetSourceResult = $this->addAssetSource($source);
+                if ($migration) {
+                    $assetSourceResult = $this->addAssetSource($source, $source->id);
+                } else {
+                    $assetSourceResult = $this->addAssetSource($source);
+                }
                 if ($assetSourceResult[0] === false) {
                     unset($result->sources[$key]);
                 }
@@ -73,7 +81,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Add UserGroups from JSON
         if (isset($result->userGroups)) {
             foreach ($result->userGroups as $key => $userGroup) {
-                $userGroupResult = $this->addUserGroup($userGroup);
+                if ($migration) {
+                    $userGroupResult = $this->addUserGroup($userGroup, $userGroup->id);
+                } else {
+                    $userGroupResult = $this->addUserGroup($userGroup);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'User Group',
@@ -87,8 +99,13 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
+                $prevContentTable = craft()->content->contentTable;
                 $this->replaceSourcesHandles($field);
-                $addFieldResult = $this->addField($field);
+                if ($migration) {
+                    $addFieldResult = $this->addField($field, $field->id);
+                } else {
+                    $addFieldResult = $this->addField($field);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Field',
@@ -137,6 +154,7 @@ class TheArchitectService extends BaseApplicationComponent
                         }
                     }
                 }
+                craft()->content->contentTable = $prevContentTable;
             }
         }
 
@@ -202,7 +220,7 @@ class TheArchitectService extends BaseApplicationComponent
                 } else {
                     $entryTypeName = $entryType->titleFormat;
                 }
-                $addEntryTypeResult = $this->addEntryType($entryType);
+                $addEntryTypeResult = $this->addEntryType($entryType, $migration);
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Entry Types',
@@ -253,11 +271,16 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Transforms from JSON
         if (isset($result->transforms)) {
             foreach ($result->transforms as $transform) {
+                if ($migration) {
+                    $addAssetTransformResult = $this->addAssetTransform($transform, $transform->id);
+                } else {
+                    $addAssetTransformResult = $this->addAssetTransform($transform);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Asset Transform',
                     'name' => $transform->name,
-                    'result' => $this->addAssetTransform($transform),
+                    'result' => $addAssetTransformResult,
                     'errors' => false,
                 );
             }
@@ -266,7 +289,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Globals from JSON
         if (isset($result->globals)) {
             foreach ($result->globals as $global) {
-                $addGlobalResult = $this->addGlobalSet($global);
+                if ($migration) {
+                    $addGlobalResult = $this->addGlobalSet($global, $global->id);
+                } else {
+                    $addGlobalResult = $this->addGlobalSet($global);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Global Set',
@@ -316,7 +343,11 @@ class TheArchitectService extends BaseApplicationComponent
         // Add CategoryGroup from JSON
         if (isset($result->categories)) {
             foreach ($result->categories as $categoryGroup) {
-                $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                if ($migration) {
+                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup, $categoryGroup->id);
+                } else {
+                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Global Set',
@@ -380,7 +411,7 @@ class TheArchitectService extends BaseApplicationComponent
         // Add Users from JSON
         if (isset($result->users)) {
             foreach ($result->users as $key => $user) {
-                $userResult = $this->addUser($user);
+                $userResult = $this->addUser($user, $migration);
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'User',
@@ -410,7 +441,6 @@ class TheArchitectService extends BaseApplicationComponent
         $globals = $this->globalSetExport($post, $includeID);
         $categories = $this->categoryGroupExport($post, $includeID);
         $users = $this->usersExport($post, $includeID);
-        $userGroups = $this->userGroupsExport($post, $includeID);
 
         // Add all Arrays into the final output array
         $output = [
@@ -423,9 +453,12 @@ class TheArchitectService extends BaseApplicationComponent
             'globals' => $globals,
             'categories' => $categories,
             'users' => $users,
-            'userGroups' => $userGroups[0],
-            'userGroupPermissions' => $userGroups[1],
         ];
+        if (craft()->getEdition() == 2) {
+            $userGroups = $this->userGroupsExport($post, $includeID);
+            $userGroups['userGroups'] = $userGroups[0];
+            $userGroups['userGroupPermissions'] = $userGroups[1];
+        }
 
         // Remove empty sections from the output array
         foreach ($output as $key => $value) {
@@ -577,24 +610,30 @@ class TheArchitectService extends BaseApplicationComponent
 
     public function importMigrationConstruct($force = false)
     {
+        if ($force === false && craft()->theArchitect->compareMigrationConstruct()) {
+            return false;
+        }
+
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
         $json = file_get_contents($masterJson);
         $output = json_decode($json);
 
-        $this->groups = craft()->fields->getAllGroups();
-        $this->fields = craft()->fields->getAllFields();
-        $this->sections = craft()->sections->getAllSections();
+        // Let's get a list of items to delete...
+        // and delete them.
 
-        foreach ($output->fields as $field) {
-            $this->addField($field, $field->id);
-        }
+        $this->parseJson($json, true, $force);
 
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
+
+        return true;
     }
 
     public function compareMigrationConstruct()
     {
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
+        if (!file_exists($masterJson)) {
+            return [];
+        }
         $json = file_get_contents($masterJson);
         $output = json_decode($json);
 
@@ -604,11 +643,13 @@ class TheArchitectService extends BaseApplicationComponent
 
         $mismatchFields = [];
 
-        foreach ($output->fields as $field) {
-            $curField = craft()->fields->getFieldById($field->id);
-            if (!is_null($curField)) {
-                if ($field->type != $curField->type) {
-                    array_push($mismatchFields, [$curField, $field]);
+        if (isset($output->fields)) {
+            foreach ($output->fields as $field) {
+                $curField = craft()->fields->getFieldById($field->id);
+                if (!is_null($curField)) {
+                    if ($field->type != $curField->type) {
+                        array_push($mismatchFields, [$curField, $field]);
+                    }
                 }
             }
         }
@@ -626,6 +667,7 @@ class TheArchitectService extends BaseApplicationComponent
     public function addGroup($name)
     {
         $group = new FieldGroupModel();
+
         $group->name = $name;
 
         // Save Group to DB
@@ -717,9 +759,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addSection($jsonSection)
+    public function addSection($jsonSection, $sectionID = false)
     {
-        $section = new SectionModel();
+        if ($sectionID) {
+            $section = $this->getSectionById($sectionID);
+        } else {
+            $section = new SectionModel();
+        }
 
         $section->name = $jsonSection->name;
 
@@ -837,9 +883,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addEntryType($jsonEntryType)
+    public function addEntryType($jsonEntryType, $migration = false)
     {
-        $entryType = new EntryTypeModel();
+        if ($migration) {
+            $entryType = $this->getEntryTypeById($jsonEntryType->id, $jsonEntryType->sectionId);
+        } else {
+            $entryType = new EntryTypeModel();
+        }
 
         // Make sure section adding entry type to exists.
         if (!$this->getSectionid($jsonEntryType->sectionHandle)) {
@@ -857,13 +907,15 @@ class TheArchitectService extends BaseApplicationComponent
 
         $entryType->sectionId = $this->getSectionId($jsonEntryType->sectionHandle);
 
-        // If the Entry Type exists load it so that it udpates it.
-        $sectionHandle = $this->getSectionHandle($entryType->sectionId);
-        $sectionEntryTypes = craft()->sections->getEntryTypesByHandle($entryType->handle);
-        if ($sectionEntryTypes) {
-            foreach ($sectionEntryTypes as $sectionEntryType) {
-                if ($sectionEntryType->sectionId == $entryType->sectionId) {
-                    $entryType = craft()->sections->getEntryTypeById($sectionEntryType->attributes['id']);
+        if (!$migration) {
+            // If the Entry Type exists load it so that it udpates it.
+            $sectionHandle = $this->getSectionHandle($entryType->sectionId);
+            $sectionEntryTypes = craft()->sections->getEntryTypesByHandle($entryType->handle);
+            if ($sectionEntryTypes) {
+                foreach ($sectionEntryTypes as $sectionEntryType) {
+                    if ($sectionEntryType->sectionId == $entryType->sectionId) {
+                        $entryType = craft()->sections->getEntryTypeById($sectionEntryType->attributes['id']);
+                    }
                 }
             }
         }
@@ -914,9 +966,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addAssetSource($jsonSource)
+    public function addAssetSource($jsonSource, $sourceID = false)
     {
-        $source = new AssetSourceModel();
+        if ($sourceID) {
+            $source = $this->getAssetSourceById($sourceID);
+        } else {
+            $source = new AssetSourceModel();
+        }
 
         $source->name = $jsonSource->name;
 
@@ -1011,9 +1067,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addAssetTransform($jsonAssetTransform)
+    public function addAssetTransform($jsonAssetTransform, $transformID = false)
     {
-        $transform = new AssetTransformModel();
+        if ($transformID) {
+            $transform = $this->getAssetTransformById($transformID);
+        } else {
+            $transform = new AssetTransformModel();
+        }
 
         $transform->name = $jsonAssetTransform->name;
 
@@ -1086,9 +1146,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addGlobalSet($jsonGlobalSet)
+    public function addGlobalSet($jsonGlobalSet, $globalSetID = false)
     {
-        $globalSet = new GlobalSetModel();
+        if ($globalSetID) {
+            $globalSet = $this->getGlobalSetById($globalSetID);
+        } else {
+            $globalSet = new GlobalSetModel();
+        }
 
         $globalSet->name = $jsonGlobalSet->name;
 
@@ -1134,9 +1198,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addCategoryGroup($jsonCategoryGroup)
+    public function addCategoryGroup($jsonCategoryGroup, $categoryGroupID = false)
     {
-        $categoryGroup = new CategoryGroupModel();
+        if ($categoryGroupID) {
+            $categoryGroup = $this->getCategoryGroupById($categoryGroupID);
+        } else {
+            $categoryGroup = new CategoryGroupModel();
+        }
 
         $categoryGroup->name = $jsonCategoryGroup->name;
 
@@ -1173,7 +1241,7 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
             $fieldLayout = $this->assembleLayout($jsonCategoryGroup->fieldLayout, $requiredFields);
-            $fieldLayout->type = ElementType::GlobalSet;
+            $fieldLayout->type = ElementType::Category;
             $categoryGroup->setFieldLayout($fieldLayout);
         }
 
@@ -1212,8 +1280,6 @@ class TheArchitectService extends BaseApplicationComponent
 
             foreach ($allUsers as $user) {
                 if (in_array($user->id, $post['userSelection'])) {
-                    $userPermissions = craft()->userPermissions->getPermissionsByUserId($user->id);
-                    $userPermissions = $this->stripGroupPermissions($userPermissions, $user->getGroups());
                     $userJson = [
                         'enabled' => $user->enabled,
                         'archived' => $user->archived,
@@ -1256,10 +1322,14 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($includeID) {
                         $userJson = array_merge(['id' => $user->id], $userJson);
                     }
-                    foreach ($user->getGroups() as $userGroup) {
-                        array_push($userJson['groups'], $userGroup->handle);
+                    if (craft()->getEdition() == 2) {
+                        $userPermissions = craft()->userPermissions->getPermissionsByUserId($user->id);
+                        $userPermissions = $this->stripGroupPermissions($userPermissions, $user->getGroups());
+                        foreach ($user->getGroups() as $userGroup) {
+                            array_push($userJson['groups'], $userGroup->handle);
+                        }
+                        $userJson['permissions'] = $this->deconstructPermissions($userPermissions);
                     }
-                    $userJson['permissions'] = $this->deconstructPermissions($userPermissions);
                     array_push($users, $userJson);
                 }
             }
@@ -1468,9 +1538,14 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addUser($jsonUser)
+    public function addUser($jsonUser, $migration = false)
     {
-        $user = new UserModel();
+        if ($migration) {
+            list($user, $newUser) = $this->getUserById($jsonUser->id);
+        } else {
+            $user = new UserModel();
+            $newUser = true;
+        }
 
         foreach ($jsonUser as $key => $value) {
             if ($key != 'permissions' && $key != 'groups') {
@@ -1486,15 +1561,21 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         if (craft()->users->saveUser($user)) {
-            craft()->users->sendActivationEmail($user);
-            if (craft()->userGroups->assignUserToGroups($user->id, $groupIds)) {
-                if (craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
-                    return [true, null];
+            if ($newUser) {
+                craft()->users->sendActivationEmail($user);
+            }
+            if (craft()->getEdition() == 2) {
+                if (craft()->userGroups->assignUserToGroups($user->id, $groupIds)) {
+                    if (!isset($jsonUser->permissions) || craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
+                        return [true, null];
+                    } else {
+                        return [false, ['Permissions' => ['Failed assigning user permissions.']]];
+                    }
                 } else {
-                    return [false, ['Permissions' => ['Failed assigning user permissions.']]];
+                    return [false, ['User Group' => ['Failed to add user to groups.']]];
                 }
             } else {
-                return [false, ['User Group' => ['Failed to add user to groups.']]];
+                return [true, null];
             }
         } else {
             return [false, $user->getErrors()];
@@ -1508,9 +1589,13 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addUserGroup($jsonUserGroup)
+    public function addUserGroup($jsonUserGroup, $userGroupID = false)
     {
-        $userGroup = new UserGroupModel();
+        if ($userGroupID) {
+            $userGroup = $this->getUserGroupById($userGroupID);
+        } else {
+            $userGroup = new UserGroupModel();
+        }
 
         $userGroup->name = $jsonUserGroup->name;
 
@@ -1977,6 +2062,9 @@ class TheArchitectService extends BaseApplicationComponent
                         'titleLabel' => $entryType->attributes['titleLabel'],
                         'fieldLayout' => [],
                     ];
+                    if ($includeID) {
+                        $newEntryType = array_merge(['id' => $entryType->id, 'sectionId' => $section->id], $newEntryType);
+                    }
                     if ($newEntryType['titleFormat'] === null) {
                         unset($newEntryType['titleFormat']);
                     }
@@ -2540,28 +2628,76 @@ class TheArchitectService extends BaseApplicationComponent
         foreach (craft()->assetSources->getAllSources() as $field) {
             array_push($post['assetSourceSelection'], $field->id);
         }
-        foreach (craft()->assetTransforms->getAllTransforms() as $section) {
-            array_push($post['assetTransformSelection'], $section->id);
+        foreach (craft()->assetTransforms->getAllTransforms() as $transform) {
+            array_push($post['assetTransformSelection'], $transform->id);
         }
-        foreach (craft()->globals->getAllSets() as $section) {
-            array_push($post['globalSelection'], $section->id);
+        foreach (craft()->globals->getAllSets() as $globalSet) {
+            array_push($post['globalSelection'], $globalSet->id);
         }
-        foreach (craft()->categories->getAllGroups() as $section) {
-            array_push($post['categorySelection'], $section->id);
+        foreach (craft()->categories->getAllGroups() as $categoryGroup) {
+            array_push($post['categorySelection'], $categoryGroup->id);
         }
-        foreach (craft()->theArchitect->getAllUsers() as $section) {
-            array_push($post['userSelection'], $section->id);
+        foreach (craft()->theArchitect->getAllUsers() as $user) {
+            array_push($post['userSelection'], $user->id);
         }
-        foreach (craft()->userGroups->getAllGroups() as $section) {
-            array_push($post['groupSelection'], $section->id);
+        if (isset(craft()->userGroups)) {
+            foreach (craft()->userGroups->getAllGroups() as $userGroup) {
+                array_push($post['groupSelection'], $userGroup->id);
+            }
         }
 
         return $post;
     }
 
+    public function getAllJsonIds($json)
+    {
+        $data = json_decode($json);
+
+        $ids = [
+            'fieldIDs' => [],
+            'sectionIDs' => [],
+            'entryTypeIDs' => [],
+            'assetSourceIDs' => [],
+            'assetTransformIDs' => [],
+            'globalIDs' => [],
+            'categoryIDs' => [],
+            'userIDs' => [],
+            'groupIDs' => [],
+        ];
+
+        foreach ($json->fields as $field) {
+            array_push($ids['fieldIDs'], $field->id);
+        }
+
+        foreach ($json->assetSources as $assetSource) {
+            array_push($ids['assetSourceIDs'], $assetSource->id);
+        }
+
+        foreach ($json->entryTypes as $entryType) {
+            array_push($ids['entryTypeIDs'], $entryType->id);
+        }
+
+        foreach ($json->sections as $section) {
+            array_push($ids['sectionIDs'], $section->id);
+        }
+
+        foreach ($json->sections as $section) {
+            array_push($ids['sectionIDs'], $section->id);
+        }
+
+        foreach ($json->sections as $section) {
+            array_push($ids['sectionIDs'], $section->id);
+        }
+
+        foreach ($json->sections as $section) {
+            array_push($ids['sectionIDs'], $section->id);
+        }
+    }
+
     public function getFieldById($fieldID)
     {
-        foreach ($this->fields as $field) {
+        $fields = craft()->fields->getAllFields();
+        foreach ($fields as $field) {
             if ($field->id == $fieldID) {
                 return $field;
             }
@@ -2573,6 +2709,139 @@ class TheArchitectService extends BaseApplicationComponent
         $field->id = $fieldID;
 
         return $field;
+    }
+
+    public function getEntryTypeById($entryTypeID, $sectionID)
+    {
+        $entryType = craft()->sections->getEntryTypeById($entryTypeID);
+        if ($entryType) {
+            return $entryType;
+        }
+        craft()->db->createCommand()->insert('entrytypes', array(
+            'id' => $entryTypeID,
+            'sectionId' => $sectionID,
+        ));
+        $entryType = new EntryTypeModel();
+        $entryType->id = $entryTypeID;
+
+        return $entryType;
+    }
+
+    public function getSectionById($sectionID)
+    {
+        $sections = craft()->sections->getAllSections();
+        foreach ($sections as $section) {
+            if ($section->id == $sectionID) {
+                return $section;
+            }
+        }
+        craft()->db->createCommand()->insert('sections', array(
+            'id' => $sectionID,
+        ));
+        $section = new SectionModel();
+        $section->id = $sectionID;
+
+        return $section;
+    }
+
+    public function getAssetSourceById($sourceID)
+    {
+        $sources = craft()->assetSources->getAllSources();
+        foreach ($sources as $source) {
+            if ($source->id == $sourceID) {
+                return $source;
+            }
+        }
+        craft()->db->createCommand()->insert('assetsources', array(
+            'id' => $sourceID,
+        ));
+        $source = new AssetSourceModel();
+        $source->id = $sourceID;
+
+        return $source;
+    }
+
+    public function getAssetTransformById($transformID)
+    {
+        $assetTransforms = craft()->assetTransforms->getAllTransforms();
+        foreach ($assetTransforms as $assetTransform) {
+            if ($assetTransform->id == $transformID) {
+                return $assetTransform;
+            }
+        }
+        craft()->db->createCommand()->insert('assetassetTransforms', array(
+            'id' => $transformID,
+        ));
+        $assetTransform = new AssetTransformModel();
+        $assetTransform->id = $transformID;
+
+        return $assetTransform;
+    }
+
+    public function getGlobalSetById($globalSetID)
+    {
+        $globalSet = craft()->globals->getSetById($globalSetID);
+        if ($globalSet) {
+            return $globalSet;
+        }
+        craft()->db->createCommand()->insert('globalsets', array(
+            'id' => $globalSetID,
+        ));
+        $globalSet = new GlobalSetModel();
+        $globalSet->id = $globalSetID;
+
+        return $globalSet;
+    }
+
+    public function getUserById($userID)
+    {
+        $users = craft()->theArchitect->getAllUsers();
+        foreach ($users as $user) {
+            if ($user->id == $userID) {
+                return array($user, false);
+            }
+        }
+        craft()->db->createCommand()->insert('usergroups', array(
+            'id' => $userID,
+        ));
+        $user = new UserModel();
+        $user->id = $userID;
+
+        return array($user, true);
+    }
+
+    public function getUserGroupById($userGroupID)
+    {
+        $userGroups = craft()->userGroups->getAllGroups();
+        foreach ($userGroups as $userGroup) {
+            if ($userGroup->id == $userGroupID) {
+                return $userGroup;
+            }
+        }
+        craft()->db->createCommand()->insert('usergroups', array(
+            'id' => $userGroupID,
+        ));
+        $userGroup = new UserGroupModel();
+        $userGroup->id = $userGroupID;
+
+        return $userGroup;
+    }
+
+    public function getCategoryGroupById($categoryGroupID)
+    {
+        $categoryGroups = craft()->categories->getAllGroups();
+        foreach ($categoryGroups as $categoryGroup) {
+            if ($categoryGroup->id == $categoryGroupID) {
+                return $categoryGroup;
+            }
+        }
+        craft()->db->createCommand()->insert('usergroups', array(
+            'id' => $categoryGroupID,
+        ));
+        $categoryGroup = new CategoryGroupModel();
+        $categoryGroup->id = $categoryGroupID;
+
+        return $categoryGroup;
     }
 
     public function getAutomation()

@@ -117,9 +117,15 @@ class TheArchitectController extends BaseController
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = $jsonPath.'_master_.json';
 
+        if (file_exists($masterJson)) {
+            $exportTime = filemtime($masterJson);
+        } else {
+            $exportTime = null;
+        }
+
         $variables = array(
             'automation' => craft()->theArchitect->getAutomation(),
-            'exportTime' => filemtime($masterJson),
+            'exportTime' => $exportTime,
             'importTime' => craft()->theArchitect->getLastImport(),
             'apiKey' => craft()->theArchitect->getAPIKey(),
             'jsonPath' => $jsonPath,
@@ -146,7 +152,15 @@ class TheArchitectController extends BaseController
 
     public function actionMigrationImport()
     {
-        craft()->theArchitect->importMigrationConstruct();
+        $force = (!is_null(craft()->request->getPost('force')));
+
+        $result = craft()->theArchitect->importMigrationConstruct($force);
+
+        if ($result) {
+            craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+        } else {
+            craft()->userSession->setError(Craft::t('There is some field type changes. To prevent content loss please review the field types before forcing.'));
+        }
 
         $this->redirect('thearchitect/migrations');
     }
