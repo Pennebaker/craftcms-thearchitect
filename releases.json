@@ -1,9 +1,17 @@
 [{
+    "version": "1.5.4",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.4.zip",
+    "date": "2016-10-24T13:18:48-05:00",
+    "notes": [
+      "[Fixed] Fix Section import when hasUrls is set to false.",
+      "[Fixed] Fix User Group Permissions export/import of category groups using IDs instead of handles."
+    ]
+}, {
     "version": "1.5.3.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.3.1.zip",
     "date": "2016-10-24T10:12:48-05:00",
     "notes": [
-      "[Fixed] Fix Section export when using locales outside of priamry locale."
+      "[Fixed] Fix Section export when using locales outside of primary locale."
     ]
 }, {
     "version": "1.5.2",
