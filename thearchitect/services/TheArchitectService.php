@@ -1855,6 +1855,8 @@ class TheArchitectService extends BaseApplicationComponent
                 }
 
                 $urlFormat = $section->getUrlFormat();
+                $locales = $section->getLocales();
+                $primaryLocale = craft()->i18n->getPrimarySiteLocaleId();
 
                 $newSection = [
                     'name' => $section->attributes['name'],
@@ -1863,12 +1865,20 @@ class TheArchitectService extends BaseApplicationComponent
                     'enableVersioning' => $section->attributes['enableVersioning'],
                     'typesettings' => [
                         'hasUrls' => $section->attributes['hasUrls'],
-                        'urlFormat' => ($urlFormat !== null) ? $urlFormat : "",
-                        'nestedUrlFormat' => $section->locales[craft()->i18n->getPrimarySiteLocaleId()]->attributes['nestedUrlFormat'],
+                        'urlFormat' => (isset($locales[$primaryLocale])) ? $locales[$primaryLocale]['urlFormat'] : null,
+                        'nestedUrlFormat' => (isset($locales[$primaryLocale])) ? $locales[$primaryLocale]['nestedUrlFormat'] : null,
                         'template' => $section->attributes['template'],
                         'maxLevels' => $section->attributes['maxLevels'],
                     ],
                 ];
+                foreach ($locales as $locale => $attributes) {
+                    if ($primaryLocale != $locale) {
+                        $newSection['typesettings'][$locale] = [
+                            'urlFormat' =>$locales[$locale]['urlFormat'],
+                            'nestedUrlFormat' =>$locales[$locale]['nestedUrlFormat'],
+                        ];
+                    }
+                }
                 if ($includeID) {
                     $newSection = array_merge(['id' => $section->id], $newSection);
                 }
