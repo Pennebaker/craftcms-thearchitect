@@ -456,8 +456,10 @@ class TheArchitectService extends BaseApplicationComponent
         ];
         if (craft()->getEdition() == 2) {
             $userGroups = $this->userGroupsExport($post, $includeID);
-            $userGroups['userGroups'] = $userGroups[0];
-            $userGroups['userGroupPermissions'] = $userGroups[1];
+            if (is_array($userGroups)) {
+                $userGroups['userGroups'] = $userGroups[0];
+                $userGroups['userGroupPermissions'] = $userGroups[1];
+            }
         }
 
         // Remove empty sections from the output array
