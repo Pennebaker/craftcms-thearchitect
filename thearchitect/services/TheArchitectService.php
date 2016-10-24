@@ -722,7 +722,7 @@ class TheArchitectService extends BaseApplicationComponent
                 $defaultLocaleStatus = true;
             }
 
-            if ($urlFormat !== null || $nestedUrlFormat !== null) {
+            if (isset($jsonSection->typesettings->$localeId)) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
                     'enabledByDefault' => $defaultLocaleStatus,
@@ -753,15 +753,12 @@ class TheArchitectService extends BaseApplicationComponent
                 $defaultLocaleStatus = true;
             }
 
-
-            if ($urlFormat !== null || $nestedUrlFormat !== null) {
-                $locales[$localeId] = new SectionLocaleModel(array(
-                    'locale' => $localeId,
-                    'enabledByDefault' => $defaultLocaleStatus,
-                    'urlFormat' => $urlFormat,
-                    'nestedUrlFormat' => $nestedUrlFormat,
-                ));
-            }
+            $locales[$localeId] = new SectionLocaleModel(array(
+                'locale' => $localeId,
+                'enabledByDefault' => $defaultLocaleStatus,
+                'urlFormat' => $urlFormat,
+                'nestedUrlFormat' => $nestedUrlFormat,
+            ));
         }
         $section->setLocales($locales);
 
