@@ -677,8 +677,8 @@ class TheArchitectService extends BaseApplicationComponent
         $section->type = $jsonSection->type;
 
         // Set enableVersioning if it was provided
-        if (isset($jsonSection->typesettings->enableVersioning)) {
-            $section->enableVersioning = $jsonSection->typesettings->enableVersioning;
+        if (isset($jsonSection->enableVersioning)) {
+            $section->enableVersioning = $jsonSection->enableVersioning;
         } else {
             $section->enableVersioning = 1;
         }
