@@ -15,6 +15,10 @@ td > svg {
     vertical-align: middle;
 }
 
+svg[data-clipboard-text] {
+    cursor: pointer;
+}
+
 code.location {
     color: #8f98a3;
     background-color: #EBEDEF;
