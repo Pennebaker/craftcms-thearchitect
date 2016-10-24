@@ -752,13 +752,14 @@ class TheArchitectService extends BaseApplicationComponent
             } else {
                 $defaultLocaleStatus = true;
             }
-
-            $locales[$localeId] = new SectionLocaleModel(array(
-                'locale' => $localeId,
-                'enabledByDefault' => $defaultLocaleStatus,
-                'urlFormat' => $urlFormat,
-                'nestedUrlFormat' => $nestedUrlFormat,
-            ));
+            if (isset($jsonSection->typesettings->urlFormat) || isset($jsonSection->typesettings->nestedUrlFormat) || isset($jsonSection->typesettings->defaultLocaleStatus)) {
+                $locales[$localeId] = new SectionLocaleModel(array(
+                    'locale' => $localeId,
+                    'enabledByDefault' => $defaultLocaleStatus,
+                    'urlFormat' => $urlFormat,
+                    'nestedUrlFormat' => $nestedUrlFormat,
+                ));
+            }
         }
         $section->setLocales($locales);
 
@@ -1867,12 +1868,14 @@ class TheArchitectService extends BaseApplicationComponent
                     'enableVersioning' => $section->attributes['enableVersioning'],
                     'typesettings' => [
                         'hasUrls' => $section->attributes['hasUrls'],
-                        'urlFormat' => (isset($locales[$primaryLocale])) ? $locales[$primaryLocale]['urlFormat'] : null,
-                        'nestedUrlFormat' => (isset($locales[$primaryLocale])) ? $locales[$primaryLocale]['nestedUrlFormat'] : null,
                         'template' => $section->attributes['template'],
                         'maxLevels' => $section->attributes['maxLevels'],
                     ],
                 ];
+                if (isset($locales[$primaryLocale])) {
+                    $newSection['typesettings']['urlFormat'] = $locales[$primaryLocale]['urlFormat'];
+                    $newSection['typesettings']['nestedUrlFormat'] = $locales[$primaryLocale]['nestedUrlFormat'];
+                }
                 foreach ($locales as $locale => $attributes) {
                     if ($primaryLocale != $locale) {
                         $newSection['typesettings'][$locale] = [
@@ -1887,7 +1890,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($newSection['typesettings']['maxLevels'] === null) {
                     unset($newSection['typesettings']['maxLevels']);
                 }
-                if ($newSection['typesettings']['nestedUrlFormat'] === null) {
+                if (isset($newSection['typesettings']['nestedUrlFormat']) && $newSection['typesettings']['nestedUrlFormat'] === null) {
                     unset($newSection['typesettings']['nestedUrlFormat']);
                 }
                 if ($newSection['type'] === 'single') {
