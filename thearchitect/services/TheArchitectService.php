@@ -1269,6 +1269,9 @@ class TheArchitectService extends BaseApplicationComponent
             'publishPeerEntries',
             'publishPeerEntryDrafts',
         ];
+        $category_perms = [
+            'editCategories'
+        ];
         $general_perms = [
             'editLocale'
         ];
@@ -1277,6 +1280,7 @@ class TheArchitectService extends BaseApplicationComponent
             'globals' => [],
             'assetSources' => [],
             'sections' => [],
+            'categories' => [],
             'unknown' => [],
         ];
         foreach ($userPermissions as $k => $userPermission) {
@@ -1295,6 +1299,10 @@ class TheArchitectService extends BaseApplicationComponent
                     $handle = $this->getSectionHandle($splitPermission[1]);
                     if (!isset($newUserPermissions['sections'][$handle])) $newUserPermissions['sections'][$handle] = [];
                     array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
+                } else if (in_array($splitPermission[0], $category_perms)) {
+                    $handle = craft()->categories->getGroupById($splitPermission[1])->handle;
+                    if (!isset($newUserPermissions['categories'][$handle])) $newUserPermissions['categories'][$handle] = [];
+                    array_push($newUserPermissions['categories'][$handle], $splitPermission[0]);
                 } else if (in_array($splitPermission[0], $general_perms)) {
                     array_push($newUserPermissions['general'], $userPermission);
                 } else {
@@ -1333,6 +1341,13 @@ class TheArchitectService extends BaseApplicationComponent
             } else if ($k == 'sections') {
                 foreach ($permissionGroup as $sectionHandle => $permissions) {
                     $sectionId = craft()->sections->getSectionByHandle($sectionHandle)->id;
+                    foreach ($permissions as $permission) {
+                        array_push($newUserPermissions, $permission . ':' . $sectionId);
+                    }
+                }
+            } else if ($k == 'categories') {
+                foreach ($permissionGroup as $categoryHandle => $permissions) {
+                    $sectionId = craft()->categories->getGroupByHandle($categoryHandle)->id;
                     foreach ($permissions as $permission) {
                         array_push($newUserPermissions, $permission . ':' . $sectionId);
                     }
@@ -1664,16 +1679,6 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function getCategoryByHandle($handle)
-    {
-        $categories = craft()->categories->getAllGroups();
-        foreach ($categories as $key => $category) {
-            if ($category->handle === $handle) {
-                return $category;
-            }
-        }
-    }
-
     private function getTagGroupByHandle($handle)
     {
         $tagGroups = craft()->tags->getAllTagGroups();
@@ -1804,7 +1809,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
         if ($object->type == 'Categories') {
             if (isset($object->typesettings->source)) {
-                $category = $this->getCategoryByHandle($object->typesettings->source);
+                $category = craft()->categories->getGroupByHandle($object->typesettings->source);
                 if ($category) {
                     $object->typesettings->source = 'group:'.$category->id;
                 }
