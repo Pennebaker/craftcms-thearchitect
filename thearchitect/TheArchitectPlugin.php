@@ -24,7 +24,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getVersion()
     {
-        return '1.5.4';
+        return '1.5.4.1';
     }
 
     /**
