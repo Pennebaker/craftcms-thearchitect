@@ -1,4 +1,12 @@
 [{
+    "version": "1.5.4.1",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.4.1.zip",
+    "date": "2016-10-24T17:22:52-05:00",
+    "notes": [
+      "[Fixed] Fix Section export/import to not always generate a primary locale.",
+      "[Fixed] Fix Section enableVersioning flag always being true from incorrect parsing."
+    ]
+}, {
     "version": "1.5.4",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.4.zip",
     "date": "2016-10-24T13:18:48-05:00",
