@@ -1252,13 +1252,13 @@ class TheArchitectService extends BaseApplicationComponent
             'editGlobalSet',
         ];
         $assetsource_perms = [
+            'createSubfoldersInAssetSource',
             'removeFromAssetSource',
             'uploadToAssetSource',
             'viewAssetSource',
         ];
         $section_perms = [
             'createEntries',
-            'createSubfoldersInAssetSource',
             'deleteEntries',
             'deletePeerEntries',
             'deletePeerEntryDrafts',
