@@ -860,23 +860,12 @@ class TheArchitectService extends BaseApplicationComponent
                 $defaultLocaleStatus = true;
             }
 
-<<<<<<< HEAD
-            if ($urlFormat !== null || $nestedUrlFormat !== null) {
-                $locales[$localeId] = new SectionLocaleModel(array(
-                    'locale' => $localeId,
-                    'enabledByDefault' => $defaultLocaleStatus,
-                    'urlFormat' => $urlFormat,
-                    'nestedUrlFormat' => $nestedUrlFormat,
-                ));
-            }
-=======
             $locales[$localeId] = new SectionLocaleModel(array(
                 'locale' => $localeId,
                 'enabledByDefault' => $defaultLocaleStatus,
                 'urlFormat' => $urlFormat,
                 'nestedUrlFormat' => $nestedUrlFormat,
             ));
->>>>>>> hotfix/v1.5.4
         }
         $section->setLocales($locales);
 
