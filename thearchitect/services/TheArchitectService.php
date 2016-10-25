@@ -457,8 +457,8 @@ class TheArchitectService extends BaseApplicationComponent
         if (craft()->getEdition() == 2) {
             $userGroups = $this->userGroupsExport($post, $includeID);
             if (is_array($userGroups)) {
-                $userGroups['userGroups'] = $userGroups[0];
-                $userGroups['userGroupPermissions'] = $userGroups[1];
+                $output['userGroups'] = $userGroups[0];
+                $output['userGroupPermissions'] = $userGroups[1];
             }
         }
 
