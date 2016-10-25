@@ -2636,7 +2636,6 @@ class TheArchitectService extends BaseApplicationComponent
             'globalSelection' => [],
             'categorySelection' => [],
             'userSelection' => [],
-            'groupSelection' => [],
         ];
 
         foreach (craft()->fields->getAllFields() as $field) {
@@ -2664,6 +2663,7 @@ class TheArchitectService extends BaseApplicationComponent
             array_push($post['userSelection'], $user->id);
         }
         if (isset(craft()->userGroups)) {
+            $post['groupSelection'] = [];
             foreach (craft()->userGroups->getAllGroups() as $userGroup) {
                 array_push($post['groupSelection'], $userGroup->id);
             }
@@ -2754,7 +2754,7 @@ class TheArchitectService extends BaseApplicationComponent
             $type = str_replace('Selection', 'IDs', $type);
             $deleteIds[$type] = [];
             foreach ($ids as $id) {
-                if (!in_array($id, $jsonIds[$type])) {
+                if (!isset($jsonIds[$type]) || !in_array($id, $jsonIds[$type])) {
                     $deleteIds[$type][] = $id;
                 }
             }
