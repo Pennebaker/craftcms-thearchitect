@@ -15,7 +15,7 @@ class TheArchitect_ApiController extends BaseController
         $key = craft()->request->getParam('key');
 
         if (!$apiKey OR $key != $apiKey) {
-			die('Unauthorized key');
+			die('{"type": "export","success": false}');
 		}
 
         // Run Migration Export
@@ -24,7 +24,7 @@ class TheArchitect_ApiController extends BaseController
         // Set last import to match this export time.
         craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
 
-        die('Migration Exported!');
+        die('{"type": "export","success": true}');
     }
 
     public function actionImport()
@@ -34,12 +34,16 @@ class TheArchitect_ApiController extends BaseController
         $force = craft()->request->getParam('force');
 
         if (!$apiKey OR $key != $apiKey) {
-			die('Unauthorized key');
+			die('{"type": "export","success": false}');
 		}
 
         // Run Migration Import
-        craft()->theArchitect->importMigrationConstruct($force);
+        $result = craft()->theArchitect->importMigrationConstruct($force);
 
-        die('Migration Imported!');
+        if ($result) {
+            die('{"type": "import","success": true}');
+        } else {
+            die('{"type": "import","success": false}');
+        }
     }
 }
