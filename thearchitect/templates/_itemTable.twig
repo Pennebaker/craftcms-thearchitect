@@ -1,18 +1,18 @@
-{% if deletions['fieldIDs']|length > 0 or
-      deletions['sectionIDs']|length > 0 or
-      deletions['entryTypeIDs']|length > 0 or
-      deletions['assetSourceIDs']|length > 0 or
-      deletions['assetTransformIDs']|length > 0 or
-      deletions['globalIDs']|length > 0 or
-      deletions['categoryIDs']|length > 0 or
-      deletions['userIDs']|length > 0 or
-      deletions['groupIDs']|length > 0
+{% if itemList['fieldIDs']|length > 0 or
+      itemList['sectionIDs']|length > 0 or
+      itemList['entryTypeIDs']|length > 0 or
+      itemList['assetSourceIDs']|length > 0 or
+      itemList['assetTransformIDs']|length > 0 or
+      itemList['globalIDs']|length > 0 or
+      itemList['categoryIDs']|length > 0 or
+      itemList['userIDs']|length > 0 or
+      itemList['groupIDs']|length > 0
 %}
-    <h2>Deletions</h2>
-
-    {% if deletions['fieldIDs']|length > 0 %}
+    <h2>{{ headline }}</h2>
+    <p>{{ text }}</p>
+    {% if itemList['fieldIDs']|length > 0 %}
         <h3>Fields</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Group</th>
@@ -22,7 +22,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for fieldID in deletions['fieldIDs'] %}
+                {% for fieldID in itemList['fieldIDs'] %}
                     {% set field = craft.fields.getFieldById(fieldID) %}
                     <tr>
                         <td>
@@ -43,9 +43,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['sectionIDs']|length > 0 %}
+    {% if itemList['sectionIDs']|length > 0 %}
         <h3>Sections</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -55,7 +55,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for sectionID in deletions['sectionIDs'] %}
+                {% for sectionID in itemList['sectionIDs'] %}
                     {% set section = craft.sections.getSectionById(sectionID) %}
                     <tr>
                         <td>
@@ -76,9 +76,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['entryTypeIDs']|length > 0 %}
+    {% if itemList['entryTypeIDs']|length > 0 %}
         <h3>Entry Types</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -86,7 +86,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entryTypeID in deletions['entryTypeIDs'] %}
+                {% for entryTypeID in itemList['entryTypeIDs'] %}
                     {% set entryType = craft.theArchitect.getEntryTypeById(entryTypeID) %}
                     <tr>
                         <td>
@@ -101,9 +101,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['assetSourceIDs']|length > 0 %}
+    {% if itemList['assetSourceIDs']|length > 0 %}
         <h3>Asset Sources</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -113,7 +113,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for assetSourceID in deletions['assetSourceIDs'] %}
+                {% for assetSourceID in itemList['assetSourceIDs'] %}
                     {% set assetSource = craft.theArchitect.getSourceById(assetSourceID) %}
                     <tr>
                         <td>
@@ -134,9 +134,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['assetTransformIDs']|length > 0 %}
+    {% if itemList['assetTransformIDs']|length > 0 %}
         <h3>Asset Transforms</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -146,7 +146,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for assetTransformID in deletions['assetTransformIDs'] %}
+                {% for assetTransformID in itemList['assetTransformIDs'] %}
                     {% set assetTransform = craft.theArchitect.getTransformById(assetTransformID) %}
                     <tr>
                         <td>
@@ -167,9 +167,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['globalIDs']|length > 0 %}
+    {% if itemList['globalIDs']|length > 0 %}
         <h3>Globals</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -177,7 +177,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for globalID in deletions['globalIDs'] %}
+                {% for globalID in itemList['globalIDs'] %}
                     {% set global = craft.globals.getSetById(globalID) %}
                     <tr>
                         <td>
@@ -192,9 +192,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['categoryIDs']|length > 0 %}
+    {% if itemList['categoryIDs']|length > 0 %}
         <h3>Categories</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -202,7 +202,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for categoryID in deletions['categoryIDs'] %}
+                {% for categoryID in itemList['categoryIDs'] %}
                     {% set category = craft.theArchitect.getCategoryGroupById(categoryID) %}
                     <tr>
                         <td>
@@ -217,9 +217,9 @@
         </table>
     {% endif %}
 
-    {% if deletions['userIDs']|length > 0 %}
+    {% if itemList['userIDs']|length > 0 %}
         <h3>Users</h3>
-        <table class="shadow-box editable error">
+        <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
                     <th>Username</th>
@@ -228,7 +228,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for userID in deletions['userIDs'] %}
+                {% for userID in itemList['userIDs'] %}
                     {% set user = craft.theArchitect.getUserById(userID) %}
                     <tr>
                         <td>
@@ -246,9 +246,9 @@
         </table>
     {% endif %}
 
-    {% if craft.theArchitect.getEdition() == 2 and deletions['groupIDs']|length > 0 %}
+    {% if craft.theArchitect.getEdition() == 2 and itemList['groupIDs']|length > 0 %}
     <h3>User Groups</h3>
-    <table class="shadow-box editable error">
+    <table class="shadow-box editable {{ status }}">
         <thead>
             <tr>
                 <th>Name</th>
@@ -256,7 +256,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for groupID in deletions['groupIDs'] %}
+            {% for groupID in itemList['groupIDs'] %}
                 {% set group = craft.userGroups.getGroupById(groupID) %}
                 <tr>
                     <td>

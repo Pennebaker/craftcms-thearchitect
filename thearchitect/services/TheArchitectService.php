@@ -621,7 +621,7 @@ class TheArchitectService extends BaseApplicationComponent
         $output = json_decode($json);
 
         // Let's get a list of items to delete...
-        $deleteIDs = $this->getDeleteIds($json);
+        list($addedIDs, $updatedIDs, $deleteIDs) = $this->getAddedDeleteIds($json);
         // and delete them.
 
         $this->parseJson($json, true, $force);
@@ -2745,21 +2745,59 @@ class TheArchitectService extends BaseApplicationComponent
         return $ids;
     }
 
-    public function getDeleteIds($json)
+    public function getAddedDeleteIds($json)
     {
+        $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
+        $masterJson = $jsonPath.'_master_.json';
+
+        if (file_exists($masterJson)) {
+            touch($masterJson, 1477421760);
+            $exportTime = filemtime($masterJson);
+        } else {
+            $exportTime = null;
+        }
+
         $allIds = $this->getAllIds();
         $jsonIds = $this->getAllJsonIds($json);
-        $deleteIds = [];
+        $addedIds = [];
+        $updatedIds = [];
+        $deletedIds = [];
+
+        $fieldUpdates = [];
+        foreach (craft()->db->createCommand()->select('id, dateCreated, dateUpdated')->from('fields')->queryAll() as $fieldUpdate) {
+            $date = new DateTime($fieldUpdate['dateCreated']);
+            $fieldCreated[$fieldUpdate['id']] = $date->getTimestamp();
+            $date = new DateTime($fieldUpdate['dateUpdated']);
+            $fieldUpdates[$fieldUpdate['id']] = $date->getTimestamp();
+        }
+
         foreach ($allIds as $type => $ids) {
             $type = str_replace('Selection', 'IDs', $type);
-            $deleteIds[$type] = [];
+            $addedIds[$type] = [];
+            $updatedIds[$type] = [];
+            $deletedIds[$type] = [];
             foreach ($ids as $id) {
-                if (!isset($jsonIds[$type]) || !in_array($id, $jsonIds[$type])) {
-                    $deleteIds[$type][] = $id;
+                $added = false;
+                $updated = false;
+                if ($type == 'fieldIDs') {
+                    if ($fieldCreated[$id] > $exportTime) {
+                        $added = true;
+                    } else if ($fieldUpdates[$id] > $exportTime) {
+                        $updated = true;
+                    }
+                }
+                if (!isset($jsonIds[$type]) || !in_array($id, $jsonIds[$type]) || $added || $updated) {
+                    if ($added) {
+                        $addedIds[$type][] = $id;
+                    } else if ($updated) {
+                        $updatedIds[$type][] = $id;
+                    } else {
+                        $deletedIds[$type][] = $id;
+                    }
                 }
             }
         }
-        return $deleteIds;
+        return [$addedIds, $updatedIds, $deletedIds];
     }
 
     public function getFieldById($fieldID)

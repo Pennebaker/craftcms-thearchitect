@@ -99,8 +99,14 @@
         {{ quickActionForm('generateKey', 'Generate Key') }}
     {% endif %}
 
+    {% if additions|length > 0 %}
+    {% include 'thearchitect/_itemTable' with {itemList: additions, status: 'success', headline: 'DB Additions', text: 'List of items added since the previous export. Performing an import will not delete these added fields.'} %}
+    {% endif %}
+    {% if updates|length > 0 %}
+    {% include 'thearchitect/_itemTable' with {itemList: additions, status: 'warning', headline: 'DB Updates', text: 'List of items updated since the previous export. Performing an import will overwrite these changes prefering the exported model over these changes.'} %}
+    {% endif %}
     {% if deletions|length > 0 %}
-    {% include 'thearchitect/_deletions' %}
+    {% include 'thearchitect/_itemTable' with {itemList: additions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted since the previous import. Performing an import will delete these items from the database.'} %}
     {% endif %}
     {% if mismatch|length > 0 %}
     <h2>Field Migration Problems</h2>
