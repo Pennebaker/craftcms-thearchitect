@@ -100,22 +100,22 @@
     {% endif %}
 
     {% if dbAdditions|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: dbAdditions, status: 'success', headline: 'DB Additions', text: 'List of items added since the previous export. Performing an import will not delete these added fields.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbAdditions, status: 'success', headline: 'DB Additions', text: 'List of items added since the previous export. Performing an import will not delete these added fields.'} %}
     {% endif %}
     {% if dbUpdates|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: dbUpdates, status: 'warning', headline: 'DB Updates', text: 'List of items updated since the previous export. Performing an import will overwrite these changes prefering the exported model over these changes.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbUpdates, status: 'warning', headline: 'DB Updates', text: 'List of items updated since the previous export. Performing an import will overwrite these changes prefering the exported model.'} %}
     {% endif %}
     {% if dbDeletions|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: dbDeletions, status: 'error', headline: 'DB Deletions', text: 'List if items deleted since the previous export. Performing an import will add these items back to the database.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbDeletions, status: 'error', headline: 'DB Deletions', text: 'List if items deleted since the previous export. Performing an import will add these items back to the database.'} %}
     {% endif %}
     {% if modelAdditions|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: modelAdditions, status: 'success', headline: 'Model Additions', text: 'List if items added to the model since the previous import. Performing an import will create these items in the database.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelAdditions, status: 'success', headline: 'Model Additions', text: 'List if items added to the model since the previous import. Performing an import will create these items in the database.'} %}
     {% endif %}
     {% if modelUpdates|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: modelUpdates, status: 'success', headline: 'Model Updates', text: 'List if items updated in the model since the previous import. Performing an import will modify existing items in the database.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelUpdates, status: 'warning', headline: 'Model Updates', text: 'List if items updated in the model since the previous import. Performing an import will modify existing items in the database.'} %}
     {% endif %}
     {% if modelDeletions|length > 0 %}
-    {% include 'thearchitect/_itemTable' with {itemList: modelDeletions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted from the model since the previous import. Performing an import will delete these items from the database.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelDeletions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted from the model since the previous import. Performing an import will delete these items from the database.'} %}
     {% endif %}
     {% if mismatch|length > 0 %}
     <h2>Field Migration Problems</h2>
