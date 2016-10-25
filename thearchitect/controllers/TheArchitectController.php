@@ -123,7 +123,7 @@ class TheArchitectController extends BaseController
             $exportTime = null;
         }
 
-        list($addedIDs, $updatedIDs, $deleteIDs) = craft()->theArchitect->getAddedDeleteIds(file_get_contents($masterJson));
+        list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = craft()->theArchitect->getAddedUpdatedDeletedIds(file_get_contents($masterJson));
 
         $variables = array(
             'automation' => craft()->theArchitect->getAutomation(),
@@ -132,9 +132,12 @@ class TheArchitectController extends BaseController
             'apiKey' => craft()->theArchitect->getAPIKey(),
             'jsonPath' => $jsonPath,
             'mismatch' => craft()->theArchitect->compareMigrationConstruct(),
-            'additions' => $addedIDs,
-            'updates' => $updatedIDs,
-            'deletions' => $deleteIDs,
+            'dbAdditions' => $dbAddedIDs,
+            'dbUpdates' => $dbUpdatedIDs,
+            'dbDeletions' => $dbDeleteIDs,
+            'modelAdditions' => $modelAddedIDs,
+            'modelUpdates' => $modelUpdatedIDs,
+            'modelDeletions' => $modelDeleteIDs,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');

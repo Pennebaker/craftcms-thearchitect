@@ -621,7 +621,7 @@ class TheArchitectService extends BaseApplicationComponent
         $output = json_decode($json);
 
         // Let's get a list of items to delete...
-        list($addedIDs, $updatedIDs, $deleteIDs) = $this->getAddedDeleteIds($json);
+        list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = $this->getAddedUpdatedDeletedIds($json);
         // and delete them.
 
         $this->parseJson($json, true, $force);
@@ -2745,7 +2745,7 @@ class TheArchitectService extends BaseApplicationComponent
         return $ids;
     }
 
-    public function getAddedDeleteIds($json)
+    public function getAddedUpdatedDeletedIds($json)
     {
         $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
         $masterJson = $jsonPath.'_master_.json';
@@ -2759,9 +2759,12 @@ class TheArchitectService extends BaseApplicationComponent
 
         $allIds = $this->getAllIds();
         $jsonIds = $this->getAllJsonIds($json);
-        $addedIds = [];
-        $updatedIds = [];
-        $deletedIds = [];
+        $dbAddedIds = [];
+        $dbUpdatedIds = [];
+        $dbDeletedIds = [];
+        $modelAddedIds = [];
+        $modelUpdatedIds = [];
+        $modelDeletedIds = [];
 
         $fieldUpdates = [];
         foreach (craft()->db->createCommand()->select('id, dateCreated, dateUpdated')->from('fields')->queryAll() as $fieldUpdate) {
@@ -2770,12 +2773,14 @@ class TheArchitectService extends BaseApplicationComponent
             $date = new DateTime($fieldUpdate['dateUpdated']);
             $fieldUpdates[$fieldUpdate['id']] = $date->getTimestamp();
         }
-
         foreach ($allIds as $type => $ids) {
             $type = str_replace('Selection', 'IDs', $type);
-            $addedIds[$type] = [];
-            $updatedIds[$type] = [];
-            $deletedIds[$type] = [];
+            $dbAddedIds[$type] = [];
+            $dbUpdatedIds[$type] = [];
+            $dbDeletedIds[$type] = [];
+            $modelAddedIds[$type] = [];
+            $modelUpdatedIds[$type] = [];
+            $modelDeletedIds[$type] = [];
             foreach ($ids as $id) {
                 $added = false;
                 $updated = false;
@@ -2788,16 +2793,17 @@ class TheArchitectService extends BaseApplicationComponent
                 }
                 if (!isset($jsonIds[$type]) || !in_array($id, $jsonIds[$type]) || $added || $updated) {
                     if ($added) {
-                        $addedIds[$type][] = $id;
+                        $dbAddedIds[$type][] = $id;
                     } else if ($updated) {
-                        $updatedIds[$type][] = $id;
+                        $dbUpdatedIds[$type][] = $id;
                     } else {
-                        $deletedIds[$type][] = $id;
+                        $modelDeletedIds[$type][] = $id;
                     }
                 }
             }
         }
-        return [$addedIds, $updatedIds, $deletedIds];
+
+        return [$dbAddedIds, $dbUpdatedIds, $dbDeletedIds, $modelAddedIds, $modelUpdatedIds, $modelDeletedIds];
     }
 
     public function getFieldById($fieldID)
