@@ -2170,11 +2170,11 @@ class TheArchitectService extends BaseApplicationComponent
                 }
 
                 if ($field->type == 'Neo') {
-                    $this->setNeoField($newField, $id);
+                    $this->setNeoField($newField, $id, $includeID);
                 }
 
                 if ($field->type == 'Matrix') {
-                    $this->setMatrixField($newField, $id);
+                    $this->setMatrixField($newField, $id, $includeID);
                 }
 
                 if ($field->type == 'SuperTable') {
@@ -2199,7 +2199,7 @@ class TheArchitectService extends BaseApplicationComponent
         return [$groups, $fields];
     }
 
-    private function setMatrixField(&$newField, $fieldId)
+    private function setMatrixField(&$newField, $fieldId, $includeID)
     {
         $blockTypes = craft()->matrix->getBlockTypesByFieldId($fieldId);
         $blockCount = 1;
@@ -2220,7 +2220,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'typesettings' => $blockField->settings,
                 ];
                 if ($blockField->type == 'Neo') {
-                    $this->setNeoField($newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount], $blockField->id);
+                    $this->setNeoField($newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount], $blockField->id, $includeID);
                 }
                 if ($blockField->type == 'SuperTable') {
                     $this->setSuperTableField($newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount], $blockField->id);
@@ -2232,7 +2232,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setNeoField(&$newField, $fieldId)
+    private function setNeoField(&$newField, $fieldId, $includeID)
     {
         $neoGroups = craft()->neo->getGroupsByFieldId($fieldId);
         $newField['typesettings']['groups']['name'] = [];
@@ -2246,7 +2246,12 @@ class TheArchitectService extends BaseApplicationComponent
 
         $blockTypes = craft()->neo->getBlockTypesByFieldId($fieldId);
         foreach ($blockTypes as $blockType) {
-            $newField['typesettings']['blockTypes']['new'.$blockCount] = [
+            if ($includeID) {
+                $blockId = $blockType->id;
+            } else {
+                $blockId = 'new'.$blockCount;
+            }
+            $newField['typesettings']['blockTypes'][$blockId] = [
                 'sortOrder' => $blockType->sortOrder,
                 'name' => $blockType->name,
                 'handle' => $blockType->handle,
@@ -2260,15 +2265,15 @@ class TheArchitectService extends BaseApplicationComponent
 
             $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
             if ($fieldLayoutReasons) {
-                $newField['typesettings']['blockTypes']['new'.$blockCount]['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                $newField['typesettings']['blockTypes'][$blockId]['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
             }
 
-            $this->setRelabels($newField['typesettings']['blockTypes']['new'.$blockCount], $fieldLayout);
+            $this->setRelabels($newField['typesettings']['blockTypes'][$blockId], $fieldLayout);
 
             foreach ($fieldLayout->getTabs() as $tab) {
-                $newField['typesettings']['blockTypes']['new'.$blockCount]['fieldLayout'][$tab->name] = [];
+                $newField['typesettings']['blockTypes'][$blockId]['fieldLayout'][$tab->name] = [];
                 foreach ($tab->getFields() as $tabField) {
-                    array_push($newField['typesettings']['blockTypes']['new'.$blockCount]['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                    array_push($newField['typesettings']['blockTypes'][$blockId]['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
                 }
             }
             ++$blockCount;
