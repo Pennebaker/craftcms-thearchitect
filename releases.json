@@ -1,4 +1,12 @@
 [{
+    "version": "1.5.5",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.zip",
+    "date": "2016-11-02T08:36:00-05:00",
+    "notes": [
+      "[Fixed] Correctly Fix Section import when hasUrls is set to false.",
+      "[Fixed] Fix RichText field export when no available asset sources are selected."
+    ]
+}, {
     "version": "1.5.4.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.4.1.zip",
     "date": "2016-10-24T17:22:52-05:00",
