@@ -123,7 +123,9 @@ class TheArchitectController extends BaseController
             $exportTime = null;
         }
 
-        list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = craft()->theArchitect->getAddedUpdatedDeletedIds(file_get_contents($masterJson));
+        if (file_exists($masterJson)) {
+            list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = craft()->theArchitect->getAddedUpdatedDeletedIds(file_get_contents($masterJson));
+        }
 
         $variables = array(
             'automation' => craft()->theArchitect->getAutomation(),
@@ -132,12 +134,12 @@ class TheArchitectController extends BaseController
             'apiKey' => craft()->theArchitect->getAPIKey(),
             'jsonPath' => $jsonPath,
             'mismatch' => craft()->theArchitect->compareMigrationConstruct(),
-            'dbAdditions' => $dbAddedIDs,
-            'dbUpdates' => $dbUpdatedIDs,
-            'dbDeletions' => $dbDeleteIDs,
-            'modelAdditions' => $modelAddedIDs,
-            'modelUpdates' => $modelUpdatedIDs,
-            'modelDeletions' => $modelDeleteIDs,
+            'dbAdditions' => (isset($dbAddedIDs)) ? $dbAddedIDs : null,
+            'dbUpdates' => (isset($dbUpdatedIDs)) ? $dbUpdatedIDs : null,
+            'dbDeletions' => (isset($dbDeleteIDs)) ? $dbDeleteIDs : null,
+            'modelAdditions' => (isset($modelAddedIDs)) ? $modelAddedIDs : null,
+            'modelUpdates' => (isset($modelUpdatedIDs)) ? $modelUpdatedIDs : null,
+            'modelDeletions' => (isset($modelDeleteIDs)) ? $modelDeleteIDs : null,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
