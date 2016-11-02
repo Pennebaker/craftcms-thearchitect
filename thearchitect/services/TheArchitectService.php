@@ -2178,7 +2178,7 @@ class TheArchitectService extends BaseApplicationComponent
                 }
 
                 if ($field->type == 'SuperTable') {
-                    $this->setSuperTableField($newField, $id);
+                    $this->setSuperTableField($newField, $id, $includeID);
                 }
 
                 // If Field Type is Neo store it for pushing last. This is needed because Neo fields reference other fields.
@@ -2199,19 +2199,29 @@ class TheArchitectService extends BaseApplicationComponent
         return [$groups, $fields];
     }
 
-    private function setMatrixField(&$newField, $fieldId, $includeID)
+    private function setMatrixField(&$newField, $fieldId, $includeID = false)
     {
         $blockTypes = craft()->matrix->getBlockTypesByFieldId($fieldId);
         $blockCount = 1;
         foreach ($blockTypes as $blockType) {
-            $newField['typesettings']['blockTypes']['new'.$blockCount] = [
+            if ($includeID) {
+                $blockId = $blockType->id;
+            } else {
+                $blockId = 'new'.$blockCount;
+            }
+            $newField['typesettings']['blockTypes'][$blockId] = [
                 'name' => $blockType->name,
                 'handle' => $blockType->handle,
                 'fields' => [],
             ];
             $fieldCount = 1;
             foreach ($blockType->fields as $blockField) {
-                $newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount] = [
+                if ($includeID) {
+                    $fieldId = $blockField->id;
+                } else {
+                    $fieldId = 'new'.$fieldCount;
+                }
+                $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId] = [
                     'name' => $blockField->name,
                     'handle' => $blockField->handle,
                     'instructions' => $blockField->instructions,
@@ -2220,19 +2230,19 @@ class TheArchitectService extends BaseApplicationComponent
                     'typesettings' => $blockField->settings,
                 ];
                 if ($blockField->type == 'Neo') {
-                    $this->setNeoField($newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount], $blockField->id, $includeID);
+                    $this->setNeoField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $blockField->id, $includeID);
                 }
                 if ($blockField->type == 'SuperTable') {
-                    $this->setSuperTableField($newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount], $blockField->id);
+                    $this->setSuperTableField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $blockField->id);
                 }
-                $this->parseFieldSources($blockField, $newField['typesettings']['blockTypes']['new'.$blockCount]['fields']['new'.$fieldCount]);
+                $this->parseFieldSources($blockField, $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId]);
                 ++$fieldCount;
             }
             ++$blockCount;
         }
     }
 
-    private function setNeoField(&$newField, $fieldId, $includeID)
+    private function setNeoField(&$newField, $fieldId, $includeID = false)
     {
         $neoGroups = craft()->neo->getGroupsByFieldId($fieldId);
         $newField['typesettings']['groups']['name'] = [];
@@ -2297,14 +2307,24 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    private function setSuperTableField(&$newField, $fieldId)
+    private function setSuperTableField(&$newField, $fieldId, $includeID = false)
     {
         $blockTypes = craft()->superTable->getBlockTypesByFieldId($fieldId);
         $sTFieldCount = 1;
         foreach ($blockTypes as $blockType) {
+            if ($includeID) {
+                $blockId = $blockType->id;
+            } else {
+                $blockId = 'new';
+            }
             foreach ($blockType->getFields() as $sTField) {
+                if ($includeID) {
+                    $fieldId = $sTField->id;
+                } else {
+                    $fieldId = 'new'.$sTFieldCount;
+                }
                 $columns = array_values($newField['typesettings']['columns']);
-                $newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount] = [
+                $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId] = [
                     'name' => $sTField->name,
                     'handle' => $sTField->handle,
                     'instructions' => $sTField->instructions,
@@ -2314,12 +2334,12 @@ class TheArchitectService extends BaseApplicationComponent
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'Matrix') {
-                    $this->setMatrixField($newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
+                    $this->setMatrixField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $sTField->id);
                 }
                 if ($sTField->type == 'Neo') {
-                    $this->setNeoField($newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
+                    $this->setNeoField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $sTField->id);
                 }
-                $this->parseFieldSources($sTField, $newField['typesettings']['blockTypes']['new']['fields']['new'.$sTFieldCount], $sTField->id);
+                $this->parseFieldSources($sTField, $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $sTField->id);
                 ++$sTFieldCount;
             }
         }
