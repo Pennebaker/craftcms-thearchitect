@@ -2182,7 +2182,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         if ($field->type == 'RichText') {
             if (isset($newField['typesettings']['availableAssetSources'])) {
-                if ($newField['typesettings']['availableAssetSources'] !== "*") {
+                if ($newField['typesettings']['availableAssetSources'] !== "*" && $newField['typesettings']['availableAssetSources'] != "") {
                     foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
                         $source = craft()->assetSources->getSourceById($value);
                         if ($source) {
