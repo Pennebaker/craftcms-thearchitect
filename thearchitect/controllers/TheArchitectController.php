@@ -164,12 +164,19 @@ class TheArchitectController extends BaseController
     {
         $force = (!is_null(craft()->request->getPost('force')));
 
-        $result = craft()->theArchitect->importMigrationConstruct($force);
+        $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
+        $masterJson = $jsonPath.'_master_.json';
 
-        if ($result) {
-            craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+        if (!file_exists($masterJson)) {
+            craft()->userSession->setError(Craft::t('There is no migration file to import.'));
         } else {
-            craft()->userSession->setError(Craft::t('There is some field type changes. To prevent content loss please review the field types before forcing.'));
+            $result = craft()->theArchitect->importMigrationConstruct($force);
+
+            if ($result) {
+                craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+            } else {
+                craft()->userSession->setError(Craft::t('There is some field type changes. To prevent content loss please review the field types before forcing.'));
+            }
         }
 
         $this->redirect('thearchitect/migrations');
