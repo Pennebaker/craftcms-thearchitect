@@ -2793,7 +2793,6 @@ class TheArchitectService extends BaseApplicationComponent
         $masterJson = $jsonPath.'_master_.json';
 
         if (file_exists($masterJson)) {
-            touch($masterJson, 1477421760);
             $exportTime = filemtime($masterJson);
         } else {
             $exportTime = null;
