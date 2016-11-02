@@ -868,6 +868,16 @@ class TheArchitectService extends BaseApplicationComponent
                 ));
             }
         }
+        if ($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') {
+            foreach ($jsonSection->typesettings->locales as $localeId => $defaultLocaleStatus) {
+                $locales[$localeId] = new SectionLocaleModel(array(
+                    'locale' => $localeId,
+                    'enabledByDefault' => $defaultLocaleStatus,
+                    'urlFormat' => null,
+                    'nestedUrlFormat' => null,
+                ));
+            }
+        }
         $section->setLocales($locales);
 
         // Save Section to DB
@@ -2042,16 +2052,23 @@ class TheArchitectService extends BaseApplicationComponent
                         'maxLevels' => $section->attributes['maxLevels'],
                     ],
                 ];
-                if (isset($locales[$primaryLocale])) {
-                    $newSection['typesettings']['urlFormat'] = $locales[$primaryLocale]['urlFormat'];
-                    $newSection['typesettings']['nestedUrlFormat'] = $locales[$primaryLocale]['nestedUrlFormat'];
-                }
-                foreach ($locales as $locale => $attributes) {
-                    if ($primaryLocale != $locale) {
-                        $newSection['typesettings'][$locale] = [
-                            'urlFormat' =>$locales[$locale]['urlFormat'],
-                            'nestedUrlFormat' =>$locales[$locale]['nestedUrlFormat'],
-                        ];
+                if ($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') {
+                    $newSection['typesettings']['locales'] = [];
+                    foreach ($locales as $locale => $attributes) {
+                        $newSection['typesettings']['locales'][$locale] = $attributes['enabledByDefault'];
+                    }
+                } else {
+                    if (isset($locales[$primaryLocale])) {
+                        $newSection['typesettings']['urlFormat'] = $locales[$primaryLocale]['urlFormat'];
+                        $newSection['typesettings']['nestedUrlFormat'] = $locales[$primaryLocale]['nestedUrlFormat'];
+                    }
+                    foreach ($locales as $locale => $attributes) {
+                        if ($primaryLocale != $locale) {
+                            $newSection['typesettings'][$locale] = [
+                                'urlFormat' =>$locales[$locale]['urlFormat'],
+                                'nestedUrlFormat' =>$locales[$locale]['nestedUrlFormat'],
+                            ];
+                        }
                     }
                 }
                 if ($includeID) {
@@ -2361,7 +2378,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         if ($field->type == 'RichText') {
             if (isset($newField['typesettings']['availableAssetSources'])) {
-                if ($newField['typesettings']['availableAssetSources'] !== '*') {
+                if ($newField['typesettings']['availableAssetSources'] !== "*" && $newField['typesettings']['availableAssetSources'] != "") {
                     foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
                         $source = craft()->assetSources->getSourceById($value);
                         if ($source) {
