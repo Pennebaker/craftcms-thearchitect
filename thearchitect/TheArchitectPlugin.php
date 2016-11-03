@@ -24,7 +24,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getVersion()
     {
-        return '1.5.5';
+        return '1.5.5.1';
     }
 
     /**
@@ -34,7 +34,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getSchemaVersion()
     {
-        return '1.5.5';
+        return '1.5.5.1';
     }
 
     /**

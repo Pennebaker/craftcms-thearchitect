@@ -580,15 +580,16 @@ class TheArchitectService extends BaseApplicationComponent
                             $requiredFields[] = $blockField->handle;
                         }
                     }
-                    $newField->typesettings['blockTypes']['new'.$count] = [
-                        'sortOrder' => strval($count + 1),
-                        'name' => $block->name,
-                        'handle' => $block->handle,
-                        'maxBlocks' => '',
-                        'childBlocks' => [],
-                        'topLevel' => true,
-                        'fieldLayout' => ['Tab' => $blockFields],
-                        'requiredFields' => $requiredFields,
+                    $newField->typesettings['blockTypes']["new".$count] = [
+                        "sortOrder" => strval($count+1),
+                        "name" => $block->name,
+                        "handle" => $block->handle,
+                        "maxBlocks" => "",
+                        "childBlocks" => [],
+                        'maxChildBlocks' => '',
+                        "topLevel" => true,
+                        "fieldLayout" => [ "Tab" => $blockFields ],
+                        "requiredFields" => $requiredFields,
                     ];
                     ++$count;
                 }
@@ -2267,6 +2268,7 @@ class TheArchitectService extends BaseApplicationComponent
                 'handle' => $blockType->handle,
                 'maxBlocks' => $blockType->maxBlocks,
                 'childBlocks' => $blockType->childBlocks,
+                'maxChildBlocks' => $blockType->maxChildBlocks,
                 'topLevel' => $blockType->topLevel,
                 'fieldLayout' => [],
             ];
