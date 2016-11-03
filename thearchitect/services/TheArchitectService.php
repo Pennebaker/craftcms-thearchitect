@@ -551,9 +551,10 @@ class TheArchitectService extends BaseApplicationComponent
                         "handle" => $block->handle,
                         "maxBlocks" => "",
                         "childBlocks" => [],
+                        'maxChildBlocks' => '',
                         "topLevel" => true,
                         "fieldLayout" => [ "Tab" => $blockFields ],
-                        "requiredFields" => $requiredFields
+                        "requiredFields" => $requiredFields,
                     ];
                     $count++;
                 }
@@ -2077,6 +2078,7 @@ class TheArchitectService extends BaseApplicationComponent
                 'handle' => $blockType->handle,
                 'maxBlocks' => $blockType->maxBlocks,
                 'childBlocks' => $blockType->childBlocks,
+                'maxChildBlocks' => $blockType->maxChildBlocks,
                 'topLevel' => $blockType->topLevel,
                 'fieldLayout' => [],
             ];

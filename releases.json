@@ -1,4 +1,11 @@
 [{
+    "version": "1.5.5.1",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.1.zip",
+    "date": "2016-11-03T10:49:36-05:00",
+    "notes": [
+      "[Added] Support for NeoField's max child block setting added in Neo v1.4.0."
+    ]
+}, {
     "version": "1.5.5",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.zip",
     "date": "2016-11-02T08:36:00-05:00",
