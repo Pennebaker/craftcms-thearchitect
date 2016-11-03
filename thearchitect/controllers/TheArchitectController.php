@@ -173,6 +173,7 @@ class TheArchitectController extends BaseController
             $result = craft()->theArchitect->importMigrationConstruct($force);
 
             if ($result) {
+                touch($masterJson);
                 craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
             } else {
                 craft()->userSession->setError(Craft::t('There is some field type changes. To prevent content loss please review the field types before forcing.'));
