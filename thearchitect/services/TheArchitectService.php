@@ -637,6 +637,14 @@ class TheArchitectService extends BaseApplicationComponent
 
         $field->type = $jsonField->type;
 
+        if ($jsonField->type == 'Neo') {
+            foreach ($jsonField->typesettings->blockTypes as &$blockType) {
+                if (!isset($blockType->maxChildBlocks)) {
+                    $blockType->maxChildBlocks = '';
+                }
+            }
+        }
+
         if (isset($jsonField->typesettings)) {
             // Convert Object to Array for saving
             $jsonField->typesettings = json_decode(json_encode($jsonField->typesettings), true);
