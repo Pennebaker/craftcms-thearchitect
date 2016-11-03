@@ -1,9 +1,16 @@
 [{
+    "version": "1.5.5.2",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.2.zip",
+    "date": "2016-11-03T12:45:38-05:00",
+    "notes": [
+      "[Fixed] Fixed maxChildBlock from causing errors if not part of the JSON model."
+    ]
+}, {
     "version": "1.5.5.1",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.1.zip",
     "date": "2016-11-03T10:49:36-05:00",
     "notes": [
-      "[Added] Support for NeoField's max child block setting added in Neo v1.4.0."
+      "[Added] Support for NeoField's maxChildBlock setting added in Neo v1.4.0."
     ]
 }, {
     "version": "1.5.5",
