@@ -580,16 +580,16 @@ class TheArchitectService extends BaseApplicationComponent
                             $requiredFields[] = $blockField->handle;
                         }
                     }
-                    $newField->typesettings['blockTypes']["new".$count] = [
-                        "sortOrder" => strval($count+1),
-                        "name" => $block->name,
-                        "handle" => $block->handle,
-                        "maxBlocks" => "",
-                        "childBlocks" => [],
+                    $newField->typesettings['blockTypes']['new'.$count] = [
+                        'sortOrder' => strval($count + 1),
+                        'name' => $block->name,
+                        'handle' => $block->handle,
+                        'maxBlocks' => '',
+                        'childBlocks' => [],
                         'maxChildBlocks' => '',
-                        "topLevel" => true,
-                        "fieldLayout" => [ "Tab" => $blockFields ],
-                        "requiredFields" => $requiredFields,
+                        'topLevel' => true,
+                        'fieldLayout' => ['Tab' => $blockFields],
+                        'requiredFields' => $requiredFields,
                     ];
                     ++$count;
                 }
@@ -1420,7 +1420,7 @@ class TheArchitectService extends BaseApplicationComponent
             'publishPeerEntryDrafts',
         ];
         $category_perms = [
-            'editCategories'
+            'editCategories',
         ];
         $general_perms = [
             'editLocale',
@@ -1454,11 +1454,13 @@ class TheArchitectService extends BaseApplicationComponent
                         $newUserPermissions['sections'][$handle] = [];
                     }
                     array_push($newUserPermissions['sections'][$handle], $splitPermission[0]);
-                } else if (in_array($splitPermission[0], $category_perms)) {
+                } elseif (in_array($splitPermission[0], $category_perms)) {
                     $handle = craft()->categories->getGroupById($splitPermission[1])->handle;
-                    if (!isset($newUserPermissions['categories'][$handle])) $newUserPermissions['categories'][$handle] = [];
+                    if (!isset($newUserPermissions['categories'][$handle])) {
+                        $newUserPermissions['categories'][$handle] = [];
+                    }
                     array_push($newUserPermissions['categories'][$handle], $splitPermission[0]);
-                } else if (in_array($splitPermission[0], $general_perms)) {
+                } elseif (in_array($splitPermission[0], $general_perms)) {
                     array_push($newUserPermissions['general'], $userPermission);
                 } else {
                     array_push($newUserPermissions['unknown'], $userPermission);
@@ -1501,14 +1503,14 @@ class TheArchitectService extends BaseApplicationComponent
                         array_push($newUserPermissions, $permission.':'.$sectionId);
                     }
                 }
-            } else if ($k == 'categories') {
+            } elseif ($k == 'categories') {
                 foreach ($permissionGroup as $categoryHandle => $permissions) {
                     $sectionId = craft()->categories->getGroupByHandle($categoryHandle)->id;
                     foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission . ':' . $sectionId);
+                        array_push($newUserPermissions, $permission.':'.$sectionId);
                     }
                 }
-            } else if ($k == 'general') {
+            } elseif ($k == 'general') {
                 foreach ($permissionGroup as $permission) {
                     array_push($newUserPermissions, $permission);
                 }
@@ -2066,8 +2068,8 @@ class TheArchitectService extends BaseApplicationComponent
                     foreach ($locales as $locale => $attributes) {
                         if ($primaryLocale != $locale) {
                             $newSection['typesettings'][$locale] = [
-                                'urlFormat' =>$locales[$locale]['urlFormat'],
-                                'nestedUrlFormat' =>$locales[$locale]['nestedUrlFormat'],
+                                'urlFormat' => $locales[$locale]['urlFormat'],
+                                'nestedUrlFormat' => $locales[$locale]['nestedUrlFormat'],
                             ];
                         }
                     }
@@ -2405,7 +2407,7 @@ class TheArchitectService extends BaseApplicationComponent
 
         if ($field->type == 'RichText') {
             if (isset($newField['typesettings']['availableAssetSources'])) {
-                if ($newField['typesettings']['availableAssetSources'] !== "*" && $newField['typesettings']['availableAssetSources'] != "") {
+                if ($newField['typesettings']['availableAssetSources'] !== '*' && $newField['typesettings']['availableAssetSources'] != '') {
                     foreach ($newField['typesettings']['availableAssetSources'] as $key => $value) {
                         $source = craft()->assetSources->getSourceById($value);
                         if ($source) {
@@ -2830,14 +2832,14 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($type == 'fieldIDs') {
                     if ($fieldCreated[$id] > $exportTime) {
                         $added = true;
-                    } else if ($fieldUpdates[$id] > $exportTime) {
+                    } elseif ($fieldUpdates[$id] > $exportTime) {
                         $updated = true;
                     }
                 }
                 if (!isset($jsonIds[$type]) || !in_array($id, $jsonIds[$type]) || $added || $updated) {
                     if ($added) {
                         $dbAddedIds[$type][] = $id;
-                    } else if ($updated) {
+                    } elseif ($updated) {
                         $dbUpdatedIds[$type][] = $id;
                     } else {
                         $modelDeletedIds[$type][] = $id;
