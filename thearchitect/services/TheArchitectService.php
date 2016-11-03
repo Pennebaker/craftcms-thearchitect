@@ -624,6 +624,38 @@ class TheArchitectService extends BaseApplicationComponent
         // Let's get a list of items to delete...
         list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = $this->getAddedUpdatedDeletedIds($json);
         // and delete them.
+        foreach ($modelDeleteIDs['fieldIDs'] as $fieldId) {
+            craft()->fields->deleteField(craft()->fields->getFieldById($fieldId));
+        }
+        foreach ($modelDeleteIDs['sectionIDs'] as $sectionId) {
+            craft()->sections->deleteSectionById($sectionId);
+        }
+        foreach ($modelDeleteIDs['entryTypeIDs'] as $entryTypeId) {
+            craft()->sections->deleteEntryTypeById($entryTypeId);
+        }
+        foreach ($modelDeleteIDs['entryTypeIDs'] as $entryTypeId) {
+            craft()->sections->deleteEntryTypeById($entryTypeId);
+        }
+        foreach ($modelDeleteIDs['assetSourceIDs'] as $sourceId) {
+            craft()->assetSources->deleteSourceById($sourceId);
+        }
+        foreach ($modelDeleteIDs['assetTransformIDs'] as $transformId) {
+            craft()->assetTransforms->deleteTransform($transformId);
+        }
+        foreach ($modelDeleteIDs['globalIDs'] as $globalSetId) {
+            craft()->globals->deleteSetById($globalSetId);
+        }
+        foreach ($modelDeleteIDs['categoryIDs'] as $groupId) {
+            craft()->categories->deleteGroupById($groupId);
+        }
+        // Should we delete users? There is no migration options to transfer content? Instead we have a notice on the migration page prompting users to be deleted manually.
+        // foreach ($modelDeleteIDs['userIDs'] as $userId) {
+        //     $userToDelete = craft()->users->getUserById($userId);
+        //     craft()->users->deleteUser($userToDelete, $transferContentTo);
+        // }
+        foreach ($modelDeleteIDs['groupIDs'] as $groupId) {
+            craft()->userGroups->deleteGroupById($groupId);
+        }
 
         $this->parseJson($json, true, $force);
 

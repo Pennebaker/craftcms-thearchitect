@@ -115,7 +115,7 @@
         {% include 'thearchitect/_itemTable' with {itemList: modelUpdates, status: 'warning', headline: 'Model Updates', text: 'List if items updated in the model since the previous import. Performing an import will modify existing items in the database.'} %}
     {% endif %}
     {% if modelDeletions|length > 0 %}
-        {% include 'thearchitect/_itemTable' with {itemList: modelDeletions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted from the model since the previous import. Performing an import will delete these items from the database.'} %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelDeletions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted from the model since the previous import. Performing an import will delete these items from the database.', subText: {Users: 'User deletions are not handled by The Architect please manually delete the users below to remove them.'}} %}
     {% endif %}
     {% if mismatch|length > 0 %}
     <h2>Field Migration Problems</h2>

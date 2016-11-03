@@ -219,6 +219,7 @@
 
     {% if itemList['userIDs']|length > 0 %}
         <h3>Users</h3>
+        {% if subText['Users'] is defined %}<p>{{ subText['Users'] }}{% endif %}
         <table class="shadow-box editable {{ status }}">
             <thead>
                 <tr>
