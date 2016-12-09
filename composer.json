@@ -1,0 +1,11 @@
+{
+    "name": "Pennebaker/craftcms-thearchitect",
+    "description": "CraftCMS plugin to generate content models from JSON data.",
+    "type": "craft-plugin",
+    "homepage": "https://github.com/Pennebaker/craftcms-thearchitect",
+    "license": "MIT",
+    "require": {},
+    "autoload": {
+      "psr-4": { "": "thearchitect/" }
+    }
+}
