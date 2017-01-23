@@ -2132,7 +2132,7 @@ class TheArchitectService extends BaseApplicationComponent
                 'handle' => $blockType->handle,
                 'maxBlocks' => $blockType->maxBlocks,
                 'childBlocks' => $blockType->childBlocks,
-                'maxChildBlocks' => $blockType->maxChildBlocks,
+                'maxChildBlocks' => (isset($blockType->maxChildBlocks)) ? $blockType->maxChildBlocks : '',
                 'topLevel' => $blockType->topLevel,
                 'fieldLayout' => [],
             ];
