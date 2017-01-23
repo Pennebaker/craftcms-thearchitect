@@ -88,7 +88,12 @@ class TheArchitectService extends BaseApplicationComponent
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
                 $this->replaceSourcesHandles($field);
-                $addFieldResult = $this->addField($field);
+
+                // Make sure all used fields are available for import.
+                $addFieldResult = $this->testFieldTypes($field);
+                if ($addFieldResult[0]) {
+                    $addFieldResult = $this->addField($field);
+                }
                 // Append Notice to Display Results
                 $notice[] = array(
                     'type' => 'Field',
@@ -593,6 +598,47 @@ class TheArchitectService extends BaseApplicationComponent
         return $fieldTypes;
     }
 
+    private function testFieldTypes($jsonField)
+    {
+        $field = craft()->fields->getFieldType($jsonField->type);
+        $missingSubFields = [];
+
+        if ($jsonField->type == 'Matrix') {
+            foreach ($jsonField->typesettings->blockTypes as $matrixTabs) {
+                foreach ($matrixTabs->fields as $subJsonField) {
+                    $result = $this->testFieldTypes($subJsonField);
+                    if (!$result[0]) {
+                        array_push($missingSubFields, $result);
+                    }
+                }
+            }
+        }
+
+        if ($jsonField->type == 'SuperTable') {
+            foreach ($jsonField->typesettings->blockTypes->new->fields as $subJsonField) {
+                $result = $this->testFieldTypes($subJsonField);
+                if (!$result[0]) {
+                    array_push($missingSubFields, $result);
+                }
+            }
+        }
+
+        if (!$field) {
+            return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
+        } else if (count($missingSubFields) > 0) {
+            $missingFields = [];
+            foreach ($missingSubFields as $result) {
+                foreach ($result[1]['Field Type'] as $error) {
+                    array_push($missingFields, $error);
+                }
+
+            }
+            return [false, ['Field Type' => $missingFields], false, false];
+        } else {
+            return [true, false, false, false];
+        }
+    }
+
     /**
      * addField.
      *
@@ -603,11 +649,6 @@ class TheArchitectService extends BaseApplicationComponent
     public function addField($jsonField)
     {
         $field = new FieldModel();
-
-        // Make sure the field type attempting to import is available.
-        if (!in_array($jsonField->type, $this->fieldTypes())) {
-            return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
-        }
 
         // If group is set find groupId
         if (isset($jsonField->group)) {
