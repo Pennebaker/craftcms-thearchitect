@@ -1,4 +1,13 @@
 [{
+    "version": "1.5.5.3",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.3.zip",
+    "date": "2017-01-23T09:36:08-06:00",
+    "notes": [
+      "[Fixed] Fixed maxChildBlock from causing errors if using an older version of Neo.",
+      "[Improved] Added field type checks to test if a field is available before attempting creation.",
+      "[Improved] Added locale check to category group import."
+    ]
+}, {
     "version": "1.5.5.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.2.zip",
     "date": "2016-11-03T12:45:38-05:00",
