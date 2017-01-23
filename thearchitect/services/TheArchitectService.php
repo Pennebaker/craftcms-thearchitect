@@ -91,6 +91,7 @@ class TheArchitectService extends BaseApplicationComponent
 
                 // Make sure all used fields are available for import.
                 $addFieldResult = $this->testFieldTypes($field);
+                // If all fields are good lets import.
                 if ($addFieldResult[0]) {
                     $addFieldResult = $this->addField($field);
                 }
@@ -1175,7 +1176,11 @@ class TheArchitectService extends BaseApplicationComponent
 
         if (isset($jsonCategoryGroup->locales)) {
             $categoryGroupLocale = [];
+            $siteLocales = craft()->i18n->getSiteLocales();
             foreach ($jsonCategoryGroup->locales as $locale => $localeAttributes) {
+                if (!in_array($locale, $siteLocales)) {
+                    return [false, ["locale" => ['Locale "' . $locale . '" not avaialble.']], false];
+                }
                 $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel();
                 $categoryGroupLocale[$locale]->urlFormat = $localeAttributes->urlFormat;
                 $categoryGroupLocale[$locale]->nestedUrlFormat = $localeAttributes->nestedUrlFormat;
