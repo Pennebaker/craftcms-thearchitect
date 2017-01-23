@@ -96,6 +96,24 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
+        // Add CategoryGroup from JSON
+        $addedCategories = [];
+        if (isset($result->categories)) {
+            foreach ($result->categories as $id => $categoryGroup) {
+                $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                if ($addCategoryGroupResult[0]) {
+                    array_push($addedCategories, $id);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Category Group',
+                    'name' => $categoryGroup->name,
+                    'result' => $addCategoryGroupResult[0],
+                    'errors' => $addCategoryGroupResult[1],
+                );
+            }
+        }
+
         // Add Fields from JSON
         if (isset($result->fields)) {
             foreach ($result->fields as $field) {
@@ -104,7 +122,12 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($migration) {
                     $addFieldResult = $this->addField($field, $field->id);
                 } else {
-                    $addFieldResult = $this->addField($field);
+                    // Make sure all used fields are available for import.
+                    $addFieldResult = $this->testFieldTypes($field);
+                    // If all fields are good lets import.
+                    if ($addFieldResult[0]) {
+                        $addFieldResult = $this->addField($field);
+                    }
                 }
                 // Append Notice to Display Results
                 $notice[] = array(
@@ -340,54 +363,55 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
-        // Add CategoryGroup from JSON
+        // Set category group field layout.
         if (isset($result->categories)) {
-            foreach ($result->categories as $categoryGroup) {
-                if ($migration) {
-                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup, $categoryGroup->id);
-                } else {
-                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Global Set',
-                    'name' => $categoryGroup->name,
-                    'result' => $addCategoryGroupResult[0],
-                    'errors' => $addCategoryGroupResult[1],
-                );
-                /*
-                 * Category Group Post Processing
-                 */
-                if ($addCategoryGroupResult[0]) {
-                    $generatedGlobalSet = $addCategoryGroupResult[2];
-                    $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                    if (craft()->plugins->getPlugin('relabel')) {
-                        if (isset($categoryGroup->relabel)) {
-                            foreach ($categoryGroup->relabel as $relabel) {
-                                $relabelModel = new RelabelModel();
-                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
-                                $relabelModel->fieldLayoutId = $fieldLayoutId;
-                                $relabelModel->name = $relabel->name;
-                                $relabelModel->instructions = $relabel->instructions;
-                                craft()->relabel->saveLabel($relabelModel);
+            foreach ($result->categories as $id => $categoryGroup) {
+                if (in_array($id, $addedCategories)) {
+                    $addCategoryGroupResult = $this->setCategoryGroupFieldLayout($categoryGroup);
+                    if ($addCategoryGroupResult[0]) {
+                        array_push($addedCategories, $id);
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Category Group',
+                        'name' => $categoryGroup->name,
+                        'result' => $addCategoryGroupResult[0],
+                        'errors' => $addCategoryGroupResult[1],
+                    );
+                    /*
+                     * Category Group Post Processing
+                     */
+                    if ($addCategoryGroupResult[0]) {
+                        $generatedGlobalSet = $addCategoryGroupResult[2];
+                        $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                        if(craft()->plugins->getPlugin('relabel')) {
+                            if (isset($categoryGroup->relabel)) {
+                                foreach ($categoryGroup->relabel as $relabel) {
+                                    $relabelModel = new RelabelModel();
+                                    $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                    $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                    $relabelModel->name = $relabel->name;
+                                    $relabelModel->instructions = $relabel->instructions;
+                                    craft()->relabel->saveLabel($relabelModel);
+                                }
                             }
                         }
-                    }
-                    if (craft()->plugins->getPlugin('reasons')) {
-                        if (isset($categoryGroup->reasons)) {
-                            $reasonsModel = [];
-                            foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
-                                foreach ($reasons as &$reasonOr) {
-                                    foreach ($reasonOr as &$reason) {
-                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                        if(craft()->plugins->getPlugin('reasons')) {
+                            if (isset($categoryGroup->reasons)) {
+                                $reasonsModel = [];
+                                foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
+                                    foreach ($reasons as &$reasonOr) {
+                                        foreach ($reasonOr as &$reason) {
+                                            $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                        }
                                     }
+                                    $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
                                 }
-                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                $conditionalsModel = new Reasons_ConditionalsModel();
+                                $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                $conditionalsModel->conditionals = $reasonsModel;
+                                craft()->reasons->saveConditionals($conditionalsModel);
                             }
-                            $conditionalsModel = new Reasons_ConditionalsModel();
-                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
-                            $conditionalsModel->conditionals = $reasonsModel;
-                            craft()->reasons->saveConditionals($conditionalsModel);
                         }
                     }
                 }
@@ -724,6 +748,47 @@ class TheArchitectService extends BaseApplicationComponent
         return $fieldTypes;
     }
 
+    private function testFieldTypes($jsonField)
+    {
+        $field = craft()->fields->getFieldType($jsonField->type);
+        $missingSubFields = [];
+
+        if ($jsonField->type == 'Matrix') {
+            foreach ($jsonField->typesettings->blockTypes as $matrixTabs) {
+                foreach ($matrixTabs->fields as $subJsonField) {
+                    $result = $this->testFieldTypes($subJsonField);
+                    if (!$result[0]) {
+                        array_push($missingSubFields, $result);
+                    }
+                }
+            }
+        }
+
+        if ($jsonField->type == 'SuperTable') {
+            foreach ($jsonField->typesettings->blockTypes->new->fields as $subJsonField) {
+                $result = $this->testFieldTypes($subJsonField);
+                if (!$result[0]) {
+                    array_push($missingSubFields, $result);
+                }
+            }
+        }
+
+        if (!$field) {
+            return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
+        } else if (count($missingSubFields) > 0) {
+            $missingFields = [];
+            foreach ($missingSubFields as $result) {
+                foreach ($result[1]['Field Type'] as $error) {
+                    array_push($missingFields, $error);
+                }
+
+            }
+            return [false, ['Field Type' => $missingFields], false, false];
+        } else {
+            return [true, false, false, false];
+        }
+    }
+
     /**
      * addField.
      *
@@ -737,11 +802,6 @@ class TheArchitectService extends BaseApplicationComponent
             $field = $this->getFieldById($fieldID);
         } else {
             $field = new FieldModel();
-        }
-
-        // Make sure the field type attempting to import is available.
-        if (!in_array($jsonField->type, $this->fieldTypes())) {
-            return [false, ['Field Type' => ['Field type "'.$jsonField->type.'" not available']], false, false];
         }
 
         // If group is set find groupId
@@ -1280,6 +1340,38 @@ class TheArchitectService extends BaseApplicationComponent
             $categoryGroup->maxLevels = $jsonCategoryGroup->maxLevels;
         }
 
+        if (isset($jsonCategoryGroup->locales)) {
+            $categoryGroupLocale = [];
+            $siteLocales = craft()->i18n->getSiteLocales();
+            foreach ($jsonCategoryGroup->locales as $locale => $localeAttributes) {
+                if (!in_array($locale, $siteLocales)) {
+                    return [false, ["locale" => ['Locale "' . $locale . '" not avaialble.']], false];
+                }
+                $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel();
+                $categoryGroupLocale[$locale]->urlFormat = $localeAttributes->urlFormat;
+                $categoryGroupLocale[$locale]->nestedUrlFormat = $localeAttributes->nestedUrlFormat;
+            }
+            $categoryGroup->setLocales($categoryGroupLocale);
+        } else {
+            return [false, ["locale" => ["Locales are missing."]], false];
+        }
+
+        // Save Category Group to DB
+        if (craft()->categories->saveGroup($categoryGroup)) {
+            return [true, false, $categoryGroup];
+        } else {
+            return [false, $categoryGroup->getErrors(), false];
+        }
+    }
+
+    public function setCategoryGroupFieldLayout($jsonCategoryGroup) {
+        // Set handle if it was provided
+        if (isset($jsonCategoryGroup->handle)) {
+            $categoryGroup = craft()->categories->getGroupByHandle($jsonCategoryGroup->handle);
+        } else {
+            $categoryGroup = craft()->categories->getGroupByHandle($this->constructHandle($jsonCategoryGroup->name));
+        }
+
         $problemFields = $this->checkFieldLayout($jsonCategoryGroup->fieldLayout);
         if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields, false];
@@ -1296,18 +1388,6 @@ class TheArchitectService extends BaseApplicationComponent
             $fieldLayout = $this->assembleLayout($jsonCategoryGroup->fieldLayout, $requiredFields);
             $fieldLayout->type = ElementType::Category;
             $categoryGroup->setFieldLayout($fieldLayout);
-        }
-
-        if (isset($jsonCategoryGroup->locales)) {
-            $categoryGroupLocale = [];
-            foreach ($jsonCategoryGroup->locales as $locale => $localeAttributes) {
-                $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel();
-                $categoryGroupLocale[$locale]->urlFormat = $localeAttributes->urlFormat;
-                $categoryGroupLocale[$locale]->nestedUrlFormat = $localeAttributes->nestedUrlFormat;
-            }
-            $categoryGroup->setLocales($categoryGroupLocale);
-        } else {
-            return [false, ['locale' => ['Locales are missing.']], false];
         }
 
         // Save Category Group to DB
@@ -2310,7 +2390,7 @@ class TheArchitectService extends BaseApplicationComponent
                 'handle' => $blockType->handle,
                 'maxBlocks' => $blockType->maxBlocks,
                 'childBlocks' => $blockType->childBlocks,
-                'maxChildBlocks' => $blockType->maxChildBlocks,
+                'maxChildBlocks' => (isset($blockType->maxChildBlocks)) ? $blockType->maxChildBlocks : '',
                 'topLevel' => $blockType->topLevel,
                 'fieldLayout' => [],
             ];
