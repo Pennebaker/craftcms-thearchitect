@@ -6,7 +6,7 @@
       itemList['globalIDs']|length > 0 or
       itemList['categoryIDs']|length > 0 or
       itemList['userIDs']|length > 0 or
-      itemList['groupIDs']|length > 0
+      (itemList['groupIDs'] is defined and itemList['groupIDs']|length > 0)
 %}
     <h2>{{ headline }}</h2>
     <p>{{ text }}</p>
