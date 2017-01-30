@@ -678,8 +678,10 @@ class TheArchitectService extends BaseApplicationComponent
         //     $userToDelete = craft()->users->getUserById($userId);
         //     craft()->users->deleteUser($userToDelete, $transferContentTo);
         // }
-        foreach ($modelDeleteIDs['groupIDs'] as $groupId) {
-            craft()->userGroups->deleteGroupById($groupId);
+        if (craft()->getEdition() == Craft::Pro) {
+            foreach ($modelDeleteIDs['groupIDs'] as $groupId) {
+                craft()->userGroups->deleteGroupById($groupId);
+            }
         }
 
         $this->parseJson($json, true, $force);
