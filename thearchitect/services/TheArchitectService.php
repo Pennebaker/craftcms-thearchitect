@@ -478,7 +478,8 @@ class TheArchitectService extends BaseApplicationComponent
             'categories' => $categories,
             'users' => $users,
         ];
-        if (craft()->getEdition() == 2) {
+
+        if (craft()->getEdition() == Craft::Pro) {
             $userGroups = $this->userGroupsExport($post, $includeID);
             if (is_array($userGroups)) {
                 $output['userGroups'] = $userGroups[0];
@@ -1455,7 +1456,7 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($includeID) {
                         $userJson = array_merge(['id' => $user->id], $userJson);
                     }
-                    if (craft()->getEdition() == 2) {
+                    if (craft()->getEdition() == Craft::Pro) {
                         $userPermissions = craft()->userPermissions->getPermissionsByUserId($user->id);
                         $userPermissions = $this->stripGroupPermissions($userPermissions, $user->getGroups());
                         foreach ($user->getGroups() as $userGroup) {
