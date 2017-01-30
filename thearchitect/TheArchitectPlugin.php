@@ -64,7 +64,7 @@ class TheArchitectPlugin extends BasePlugin
      */
     public function getPluginUrl()
     {
-        return 'https://github.com/Pennebaker/craftcms-thearchitect';
+        return 'https://github.com/pennebaker/craftcms-thearchitect';
     }
 
     /**
@@ -72,10 +72,10 @@ class TheArchitectPlugin extends BasePlugin
      *
      * @return string
      */
-    public function getReleaseFeedUrl()
-    {
-        return 'https://raw.githubusercontent.com/Pennebaker/craftcms-thearchitect/master/releases.json';
-    }
+	public function getReleaseFeedUrl()
+	{
+		return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
+	}
 
     /**
      * getDocumentationUrl.
