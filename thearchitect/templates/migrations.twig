@@ -53,6 +53,7 @@
 <div class="the-architect">
 
     <h2>Status</h2>
+    <p class="warning">Migrations are designed to be used with a single site only. Exported files store ID numbers of all exported data. When imported it will overwrite those IDs which could be different across sites. Using migrations to replicate models across sites is not the intended use.</p>
     <p>Migration file for import / export is located at: <code class="location">{{ jsonPath }}_master_.json</code>.</p>
     <p>If automatic import is enabled this is the file that will be loaded into the DB whenever the files modified time is newer than the last import time.</p>
     <table class="data collapsible">
