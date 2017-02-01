@@ -119,7 +119,41 @@ class TheArchitectService extends BaseApplicationComponent
             foreach ($result->fields as $field) {
                 $prevContentTable = craft()->content->contentTable;
                 $this->replaceSourcesHandles($field);
+
                 if ($migration) {
+                    /*
+                     * Migration Pre-Processing
+                     */
+                    if ($field->type == 'Matrix') {
+                        foreach ($field->typesettings->blockTypes as $matrixBlockTypeId => $matrixBlockType) {
+                            $query = craft()->db->createCommand()->select('id')
+                                ->from('matrixblocktypes')
+                                ->where('id=:id', array(':id' => $matrixBlockTypeId))
+                                ->queryColumn();
+                            if (!$query) {
+                                craft()->db->createCommand()->insert('matrixblocktypes', array(
+                                    'id'     => $matrixBlockTypeId,
+                                    'fieldId'  => $field->id,
+                                    'name' => $matrixBlockType->name,
+                                    'handle' => $matrixBlockType->handle
+                                ));
+                            }
+                            foreach ($matrixBlockType->fields as $matrixFieldId => $matrixField) {
+                                $query = craft()->db->createCommand()->select('id')
+                                    ->from('fields')
+                                    ->where('id=:id', array(':id' => $matrixFieldId))
+                                    ->queryColumn();
+                                if (!$query) {
+                                    craft()->db->createCommand()->insert('fields', array(
+                                        'id'     => $matrixFieldId,
+                                        'name' => $matrixBlockType->name,
+                                        'handle' => $matrixBlockType->handle,
+                                        'context' => 'matrixBlockType:' . $matrixBlockTypeId
+                                    ));
+                                }
+                            }
+                        }
+                    }
                     $addFieldResult = $this->addField($field, $field->id);
                 } else {
                     // Make sure all used fields are available for import.
