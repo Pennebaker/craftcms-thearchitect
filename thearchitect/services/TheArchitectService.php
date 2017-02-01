@@ -54,6 +54,15 @@ class TheArchitectService extends BaseApplicationComponent
                     'result' => $addSectionResult[0],
                     'errors' => $addSectionResult[1],
                 );
+                if ($migration) {
+                    /*
+                     * Migration Sections Post-Processing
+                     *
+                     * NOTE: This essentially wipes out the entry types, only to be
+                     * re-imported for every section but shouldn’t cause any issues.
+                     */
+                    craft()->db->createCommand()->delete('entrytypes', array('sectionId' => $section->id));
+                }
             }
         }
 
@@ -122,7 +131,7 @@ class TheArchitectService extends BaseApplicationComponent
 
                 if ($migration) {
                     /*
-                     * Migration Pre-Processing
+                     * Migration Field Pre-Processing
                      */
                     if ($field->type == 'Matrix') {
                         foreach ($field->typesettings->blockTypes as $matrixBlockTypeId => $matrixBlockType) {
