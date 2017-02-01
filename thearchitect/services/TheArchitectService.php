@@ -132,10 +132,10 @@ class TheArchitectService extends BaseApplicationComponent
                                 ->queryColumn();
                             if (!$query) {
                                 craft()->db->createCommand()->insert('matrixblocktypes', array(
-                                    'id'     => $matrixBlockTypeId,
-                                    'fieldId'  => $field->id,
-                                    'name' => $matrixBlockType->name,
-                                    'handle' => $matrixBlockType->handle
+                                    'id'      => $matrixBlockTypeId,
+                                    'fieldId' => $field->id,
+                                    'name'    => $matrixBlockType->name,
+                                    'handle'  => $matrixBlockType->handle
                                 ));
                             }
                             foreach ($matrixBlockType->fields as $matrixFieldId => $matrixField) {
@@ -145,15 +145,19 @@ class TheArchitectService extends BaseApplicationComponent
                                     ->queryColumn();
                                 if (!$query) {
                                     craft()->db->createCommand()->insert('fields', array(
-                                        'id'     => $matrixFieldId,
-                                        'name' => $matrixBlockType->name,
-                                        'handle' => $matrixBlockType->handle,
+                                        'id'      => $matrixFieldId,
+                                        'name'    => $matrixBlockType->name,
+                                        'handle'  => $matrixBlockType->handle,
                                         'context' => 'matrixBlockType:' . $matrixBlockTypeId
                                     ));
                                 }
                             }
                         }
                     }
+                    if ($field->type == 'Neo') {
+                        # code...
+                    }
+
                     $addFieldResult = $this->addField($field, $field->id);
                 } else {
                     // Make sure all used fields are available for import.
