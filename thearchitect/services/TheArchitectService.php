@@ -148,6 +148,20 @@ class TheArchitectService extends BaseApplicationComponent
                     /*
                      * Migration Field Pre-Processing
                      */
+                    if ($field->type == 'Matrix' || $field->type == 'Neo') {
+                        $query = craft()->db->createCommand()->select('id')
+                            ->from('fields')
+                            ->where('id=:id', array(':id' => $field->id))
+                            ->queryColumn();
+                        if (!$query) {
+                            craft()->db->createCommand()->insert('fields', array(
+                                'id'     => $field->id,
+                                'name'   => $field->name,
+                                'handle' => $field->handle,
+                                'type'   => $field->type
+                            ));
+                        }
+                    }
                     if ($field->type == 'Matrix') {
                         foreach ($field->typesettings->blockTypes as $matrixBlockTypeId => $matrixBlockType) {
                             $query = craft()->db->createCommand()->select('id')
