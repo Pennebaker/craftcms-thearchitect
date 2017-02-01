@@ -39,6 +39,16 @@ class TheArchitectService extends BaseApplicationComponent
 
         $this->groups = craft()->fields->getAllGroups();
 
+        if ($migration) {
+            $entryTypeIds = [];
+            foreach ($result->entryTypes as $entryType) {
+                if (!isset($entryTypeIds[$entryType->sectionId])) {
+                    $entryTypeIds[$entryType->sectionId] = [];
+                }
+                array_push($entryTypeIds[$entryType->sectionId], $entryType->id);
+            }
+        }
+
         // Add Sections from JSON
         if (isset($result->sections)) {
             foreach ($result->sections as $section) {
@@ -57,11 +67,16 @@ class TheArchitectService extends BaseApplicationComponent
                 if ($migration) {
                     /*
                      * Migration Sections Post-Processing
-                     *
-                     * NOTE: This essentially wipes out the entry types, only to be
-                     * re-imported for every section but shouldn’t cause any issues.
                      */
-                    craft()->db->createCommand()->delete('entrytypes', array('sectionId' => $section->id));
+                    $queryIds = craft()->db->createCommand()->select('id')
+                         ->from('entrytypes')
+                         ->where('sectionId=:sectionId', array(':sectionId' => $section->id))
+                         ->queryColumn();
+                    foreach ($queryIds as $queryId) {
+                        if (!in_array($queryId, $entryTypeIds[$section->id])) {
+                            craft()->db->createCommand()->delete('entrytypes', array('id' => $queryId));
+                        }
+                    }
                 }
             }
         }
