@@ -179,7 +179,20 @@ class TheArchitectService extends BaseApplicationComponent
                         }
                     }
                     if ($field->type == 'Neo') {
-                        # code...
+                        foreach ($field->typesettings->blockTypes as $neoBlockTypeId => $neoBlockType) {
+                            $query = craft()->db->createCommand()->select('id')
+                                ->from('neoblocktypes')
+                                ->where('id=:id', array(':id' => $neoBlockTypeId))
+                                ->queryColumn();
+                            if (!$query) {
+                                craft()->db->createCommand()->insert('neoblocktypes', array(
+                                    'id'      => $neoBlockTypeId,
+                                    'fieldId' => $field->id,
+                                    'name'    => $neoBlockType->name,
+                                    'handle'  => $neoBlockType->handle
+                                ));
+                            }
+                        }
                     }
 
                     $addFieldResult = $this->addField($field, $field->id);
