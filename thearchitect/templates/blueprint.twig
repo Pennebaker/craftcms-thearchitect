@@ -253,6 +253,35 @@
             </tbody>
         </table>
         <hr>
+        <h1>Routes</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxfield">
+                            <input type="checkbox" id="allRoutes" class="checkbox" name="allRoutes" value="all"><label for="allRoutes"></label>
+                            URI
+                        </div>
+                    </th>
+                    <th>Template</th>
+                </tr>
+            </thead>
+            <tbody class="routes">
+                {% for route in craft.routes.getDbRoutes() %}
+                <tr class="route" data-id="{{ route.id }}">
+                    <th scope="row" class="name">
+                        <div class="route checkboxroute">
+                            <input type="checkbox" id="route{{ route.id }}" class="checkbox" name="routeSelection[]" value="{{ route.id }}"> <label for="route{{ route.id }}">{{ route.urlDisplayHtml | raw }}</label>
+                        </div>
+                    </th>
+                    <td>
+                        <code>{{ route.template }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
         <h1>Users</h1>
         <table class="data fullwidth collapsible">
             <thead>

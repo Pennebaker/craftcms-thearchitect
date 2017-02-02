@@ -113,6 +113,25 @@ $(function() {
     }
   });
 
+  $('#allRoutes').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.routes [id^="route"]:not(:disabled)').prop('checked', true);
+      $('.routes [id^="route"]:not(:disabled)').change();
+    } else {
+      $('.routes [id^="route"]:not(:disabled)').prop('checked', false);
+      $('.routes [id^="route"]:not(:disabled)').change();
+    }
+  });
+  $('.routes [id^="route"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.routes [id^="route"]:checked:not(:disabled)').length == $('.routes [id^="route"]:not(:disabled)').length) {
+        $('#allRoutes').prop('checked', true);
+      }
+    } else {
+      $('#allRoutes').prop('checked', false);
+    }
+  });
+
   $('#allUsers').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.users [id^="user"]:not(:disabled)').prop('checked', true);
