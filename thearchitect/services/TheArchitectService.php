@@ -553,6 +553,7 @@ class TheArchitectService extends BaseApplicationComponent
         $transforms = $this->transformExport($post, $includeID);
         $globals = $this->globalSetExport($post, $includeID);
         $categories = $this->categoryGroupExport($post, $includeID);
+        $routes = $this->routeExport($post, $includeID);
         $users = $this->usersExport($post, $includeID);
 
         // Add all Arrays into the final output array
@@ -565,6 +566,7 @@ class TheArchitectService extends BaseApplicationComponent
             'transforms' => $transforms,
             'globals' => $globals,
             'categories' => $categories,
+            'routes' => $routes,
             'users' => $users,
         ];
 
@@ -2882,6 +2884,29 @@ class TheArchitectService extends BaseApplicationComponent
         return $categories;
     }
 
+    public function routeExport($post, $includeID = false)
+    {
+        $routes = [];
+
+        if (isset($post['routeSelection'])) {
+            foreach ($post['routeSelection'] as $id) {
+                $route = $this->getRouteById($id);
+                $newRoute = [
+                    'locale' => $route['locale'],
+                    'urlPattern' => $route['urlPattern'],
+                    'template' => $route['template'],
+                    'sortOrder' => $route['sortOrder'],
+                ];
+                if ($includeID) {
+                    $newRoute = array_merge(['id' => $route->id], $newRoute);
+                }
+                array_push($routes, $newRoute);
+            }
+        }
+
+        return $routes;
+    }
+
     public function getAllIDs()
     {
         // Generate all IDs available for export.
@@ -3211,6 +3236,23 @@ class TheArchitectService extends BaseApplicationComponent
         $categoryGroup->id = $categoryGroupID;
 
         return $categoryGroup;
+    }
+
+    public function getAllRoutes() {
+        return craft()->db->createCommand()
+            ->select('id, locale, urlPattern, template, sortOrder')
+            ->from('routes')
+            ->order('sortOrder')
+            ->queryAll();
+    }
+
+    public function getRouteById($id) {
+        return craft()->db->createCommand()
+            ->select('id, locale, urlPattern, template, sortOrder')
+            ->from('routes')
+            ->where('id = :id', array(':id' => $id))
+            ->order('sortOrder')
+            ->queryRow();
     }
 
     public function getAutomation()
