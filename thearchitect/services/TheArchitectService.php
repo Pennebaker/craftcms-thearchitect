@@ -2898,7 +2898,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'sortOrder' => $route['sortOrder'],
                 ];
                 if ($includeID) {
-                    $newRoute = array_merge(['id' => $route->id], $newRoute);
+                    $newRoute = array_merge(['id' => $route['id']], $newRoute);
                 }
                 array_push($routes, $newRoute);
             }
@@ -2918,6 +2918,7 @@ class TheArchitectService extends BaseApplicationComponent
             'assetTransformSelection' => [],
             'globalSelection' => [],
             'categorySelection' => [],
+            'routeSelection' => [],
             'userSelection' => [],
         ];
 
@@ -2941,6 +2942,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
         foreach (craft()->categories->getAllGroups() as $categoryGroup) {
             array_push($post['categorySelection'], $categoryGroup->id);
+        }
+        foreach ($this->getAllRoutes() as $route) {
+            array_push($post['routeSelection'], $route['id']);
         }
         foreach (craft()->theArchitect->getAllUsers() as $user) {
             array_push($post['userSelection'], $user->id);
