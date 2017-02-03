@@ -1199,6 +1199,18 @@ class TheArchitectService extends BaseApplicationComponent
     {
         if ($sourceID) {
             $source = $this->getAssetSourceById($sourceID);
+
+            $assetFolder = craft()->db->createCommand()->select('id')
+                 ->from('assetfolders')
+                 ->where('sourceId=:sourceId', array(':sourceId' => $sourceID))
+                 ->queryColumn();
+            if (!$assetFolder) {
+                craft()->db->createCommand()->insert('assetfolders', array(
+                    'id' => $sourceID,
+                    'sourceId' => $sourceID,
+                    'name' => $jsonSource->name,
+                ));
+            }
         } else {
             $source = new AssetSourceModel();
         }
@@ -3224,7 +3236,7 @@ class TheArchitectService extends BaseApplicationComponent
                 return $assetTransform;
             }
         }
-        craft()->db->createCommand()->insert('assetassetTransforms', array(
+        craft()->db->createCommand()->insert('assetTransforms', array(
             'id' => $transformID,
         ));
         $assetTransform = new AssetTransformModel();
