@@ -3233,6 +3233,11 @@ class TheArchitectService extends BaseApplicationComponent
         if ($globalSet) {
             return $globalSet;
         }
+        craft()->db->createCommand()->insert('elements', array(
+            'id' => $globalSetID,
+            'type' => 'GlobalSet',
+            'enabled' => 1
+        ));
         craft()->db->createCommand()->insert('globalsets', array(
             'id' => $globalSetID,
         ));
