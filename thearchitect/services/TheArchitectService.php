@@ -2891,9 +2891,16 @@ class TheArchitectService extends BaseApplicationComponent
         if (isset($post['routeSelection'])) {
             foreach ($post['routeSelection'] as $id) {
                 $route = $this->getRouteById($id);
+
+                $urlParts = [];
+                $urlPartsObj = json_decode($route['urlParts']);
+                foreach ($urlPartsObj as $part) {
+                    array_push($urlParts, $part);
+                }
+
                 $newRoute = [
                     'locale' => $route['locale'],
-                    'urlPattern' => $route['urlPattern'],
+                    'urlParts' => $urlParts,
                     'template' => $route['template'],
                     'sortOrder' => $route['sortOrder'],
                 ];
@@ -2971,6 +2978,7 @@ class TheArchitectService extends BaseApplicationComponent
             'assetTransformIDs' => [],
             'globalIDs' => [],
             'categoryIDs' => [],
+            'routeIDs' => [],
             'userIDs' => [],
         ];
 
@@ -3013,6 +3021,12 @@ class TheArchitectService extends BaseApplicationComponent
         if (isset($data->categories)) {
             foreach ($data->categories as $category) {
                 array_push($ids['categoryIDs'], $category->id);
+            }
+        }
+
+        if (isset($data->routes)) {
+            foreach ($data->routes as $route) {
+                array_push($ids['routeIDs'], $route->id);
             }
         }
 
@@ -3244,7 +3258,7 @@ class TheArchitectService extends BaseApplicationComponent
 
     public function getAllRoutes() {
         return craft()->db->createCommand()
-            ->select('id, locale, urlPattern, template, sortOrder')
+            ->select('id, locale, urlParts, template, sortOrder')
             ->from('routes')
             ->order('sortOrder')
             ->queryAll();
@@ -3252,7 +3266,7 @@ class TheArchitectService extends BaseApplicationComponent
 
     public function getRouteById($id) {
         return craft()->db->createCommand()
-            ->select('id, locale, urlPattern, template, sortOrder')
+            ->select('id, locale, urlParts, template, sortOrder')
             ->from('routes')
             ->where('id = :id', array(':id' => $id))
             ->order('sortOrder')
