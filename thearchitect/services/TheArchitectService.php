@@ -124,7 +124,11 @@ class TheArchitectService extends BaseApplicationComponent
         $addedCategories = [];
         if (isset($result->categories)) {
             foreach ($result->categories as $id => $categoryGroup) {
-                $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                if ($migration) {
+                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup, $categoryGroup->id);
+                } else {
+                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                }
                 if ($addCategoryGroupResult[0]) {
                     array_push($addedCategories, $id);
                 }
@@ -1459,9 +1463,11 @@ class TheArchitectService extends BaseApplicationComponent
                 if (!in_array($locale, $siteLocales)) {
                     return [false, ["locale" => ['Locale "' . $locale . '" not avaialble.']], false];
                 }
-                $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel();
-                $categoryGroupLocale[$locale]->urlFormat = $localeAttributes->urlFormat;
-                $categoryGroupLocale[$locale]->nestedUrlFormat = $localeAttributes->nestedUrlFormat;
+                $categoryGroupLocale[$locale] = new CategoryGroupLocaleModel(array(
+                    'locale'          => $locale,
+                    'urlFormat'       => $localeAttributes->urlFormat,
+                    'nestedUrlFormat' => $localeAttributes->nestedUrlFormat,
+                ));
             }
             $categoryGroup->setLocales($categoryGroupLocale);
         } else {
@@ -3289,8 +3295,9 @@ class TheArchitectService extends BaseApplicationComponent
                 return $categoryGroup;
             }
         }
-        craft()->db->createCommand()->insert('usergroups', array(
+        craft()->db->createCommand()->insert('categorygroups', array(
             'id' => $categoryGroupID,
+            'structureId' => $categoryGroupID,
         ));
         $categoryGroup = new CategoryGroupModel();
         $categoryGroup->id = $categoryGroupID;
