@@ -507,6 +507,24 @@ class TheArchitectService extends BaseApplicationComponent
             }
         }
 
+        // Add Routes from JSON
+        if (isset($result->routes)) {
+            foreach ($result->routes as $route) {
+                if ($migration) {
+                    $addRouteResult = $this->addRoute($route, $route->id);
+                } else {
+                    $addRouteResult = $this->addRoute($route);
+                }
+                // Append Notice to Display Results
+                $notice[] = array(
+                    'type' => 'Route',
+                    'name' => json_encode($route->urlParts),
+                    'result' => $addRouteResult[0],
+                    'errors' => $addRouteResult[1],
+                );
+            }
+        }
+
         // Add UserGroupsPermissions from JSON
         if (isset($result->userGroupPermissions)) {
             foreach ($result->userGroupPermissions as $key => $userGroup) {
@@ -1489,6 +1507,25 @@ class TheArchitectService extends BaseApplicationComponent
             return [true, false, $categoryGroup];
         } else {
             return [false, $categoryGroup->getErrors(), false];
+        }
+    }
+
+    public function addRoute($jsonRoute, $routeID = null)
+    {
+        if ($routeID) {
+            if (!$this->getRouteById($routeID)) {
+                craft()->db->createCommand()->insert('routes', array(
+                    'id' => $routeID,
+                ));
+            }
+        }
+
+        $routeRecord = craft()->routes->saveRoute($jsonRoute->urlParts, $jsonRoute->template, $routeID, $jsonRoute->locale);
+
+        if ($routeRecord->getErrors()) {
+            return [false, $routeRecord->getErrors(), false];
+        } else {
+            return [true, false, $routeRecord];
         }
     }
 
