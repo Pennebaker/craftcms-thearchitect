@@ -21,8 +21,7 @@ class TheArchitectService extends BaseApplicationComponent
     {
         $return = craft()->updates->backupDatabase();
         $dbBackupPath = $return['dbBackupPath'];
-        try
-        {
+        try {
             $result = json_decode($json);
 
             $this->stripHandleSpaces($result);
@@ -102,7 +101,7 @@ class TheArchitectService extends BaseApplicationComponent
                     }
                     if ($assetSourceResult[0] === false) {
                         unset($result->sources[$key]);
-                    } else if ($assetSourceResult[0] === true) {
+                    } elseif ($assetSourceResult[0] === true) {
                         array_push($this->addedSources, $assetSourceResult[2]);
                     }
                     // Append Notice to Display Results
@@ -518,7 +517,7 @@ class TheArchitectService extends BaseApplicationComponent
                         if ($addCategoryGroupResult[0]) {
                             $generatedGlobalSet = $addCategoryGroupResult[2];
                             $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                            if(craft()->plugins->getPlugin('relabel')) {
+                            if (craft()->plugins->getPlugin('relabel')) {
                                 if (isset($categoryGroup->relabel)) {
                                     foreach ($categoryGroup->relabel as $relabel) {
                                         $relabelModel = new RelabelModel();
@@ -530,7 +529,7 @@ class TheArchitectService extends BaseApplicationComponent
                                     }
                                 }
                             }
-                            if(craft()->plugins->getPlugin('reasons')) {
+                            if (craft()->plugins->getPlugin('reasons')) {
                                 if (isset($categoryGroup->reasons)) {
                                     $reasonsModel = [];
                                     foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
@@ -599,9 +598,7 @@ class TheArchitectService extends BaseApplicationComponent
             }
 
             return $notice;
-        }
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
             throw $e;
         }
@@ -938,13 +935,12 @@ class TheArchitectService extends BaseApplicationComponent
 
         if (!$field) {
             return [false, ['Field Type' => ['Field type "' . $jsonField->type . '" not available']], false, false];
-        } else if (count($missingSubFields) > 0) {
+        } elseif (count($missingSubFields) > 0) {
             $missingFields = [];
             foreach ($missingSubFields as $result) {
                 foreach ($result[1]['Field Type'] as $error) {
                     array_push($missingFields, $error);
                 }
-
             }
             return [false, ['Field Type' => $missingFields], false, false];
         } else {
@@ -1542,7 +1538,8 @@ class TheArchitectService extends BaseApplicationComponent
         }
     }
 
-    public function setCategoryGroupFieldLayout($jsonCategoryGroup) {
+    public function setCategoryGroupFieldLayout($jsonCategoryGroup)
+    {
         // Set handle if it was provided
         if (isset($jsonCategoryGroup->handle)) {
             $categoryGroup = craft()->categories->getGroupByHandle($jsonCategoryGroup->handle);
@@ -3384,7 +3381,8 @@ class TheArchitectService extends BaseApplicationComponent
         return $categoryGroup;
     }
 
-    public function getAllRoutes() {
+    public function getAllRoutes()
+    {
         return craft()->db->createCommand()
             ->select('id, locale, urlParts, template, sortOrder')
             ->from('routes')
@@ -3392,7 +3390,8 @@ class TheArchitectService extends BaseApplicationComponent
             ->queryAll();
     }
 
-    public function getRouteById($id) {
+    public function getRouteById($id)
+    {
         return craft()->db->createCommand()
             ->select('id, locale, urlParts, template, sortOrder')
             ->from('routes')
