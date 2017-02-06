@@ -8,6 +8,8 @@ class TheArchitectService extends BaseApplicationComponent
     private $fields;
     private $sections;
 
+    private $addedSources = [];
+
     /**
      * parseJson.
      *
@@ -17,478 +19,129 @@ class TheArchitectService extends BaseApplicationComponent
      */
     public function parseJson($json, $migration = false, $force = false)
     {
-        $result = json_decode($json);
+        $return = craft()->updates->backupDatabase();
+        $dbBackupPath = $return['dbBackupPath'];
+        try
+        {
+            $result = json_decode($json);
 
-        $this->stripHandleSpaces($result);
+            $this->stripHandleSpaces($result);
 
-        $notice = array();
+            $notice = array();
 
-        // Add Groups from JSON
-        if (isset($result->groups)) {
-            foreach ($result->groups as $group) {
-                $addGroupResult = $this->addGroup($group);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Group',
-                    'name' => $group,
-                    'result' => $addGroupResult,
-                    'errors' => false,
-                );
-            }
-        }
-
-        $this->groups = craft()->fields->getAllGroups();
-
-        if ($migration) {
-            $entryTypeIds = [];
-            foreach ($result->entryTypes as $entryType) {
-                if (!isset($entryTypeIds[$entryType->sectionId])) {
-                    $entryTypeIds[$entryType->sectionId] = [];
+            // Add Groups from JSON
+            if (isset($result->groups)) {
+                foreach ($result->groups as $group) {
+                    $addGroupResult = $this->addGroup($group);
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Group',
+                        'name' => $group,
+                        'result' => $addGroupResult,
+                        'errors' => false,
+                    );
                 }
-                array_push($entryTypeIds[$entryType->sectionId], $entryType->id);
             }
-        }
 
-        // Add Sections from JSON
-        if (isset($result->sections)) {
-            foreach ($result->sections as $section) {
-                if ($migration) {
-                    $addSectionResult = $this->addSection($section, $section->id);
-                } else {
-                    $addSectionResult = $this->addSection($section);
+            $this->groups = craft()->fields->getAllGroups();
+
+            if ($migration) {
+                $entryTypeIds = [];
+                foreach ($result->entryTypes as $entryType) {
+                    if (!isset($entryTypeIds[$entryType->sectionId])) {
+                        $entryTypeIds[$entryType->sectionId] = [];
+                    }
+                    array_push($entryTypeIds[$entryType->sectionId], $entryType->id);
                 }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Sections',
-                    'name' => $section->name,
-                    'result' => $addSectionResult[0],
-                    'errors' => $addSectionResult[1],
-                );
-                if ($migration) {
-                    /*
-                     * Migration Sections Post-Processing
-                     */
-                    $queryIds = craft()->db->createCommand()->select('id')
-                         ->from('entrytypes')
-                         ->where('sectionId=:sectionId', array(':sectionId' => $section->id))
-                         ->queryColumn();
-                    foreach ($queryIds as $queryId) {
-                        if (!in_array($queryId, $entryTypeIds[$section->id])) {
-                            craft()->db->createCommand()->delete('entrytypes', array('id' => $queryId));
-                        }
+                if (isset($result->globals)) {
+                    foreach ($result->globals as $global) {
+                        $this->addGlobalSet($global, $global->id, false);
                     }
                 }
             }
-        }
 
-        // Add Asset Sources from JSON
-        if (isset($result->sources)) {
-            foreach ($result->sources as $key => $source) {
-                if ($migration) {
-                    $assetSourceResult = $this->addAssetSource($source, $source->id);
-                } else {
-                    $assetSourceResult = $this->addAssetSource($source);
-                }
-                if ($assetSourceResult[0] === false) {
-                    unset($result->sources[$key]);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Asset Source',
-                    'name' => $source->name,
-                    'result' => $assetSourceResult[0],
-                    'errors' => $assetSourceResult[1],
-                );
-            }
-        }
-
-        // Add UserGroups from JSON
-        if (isset($result->userGroups)) {
-            foreach ($result->userGroups as $key => $userGroup) {
-                if ($migration) {
-                    $userGroupResult = $this->addUserGroup($userGroup, $userGroup->id);
-                } else {
-                    $userGroupResult = $this->addUserGroup($userGroup);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'User Group',
-                    'name' => $userGroup->name,
-                    'result' => $userGroupResult[0],
-                    'errors' => $userGroupResult[1],
-                );
-            }
-        }
-
-        // Add CategoryGroup from JSON
-        $addedCategories = [];
-        if (isset($result->categories)) {
-            foreach ($result->categories as $id => $categoryGroup) {
-                if ($migration) {
-                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup, $categoryGroup->id);
-                } else {
-                    $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
-                }
-                if ($addCategoryGroupResult[0]) {
-                    array_push($addedCategories, $id);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Category Group',
-                    'name' => $categoryGroup->name,
-                    'result' => $addCategoryGroupResult[0],
-                    'errors' => $addCategoryGroupResult[1],
-                );
-            }
-        }
-
-        // Add Fields from JSON
-        if (isset($result->fields)) {
-            foreach ($result->fields as $field) {
-                $prevContentTable = craft()->content->contentTable;
-                $this->replaceSourcesHandles($field);
-
-                if ($migration) {
-                    /*
-                     * Migration Field Pre-Processing
-                     */
-                    if ($field->type == 'Matrix' || $field->type == 'Neo' || $field->type == 'SuperTable') {
-                        $query = craft()->db->createCommand()->select('id')
-                            ->from('fields')
-                            ->where('id=:id', array(':id' => $field->id))
-                            ->queryColumn();
-                        if (!$query) {
-                            craft()->db->createCommand()->insert('fields', array(
-                                'id'     => $field->id,
-                                'name'   => $field->name,
-                                'handle' => $field->handle,
-                                'type'   => $field->type
-                            ));
-                        }
+            // Add Sections from JSON
+            if (isset($result->sections)) {
+                foreach ($result->sections as $section) {
+                    if ($migration) {
+                        $addSectionResult = $this->addSection($section, $section->id);
+                    } else {
+                        $addSectionResult = $this->addSection($section);
                     }
-                    if ($field->type == 'Matrix') {
-                        foreach ($field->typesettings->blockTypes as $matrixBlockTypeId => $matrixBlockType) {
-                            $query = craft()->db->createCommand()->select('id')
-                                ->from('matrixblocktypes')
-                                ->where('id=:id', array(':id' => $matrixBlockTypeId))
-                                ->queryColumn();
-                            if (!$query) {
-                                craft()->db->createCommand()->insert('matrixblocktypes', array(
-                                    'id'      => $matrixBlockTypeId,
-                                    'fieldId' => $field->id,
-                                    'name'    => $matrixBlockType->name,
-                                    'handle'  => $matrixBlockType->handle
-                                ));
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Sections',
+                        'name' => $section->name,
+                        'result' => $addSectionResult[0],
+                        'errors' => $addSectionResult[1],
+                    );
+                    if ($migration) {
+                        /*
+                         * Migration Sections Post-Processing
+                         */
+                        $queryIds = craft()->db->createCommand()->select('id')
+                             ->from('entrytypes')
+                             ->where('sectionId=:sectionId', array(':sectionId' => $section->id))
+                             ->queryColumn();
+                        foreach ($queryIds as $queryId) {
+                            if (!in_array($queryId, $entryTypeIds[$section->id])) {
+                                craft()->db->createCommand()->delete('entrytypes', array('id' => $queryId));
                             }
-                            foreach ($matrixBlockType->fields as $matrixFieldId => $matrixField) {
-                                $query = craft()->db->createCommand()->select('id')
-                                    ->from('fields')
-                                    ->where('id=:id', array(':id' => $matrixFieldId))
-                                    ->queryColumn();
-                                if (!$query) {
-                                    craft()->db->createCommand()->insert('fields', array(
-                                        'id'      => $matrixFieldId,
-                                        'name'    => $matrixField->name,
-                                        'handle'  => $matrixField->handle,
-                                        'context' => 'matrixBlockType:' . $matrixBlockTypeId
-                                    ));
-                                }
-                            }
-                        }
-                    }
-                    if ($field->type == 'SuperTable') {
-                        foreach ($field->typesettings->blockTypes as $supertableBlockTypeId => $supertableBlockType) {
-                            $query = craft()->db->createCommand()->select('id')
-                                ->from('supertableblocktypes')
-                                ->where('id=:id', array(':id' => $supertableBlockTypeId))
-                                ->queryColumn();
-                            if (!$query) {
-                                craft()->db->createCommand()->insert('supertableblocktypes', array(
-                                    'id'      => $supertableBlockTypeId,
-                                    'fieldId' => $field->id
-                                ));
-                            }
-                            foreach ($supertableBlockType->fields as $supertableFieldId => $supertableField) {
-                                $query = craft()->db->createCommand()->select('id')
-                                    ->from('fields')
-                                    ->where('id=:id', array(':id' => $supertableFieldId))
-                                    ->queryColumn();
-                                if (!$query) {
-                                    craft()->db->createCommand()->insert('fields', array(
-                                        'id'      => $supertableFieldId,
-                                        'name'    => $supertableField->name,
-                                        'handle'  => $supertableField->handle,
-                                        'context' => 'superTableBlockType:' . $supertableBlockTypeId
-                                    ));
-                                }
-                            }
-                        }
-                    }
-                    if ($field->type == 'Neo') {
-                        foreach ($field->typesettings->blockTypes as $neoBlockTypeId => $neoBlockType) {
-                            $query = craft()->db->createCommand()->select('id')
-                                ->from('neoblocktypes')
-                                ->where('id=:id', array(':id' => $neoBlockTypeId))
-                                ->queryColumn();
-                            if (!$query) {
-                                craft()->db->createCommand()->insert('neoblocktypes', array(
-                                    'id'      => $neoBlockTypeId,
-                                    'fieldId' => $field->id,
-                                    'name'    => $neoBlockType->name,
-                                    'handle'  => $neoBlockType->handle
-                                ));
-                            }
-                        }
-                    }
-
-                    $addFieldResult = $this->addField($field, $field->id);
-                } else {
-                    // Make sure all used fields are available for import.
-                    $addFieldResult = $this->testFieldTypes($field);
-                    // If all fields are good lets import.
-                    if ($addFieldResult[0]) {
-                        $addFieldResult = $this->addField($field);
-                    }
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Field',
-                    'name' => $field->name,
-                    'result' => $addFieldResult[0],
-                    'errors' => $addFieldResult[1],
-                    'errors_alt' => $addFieldResult[2],
-                );
-                /*
-                 * Neo Field Post Processing
-                 */
-                if ($field->type == 'Neo' && $addFieldResult[0]) {
-                    $generatedField = $addFieldResult[3];
-                    $blockTypes = craft()->neo->getBlockTypesByFieldId($generatedField->id);
-                    foreach ($field->typesettings['blockTypes'] as $key => $value) {
-                        $blockTypeKey = intval(substr($key, 3));
-                        $fieldLayoutId = $blockTypes[$blockTypeKey]->getFieldLayout()->id;
-                        if (craft()->plugins->getPlugin('relabel')) {
-                            if (isset($value['relabel'])) {
-                                foreach ($value['relabel'] as $relabel) {
-                                    $relabelModel = new RelabelModel();
-                                    $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel['field'])->id;
-                                    $relabelModel->fieldLayoutId = $fieldLayoutId;
-                                    $relabelModel->name = $relabel['name'];
-                                    $relabelModel->instructions = $relabel['instructions'];
-                                    craft()->relabel->saveLabel($relabelModel);
-                                }
-                            }
-                        }
-                        if (craft()->plugins->getPlugin('reasons')) {
-                            if (isset($value['reasons'])) {
-                                $reasonsModel = [];
-                                foreach ($value['reasons'] as $fieldHandle => $reasons) {
-                                    foreach ($reasons as &$reasonOr) {
-                                        foreach ($reasonOr as &$reason) {
-                                            $reason['fieldId'] = intval(craft()->fields->getFieldByHandle($reason['fieldId'])->id);
-                                        }
-                                    }
-                                    $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
-                                }
-                                $conditionalsModel = new Reasons_ConditionalsModel();
-                                $conditionalsModel->fieldLayoutId = $fieldLayoutId;
-                                $conditionalsModel->conditionals = $reasonsModel;
-                                craft()->reasons->saveConditionals($conditionalsModel);
-                            }
-                        }
-                    }
-                }
-                craft()->content->contentTable = $prevContentTable;
-            }
-        }
-
-        $this->fields = craft()->fields->getAllFields();
-
-        // Set Asset Source Field Layouts from JSON
-        if (isset($result->sources)) {
-            foreach ($result->sources as $source) {
-                $assetSourceResult = $this->setAssetSourceFieldLayout($source);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Asset Source Field Layout',
-                    'name' => $source->name,
-                    'result' => $assetSourceResult[0],
-                    'errors' => $assetSourceResult[1],
-                );
-                /*
-                 * Asset Source Post Processing
-                 */
-                if ($assetSourceResult[0]) {
-                    $generatedAssetSource = $assetSourceResult[2];
-                    $fieldLayoutId = $generatedAssetSource->fieldLayoutId;
-                    if (craft()->plugins->getPlugin('relabel')) {
-                        if (isset($source->relabel)) {
-                            foreach ($source->relabel as $relabel) {
-                                $relabelModel = new RelabelModel();
-                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
-                                $relabelModel->fieldLayoutId = $fieldLayoutId;
-                                $relabelModel->name = $relabel->name;
-                                $relabelModel->instructions = $relabel->instructions;
-                                craft()->relabel->saveLabel($relabelModel);
-                            }
-                        }
-                    }
-                    if (craft()->plugins->getPlugin('reasons')) {
-                        if (isset($source->reasons)) {
-                            $reasonsModel = [];
-                            foreach ($source->reasons as $fieldHandle => $reasons) {
-                                foreach ($reasons as &$reasonOr) {
-                                    foreach ($reasonOr as &$reason) {
-                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
-                                    }
-                                }
-                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
-                            }
-                            $conditionalsModel = new Reasons_ConditionalsModel();
-                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
-                            $conditionalsModel->conditionals = $reasonsModel;
-                            craft()->reasons->saveConditionals($conditionalsModel);
                         }
                     }
                 }
             }
-        }
 
-        $this->sections = craft()->sections->getAllSections();
-
-        // Add Entry Types from JSON
-        if (isset($result->entryTypes)) {
-            foreach ($result->entryTypes as $entryType) {
-                if (isset($entryType->titleLabel)) {
-                    $entryTypeName = $entryType->titleLabel;
-                } else {
-                    $entryTypeName = $entryType->titleFormat;
-                }
-                $addEntryTypeResult = $this->addEntryType($entryType, $migration);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Entry Types',
-                    // Channels Might have an additional name.
-                    'name' => $entryType->sectionHandle.((isset($entryType->name)) ? ' > '.$entryType->name : '').' > '.$entryTypeName,
-                    'result' => $addEntryTypeResult[0],
-                    'errors' => $addEntryTypeResult[1],
-                );
-                /*
-                 * Entry Type Post Processing
-                 */
-                if ($addEntryTypeResult[0]) {
-                    $generatedEntryType = $addEntryTypeResult[2];
-                    $fieldLayoutId = $generatedEntryType->fieldLayoutId;
-                    if (craft()->plugins->getPlugin('relabel')) {
-                        if (isset($entryType->relabel)) {
-                            foreach ($entryType->relabel as $relabel) {
-                                $relabelModel = new RelabelModel();
-                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
-                                $relabelModel->fieldLayoutId = $fieldLayoutId;
-                                $relabelModel->name = $relabel->name;
-                                $relabelModel->instructions = $relabel->instructions;
-                                craft()->relabel->saveLabel($relabelModel);
-                            }
-                        }
+            // Add Asset Sources from JSON
+            if (isset($result->sources)) {
+                foreach ($result->sources as $key => $source) {
+                    if ($migration) {
+                        $assetSourceResult = $this->addAssetSource($source, $source->id);
+                    } else {
+                        $assetSourceResult = $this->addAssetSource($source);
                     }
-                    if (craft()->plugins->getPlugin('reasons')) {
-                        if (isset($entryType->reasons)) {
-                            $reasonsModel = [];
-                            foreach ($entryType->reasons as $fieldHandle => $reasons) {
-                                foreach ($reasons as &$reasonOr) {
-                                    foreach ($reasonOr as &$reason) {
-                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
-                                    }
-                                }
-                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
-                            }
-                            $conditionalsModel = new Reasons_ConditionalsModel();
-                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
-                            $conditionalsModel->conditionals = $reasonsModel;
-                            craft()->reasons->saveConditionals($conditionalsModel);
-                        }
+                    if ($assetSourceResult[0] === false) {
+                        unset($result->sources[$key]);
+                    } else if ($assetSourceResult[0] === true) {
+                        array_push($this->addedSources, $assetSourceResult[2]);
                     }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Asset Source',
+                        'name' => $source->name,
+                        'result' => $assetSourceResult[0],
+                        'errors' => $assetSourceResult[1],
+                    );
                 }
             }
-        }
 
-        // Add Transforms from JSON
-        if (isset($result->transforms)) {
-            foreach ($result->transforms as $transform) {
-                if ($migration) {
-                    $addAssetTransformResult = $this->addAssetTransform($transform, $transform->id);
-                } else {
-                    $addAssetTransformResult = $this->addAssetTransform($transform);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Asset Transform',
-                    'name' => $transform->name,
-                    'result' => $addAssetTransformResult,
-                    'errors' => false,
-                );
-            }
-        }
-
-        // Add Globals from JSON
-        if (isset($result->globals)) {
-            foreach ($result->globals as $global) {
-                if ($migration) {
-                    $addGlobalResult = $this->addGlobalSet($global, $global->id);
-                } else {
-                    $addGlobalResult = $this->addGlobalSet($global);
-                }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Global Set',
-                    'name' => $global->name,
-                    'result' => $addGlobalResult[0],
-                    'errors' => $addGlobalResult[1],
-                );
-                /*
-                 * Global Set Post Processing
-                 */
-                if ($addGlobalResult[0]) {
-                    $generatedGlobalSet = $addGlobalResult[2];
-                    $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                    if (craft()->plugins->getPlugin('relabel')) {
-                        if (isset($global->relabel)) {
-                            foreach ($global->relabel as $relabel) {
-                                $relabelModel = new RelabelModel();
-                                $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
-                                $relabelModel->fieldLayoutId = $fieldLayoutId;
-                                $relabelModel->name = $relabel->name;
-                                $relabelModel->instructions = $relabel->instructions;
-                                craft()->relabel->saveLabel($relabelModel);
-                            }
-                        }
+            // Add UserGroups from JSON
+            if (isset($result->userGroups)) {
+                foreach ($result->userGroups as $key => $userGroup) {
+                    if ($migration) {
+                        $userGroupResult = $this->addUserGroup($userGroup, $userGroup->id);
+                    } else {
+                        $userGroupResult = $this->addUserGroup($userGroup);
                     }
-                    if (craft()->plugins->getPlugin('reasons')) {
-                        if (isset($global->reasons)) {
-                            $reasonsModel = [];
-                            foreach ($global->reasons as $fieldHandle => $reasons) {
-                                foreach ($reasons as &$reasonOr) {
-                                    foreach ($reasonOr as &$reason) {
-                                        $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
-                                    }
-                                }
-                                $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
-                            }
-                            $conditionalsModel = new Reasons_ConditionalsModel();
-                            $conditionalsModel->fieldLayoutId = $fieldLayoutId;
-                            $conditionalsModel->conditionals = $reasonsModel;
-                            craft()->reasons->saveConditionals($conditionalsModel);
-                        }
-                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'User Group',
+                        'name' => $userGroup->name,
+                        'result' => $userGroupResult[0],
+                        'errors' => $userGroupResult[1],
+                    );
                 }
             }
-        }
 
-        // Set category group field layout.
-        if (isset($result->categories)) {
-            foreach ($result->categories as $id => $categoryGroup) {
-                if (in_array($id, $addedCategories)) {
-                    $addCategoryGroupResult = $this->setCategoryGroupFieldLayout($categoryGroup);
+            // Add CategoryGroup from JSON
+            $addedCategories = [];
+            if (isset($result->categories)) {
+                foreach ($result->categories as $id => $categoryGroup) {
+                    if ($migration) {
+                        $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup, $categoryGroup->id);
+                    } else {
+                        $addCategoryGroupResult = $this->addCategoryGroup($categoryGroup);
+                    }
                     if ($addCategoryGroupResult[0]) {
                         array_push($addedCategories, $id);
                     }
@@ -499,15 +152,191 @@ class TheArchitectService extends BaseApplicationComponent
                         'result' => $addCategoryGroupResult[0],
                         'errors' => $addCategoryGroupResult[1],
                     );
+                }
+            }
+
+            // Add Fields from JSON
+            if (isset($result->fields)) {
+                foreach ($result->fields as $field) {
+                    $prevContentTable = craft()->content->contentTable;
+                    $this->replaceSourcesHandles($field);
+
+                    if ($migration) {
+                        /*
+                         * Migration Field Pre-Processing
+                         */
+                        if ($field->type == 'Matrix' || $field->type == 'Neo' || $field->type == 'SuperTable') {
+                            $query = craft()->db->createCommand()->select('id')
+                                ->from('fields')
+                                ->where('id=:id', array(':id' => $field->id))
+                                ->queryColumn();
+                            if (!$query) {
+                                craft()->db->createCommand()->insert('fields', array(
+                                    'id'     => $field->id,
+                                    'name'   => $field->name,
+                                    'handle' => $field->handle,
+                                    'type'   => $field->type
+                                ));
+                            }
+                        }
+                        if ($field->type == 'Matrix') {
+                            foreach ($field->typesettings->blockTypes as $matrixBlockTypeId => $matrixBlockType) {
+                                $query = craft()->db->createCommand()->select('id')
+                                    ->from('matrixblocktypes')
+                                    ->where('id=:id', array(':id' => $matrixBlockTypeId))
+                                    ->queryColumn();
+                                if (!$query) {
+                                    craft()->db->createCommand()->insert('matrixblocktypes', array(
+                                        'id'      => $matrixBlockTypeId,
+                                        'fieldId' => $field->id,
+                                        'name'    => $matrixBlockType->name,
+                                        'handle'  => $matrixBlockType->handle
+                                    ));
+                                }
+                                foreach ($matrixBlockType->fields as $matrixFieldId => $matrixField) {
+                                    $query = craft()->db->createCommand()->select('id')
+                                        ->from('fields')
+                                        ->where('id=:id', array(':id' => $matrixFieldId))
+                                        ->queryColumn();
+                                    if (!$query) {
+                                        craft()->db->createCommand()->insert('fields', array(
+                                            'id'      => $matrixFieldId,
+                                            'name'    => $matrixField->name,
+                                            'handle'  => $matrixField->handle,
+                                            'context' => 'matrixBlockType:' . $matrixBlockTypeId
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        if ($field->type == 'SuperTable') {
+                            foreach ($field->typesettings->blockTypes as $supertableBlockTypeId => $supertableBlockType) {
+                                $query = craft()->db->createCommand()->select('id')
+                                    ->from('supertableblocktypes')
+                                    ->where('id=:id', array(':id' => $supertableBlockTypeId))
+                                    ->queryColumn();
+                                if (!$query) {
+                                    craft()->db->createCommand()->insert('supertableblocktypes', array(
+                                        'id'      => $supertableBlockTypeId,
+                                        'fieldId' => $field->id
+                                    ));
+                                }
+                                foreach ($supertableBlockType->fields as $supertableFieldId => $supertableField) {
+                                    $query = craft()->db->createCommand()->select('id')
+                                        ->from('fields')
+                                        ->where('id=:id', array(':id' => $supertableFieldId))
+                                        ->queryColumn();
+                                    if (!$query) {
+                                        craft()->db->createCommand()->insert('fields', array(
+                                            'id'      => $supertableFieldId,
+                                            'name'    => $supertableField->name,
+                                            'handle'  => $supertableField->handle,
+                                            'context' => 'superTableBlockType:' . $supertableBlockTypeId
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        if ($field->type == 'Neo') {
+                            foreach ($field->typesettings->blockTypes as $neoBlockTypeId => $neoBlockType) {
+                                $query = craft()->db->createCommand()->select('id')
+                                    ->from('neoblocktypes')
+                                    ->where('id=:id', array(':id' => $neoBlockTypeId))
+                                    ->queryColumn();
+                                if (!$query) {
+                                    craft()->db->createCommand()->insert('neoblocktypes', array(
+                                        'id'      => $neoBlockTypeId,
+                                        'fieldId' => $field->id,
+                                        'name'    => $neoBlockType->name,
+                                        'handle'  => $neoBlockType->handle
+                                    ));
+                                }
+                            }
+                        }
+
+                        $addFieldResult = $this->addField($field, $field->id);
+                    } else {
+                        // Make sure all used fields are available for import.
+                        $addFieldResult = $this->testFieldTypes($field);
+                        // If all fields are good lets import.
+                        if ($addFieldResult[0]) {
+                            $addFieldResult = $this->addField($field);
+                        }
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Field',
+                        'name' => $field->name,
+                        'result' => $addFieldResult[0],
+                        'errors' => $addFieldResult[1],
+                        'errors_alt' => $addFieldResult[2],
+                    );
                     /*
-                     * Category Group Post Processing
+                     * Neo Field Post Processing
                      */
-                    if ($addCategoryGroupResult[0]) {
-                        $generatedGlobalSet = $addCategoryGroupResult[2];
-                        $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
-                        if(craft()->plugins->getPlugin('relabel')) {
-                            if (isset($categoryGroup->relabel)) {
-                                foreach ($categoryGroup->relabel as $relabel) {
+                    if ($field->type == 'Neo' && $addFieldResult[0]) {
+                        $generatedField = $addFieldResult[3];
+                        $blockTypes = craft()->neo->getBlockTypesByFieldId($generatedField->id);
+                        foreach ($field->typesettings['blockTypes'] as $key => $value) {
+                            $blockTypeKey = intval(substr($key, 3));
+                            $fieldLayoutId = $blockTypes[$blockTypeKey]->getFieldLayout()->id;
+                            if (craft()->plugins->getPlugin('relabel')) {
+                                if (isset($value['relabel'])) {
+                                    foreach ($value['relabel'] as $relabel) {
+                                        $relabelModel = new RelabelModel();
+                                        $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel['field'])->id;
+                                        $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                        $relabelModel->name = $relabel['name'];
+                                        $relabelModel->instructions = $relabel['instructions'];
+                                        craft()->relabel->saveLabel($relabelModel);
+                                    }
+                                }
+                            }
+                            if (craft()->plugins->getPlugin('reasons')) {
+                                if (isset($value['reasons'])) {
+                                    $reasonsModel = [];
+                                    foreach ($value['reasons'] as $fieldHandle => $reasons) {
+                                        foreach ($reasons as &$reasonOr) {
+                                            foreach ($reasonOr as &$reason) {
+                                                $reason['fieldId'] = intval(craft()->fields->getFieldByHandle($reason['fieldId'])->id);
+                                            }
+                                        }
+                                        $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                    }
+                                    $conditionalsModel = new Reasons_ConditionalsModel();
+                                    $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                    $conditionalsModel->conditionals = $reasonsModel;
+                                    craft()->reasons->saveConditionals($conditionalsModel);
+                                }
+                            }
+                        }
+                    }
+                    craft()->content->contentTable = $prevContentTable;
+                }
+            }
+
+            $this->fields = craft()->fields->getAllFields();
+
+            // Set Asset Source Field Layouts from JSON
+            if (isset($result->sources)) {
+                foreach ($result->sources as $source) {
+                    $assetSourceResult = $this->setAssetSourceFieldLayout($source);
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Asset Source Field Layout',
+                        'name' => $source->name,
+                        'result' => $assetSourceResult[0],
+                        'errors' => $assetSourceResult[1],
+                    );
+                    /*
+                     * Asset Source Post Processing
+                     */
+                    if ($assetSourceResult[0]) {
+                        $generatedAssetSource = $assetSourceResult[2];
+                        $fieldLayoutId = $generatedAssetSource->fieldLayoutId;
+                        if (craft()->plugins->getPlugin('relabel')) {
+                            if (isset($source->relabel)) {
+                                foreach ($source->relabel as $relabel) {
                                     $relabelModel = new RelabelModel();
                                     $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
                                     $relabelModel->fieldLayoutId = $fieldLayoutId;
@@ -517,10 +346,10 @@ class TheArchitectService extends BaseApplicationComponent
                                 }
                             }
                         }
-                        if(craft()->plugins->getPlugin('reasons')) {
-                            if (isset($categoryGroup->reasons)) {
+                        if (craft()->plugins->getPlugin('reasons')) {
+                            if (isset($source->reasons)) {
                                 $reasonsModel = [];
-                                foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
+                                foreach ($source->reasons as $fieldHandle => $reasons) {
                                     foreach ($reasons as &$reasonOr) {
                                         foreach ($reasonOr as &$reason) {
                                             $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
@@ -537,55 +366,245 @@ class TheArchitectService extends BaseApplicationComponent
                     }
                 }
             }
-        }
 
-        // Add Routes from JSON
-        if (isset($result->routes)) {
-            foreach ($result->routes as $route) {
-                if ($migration) {
-                    $addRouteResult = $this->addRoute($route, $route->id);
-                } else {
-                    $addRouteResult = $this->addRoute($route);
+            $this->sections = craft()->sections->getAllSections();
+
+            // Add Entry Types from JSON
+            if (isset($result->entryTypes)) {
+                foreach ($result->entryTypes as $entryType) {
+                    if (isset($entryType->titleLabel)) {
+                        $entryTypeName = $entryType->titleLabel;
+                    } else {
+                        $entryTypeName = $entryType->titleFormat;
+                    }
+                    $addEntryTypeResult = $this->addEntryType($entryType, $migration);
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Entry Types',
+                        // Channels Might have an additional name.
+                        'name' => $entryType->sectionHandle.((isset($entryType->name)) ? ' > '.$entryType->name : '').' > '.$entryTypeName,
+                        'result' => $addEntryTypeResult[0],
+                        'errors' => $addEntryTypeResult[1],
+                    );
+                    /*
+                     * Entry Type Post Processing
+                     */
+                    if ($addEntryTypeResult[0]) {
+                        $generatedEntryType = $addEntryTypeResult[2];
+                        $fieldLayoutId = $generatedEntryType->fieldLayoutId;
+                        if (craft()->plugins->getPlugin('relabel')) {
+                            if (isset($entryType->relabel)) {
+                                foreach ($entryType->relabel as $relabel) {
+                                    $relabelModel = new RelabelModel();
+                                    $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                    $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                    $relabelModel->name = $relabel->name;
+                                    $relabelModel->instructions = $relabel->instructions;
+                                    craft()->relabel->saveLabel($relabelModel);
+                                }
+                            }
+                        }
+                        if (craft()->plugins->getPlugin('reasons')) {
+                            if (isset($entryType->reasons)) {
+                                $reasonsModel = [];
+                                foreach ($entryType->reasons as $fieldHandle => $reasons) {
+                                    foreach ($reasons as &$reasonOr) {
+                                        foreach ($reasonOr as &$reason) {
+                                            $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                        }
+                                    }
+                                    $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                }
+                                $conditionalsModel = new Reasons_ConditionalsModel();
+                                $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                $conditionalsModel->conditionals = $reasonsModel;
+                                craft()->reasons->saveConditionals($conditionalsModel);
+                            }
+                        }
+                    }
                 }
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'Route',
-                    'name' => json_encode($route->urlParts),
-                    'result' => $addRouteResult[0],
-                    'errors' => $addRouteResult[1],
-                );
             }
-        }
 
-        // Add UserGroupsPermissions from JSON
-        if (isset($result->userGroupPermissions)) {
-            foreach ($result->userGroupPermissions as $key => $userGroup) {
-                $userGroupResult = $this->addUserGroupPermissions($userGroup);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'User Group Permissions',
-                    'name' => $userGroup->handle,
-                    'result' => $userGroupResult[0],
-                    'errors' => $userGroupResult[1],
-                );
+            // Add Transforms from JSON
+            if (isset($result->transforms)) {
+                foreach ($result->transforms as $transform) {
+                    if ($migration) {
+                        $addAssetTransformResult = $this->addAssetTransform($transform, $transform->id);
+                    } else {
+                        $addAssetTransformResult = $this->addAssetTransform($transform);
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Asset Transform',
+                        'name' => $transform->name,
+                        'result' => $addAssetTransformResult,
+                        'errors' => false,
+                    );
+                }
             }
-        }
 
-        // Add Users from JSON
-        if (isset($result->users)) {
-            foreach ($result->users as $key => $user) {
-                $userResult = $this->addUser($user, $migration);
-                // Append Notice to Display Results
-                $notice[] = array(
-                    'type' => 'User',
-                    'name' => $user->username,
-                    'result' => $userResult[0],
-                    'errors' => $userResult[1],
-                );
+            // Add Globals from JSON
+            if (isset($result->globals)) {
+                foreach ($result->globals as $global) {
+                    if ($migration) {
+                        $addGlobalResult = $this->addGlobalSet($global, $global->id);
+                    } else {
+                        $addGlobalResult = $this->addGlobalSet($global);
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Global Set',
+                        'name' => $global->name,
+                        'result' => $addGlobalResult[0],
+                        'errors' => $addGlobalResult[1],
+                    );
+                    /*
+                     * Global Set Post Processing
+                     */
+                    if ($addGlobalResult[0]) {
+                        $generatedGlobalSet = $addGlobalResult[2];
+                        $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                        if (craft()->plugins->getPlugin('relabel')) {
+                            if (isset($global->relabel)) {
+                                foreach ($global->relabel as $relabel) {
+                                    $relabelModel = new RelabelModel();
+                                    $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                    $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                    $relabelModel->name = $relabel->name;
+                                    $relabelModel->instructions = $relabel->instructions;
+                                    craft()->relabel->saveLabel($relabelModel);
+                                }
+                            }
+                        }
+                        if (craft()->plugins->getPlugin('reasons')) {
+                            if (isset($global->reasons)) {
+                                $reasonsModel = [];
+                                foreach ($global->reasons as $fieldHandle => $reasons) {
+                                    foreach ($reasons as &$reasonOr) {
+                                        foreach ($reasonOr as &$reason) {
+                                            $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                        }
+                                    }
+                                    $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                }
+                                $conditionalsModel = new Reasons_ConditionalsModel();
+                                $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                $conditionalsModel->conditionals = $reasonsModel;
+                                craft()->reasons->saveConditionals($conditionalsModel);
+                            }
+                        }
+                    }
+                }
             }
-        }
 
-        return $notice;
+            // Set category group field layout.
+            if (isset($result->categories)) {
+                foreach ($result->categories as $id => $categoryGroup) {
+                    if (in_array($id, $addedCategories)) {
+                        $addCategoryGroupResult = $this->setCategoryGroupFieldLayout($categoryGroup);
+                        if ($addCategoryGroupResult[0]) {
+                            array_push($addedCategories, $id);
+                        }
+                        // Append Notice to Display Results
+                        $notice[] = array(
+                            'type' => 'Category Group',
+                            'name' => $categoryGroup->name,
+                            'result' => $addCategoryGroupResult[0],
+                            'errors' => $addCategoryGroupResult[1],
+                        );
+                        /*
+                         * Category Group Post Processing
+                         */
+                        if ($addCategoryGroupResult[0]) {
+                            $generatedGlobalSet = $addCategoryGroupResult[2];
+                            $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                            if(craft()->plugins->getPlugin('relabel')) {
+                                if (isset($categoryGroup->relabel)) {
+                                    foreach ($categoryGroup->relabel as $relabel) {
+                                        $relabelModel = new RelabelModel();
+                                        $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                        $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                        $relabelModel->name = $relabel->name;
+                                        $relabelModel->instructions = $relabel->instructions;
+                                        craft()->relabel->saveLabel($relabelModel);
+                                    }
+                                }
+                            }
+                            if(craft()->plugins->getPlugin('reasons')) {
+                                if (isset($categoryGroup->reasons)) {
+                                    $reasonsModel = [];
+                                    foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
+                                        foreach ($reasons as &$reasonOr) {
+                                            foreach ($reasonOr as &$reason) {
+                                                $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                            }
+                                        }
+                                        $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                    }
+                                    $conditionalsModel = new Reasons_ConditionalsModel();
+                                    $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                    $conditionalsModel->conditionals = $reasonsModel;
+                                    craft()->reasons->saveConditionals($conditionalsModel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add Routes from JSON
+            if (isset($result->routes)) {
+                foreach ($result->routes as $route) {
+                    if ($migration) {
+                        $addRouteResult = $this->addRoute($route, $route->id);
+                    } else {
+                        $addRouteResult = $this->addRoute($route);
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Route',
+                        'name' => json_encode($route->urlParts),
+                        'result' => $addRouteResult[0],
+                        'errors' => $addRouteResult[1],
+                    );
+                }
+            }
+
+            // Add UserGroupsPermissions from JSON
+            if (isset($result->userGroupPermissions)) {
+                foreach ($result->userGroupPermissions as $key => $userGroup) {
+                    $userGroupResult = $this->addUserGroupPermissions($userGroup);
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'User Group Permissions',
+                        'name' => $userGroup->handle,
+                        'result' => $userGroupResult[0],
+                        'errors' => $userGroupResult[1],
+                    );
+                }
+            }
+
+            // Add Users from JSON
+            if (isset($result->users)) {
+                foreach ($result->users as $key => $user) {
+                    $userResult = $this->addUser($user, $migration);
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'User',
+                        'name' => $user->username,
+                        'result' => $userResult[0],
+                        'errors' => $userResult[1],
+                    );
+                }
+            }
+
+            return $notice;
+        }
+        catch(\Exception $e)
+        {
+            UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
+            throw $e;
+        }
     }
 
     /**
@@ -1261,14 +1280,14 @@ class TheArchitectService extends BaseApplicationComponent
 
         // Save Asset Source to DB
         if (craft()->assetSources->saveSource($source)) {
-            return [true, null];
+            return [true, null, $source];
         } else {
             return [false, $source->getErrors()];
         }
     }
 
     /**
-     * addAssetSource.
+     * addAssetSourceFieldLayout.
      *
      * @param ArrayObject $jsonSection
      *
@@ -1415,7 +1434,7 @@ class TheArchitectService extends BaseApplicationComponent
      *
      * @return bool [success]
      */
-    public function addGlobalSet($jsonGlobalSet, $globalSetID = false)
+    public function addGlobalSet($jsonGlobalSet, $globalSetID = false, $setFieldLayout = true)
     {
         if ($globalSetID) {
             $globalSet = $this->getGlobalSetById($globalSetID);
@@ -1434,22 +1453,23 @@ class TheArchitectService extends BaseApplicationComponent
             $globalSet->handle = $this->constructHandle($jsonGlobalSet->name);
         }
 
-        $problemFields = $this->checkFieldLayout($jsonGlobalSet->fieldLayout);
-        if ($problemFields !== ['handle' => []]) {
-            return [false, $problemFields];
-        }
-
-        // Parse & Set Field Layout if Provided
-        if (isset($jsonGlobalSet->fieldLayout)) {
-            $requiredFields = [];
-            if (isset($jsonGlobalSet->requiredFields) && is_array($jsonGlobalSet->requiredFields)) {
-                foreach ($jsonGlobalSet->requiredFields as $requirdField) {
-                    array_push($requiredFields, $this->getFieldId($requirdField));
-                }
+        if ($setFieldLayout) {
+            $problemFields = $this->checkFieldLayout($jsonGlobalSet->fieldLayout);
+            if ($problemFields !== ['handle' => []]) {
+                return [false, $problemFields];
             }
-            $fieldLayout = $this->assembleLayout($jsonGlobalSet->fieldLayout, $requiredFields);
-            $fieldLayout->type = ElementType::GlobalSet;
-            $globalSet->setFieldLayout($fieldLayout);
+            // Parse & Set Field Layout if Provided
+            if (isset($jsonGlobalSet->fieldLayout)) {
+                $requiredFields = [];
+                if (isset($jsonGlobalSet->requiredFields) && is_array($jsonGlobalSet->requiredFields)) {
+                    foreach ($jsonGlobalSet->requiredFields as $requirdField) {
+                        array_push($requiredFields, $this->getFieldId($requirdField));
+                    }
+                }
+                $fieldLayout = $this->assembleLayout($jsonGlobalSet->fieldLayout, $requiredFields);
+                $fieldLayout->type = ElementType::GlobalSet;
+                $globalSet->setFieldLayout($fieldLayout);
+            }
         }
 
         // Save Gobal Set to DB
@@ -2151,6 +2171,11 @@ class TheArchitectService extends BaseApplicationComponent
         $assetSources = craft()->assetSources->getAllSources();
         foreach ($assetSources as $key => $assetSource) {
             if ($assetSource->handle === $handle) {
+                return $assetSource;
+            }
+        }
+        foreach ($this->addedSources as $assetSource) {
+            if ($assetSource->handle == $handle) {
                 return $assetSource;
             }
         }
@@ -3247,6 +3272,11 @@ class TheArchitectService extends BaseApplicationComponent
                 return $source;
             }
         }
+        foreach ($this->addedSources as $source) {
+            if ($source->id == $sourceID) {
+                return $source;
+            }
+        }
         craft()->db->createCommand()->insert('assetsources', array(
             'id' => $sourceID,
         ));
@@ -3279,14 +3309,20 @@ class TheArchitectService extends BaseApplicationComponent
         if ($globalSet) {
             return $globalSet;
         }
-        craft()->db->createCommand()->insert('elements', array(
-            'id' => $globalSetID,
-            'type' => 'GlobalSet',
-            'enabled' => 1
-        ));
-        craft()->db->createCommand()->insert('globalsets', array(
-            'id' => $globalSetID,
-        ));
+        $query = craft()->db->createCommand()->select('id')
+            ->from('globalsets')
+            ->where('id=:id', array(':id' => $globalSetID))
+            ->queryColumn();
+        if (!$query) {
+            craft()->db->createCommand()->insert('elements', array(
+                'id' => $globalSetID,
+                'type' => 'GlobalSet',
+                'enabled' => 1
+            ));
+            craft()->db->createCommand()->insert('globalsets', array(
+                'id' => $globalSetID,
+            ));
+        }
         $globalSet = new GlobalSetModel();
         $globalSet->id = $globalSetID;
 
@@ -3335,9 +3371,12 @@ class TheArchitectService extends BaseApplicationComponent
                 return $categoryGroup;
             }
         }
+        $result = craft()->db->createCommand()->insert('structures', array(
+            'maxLevels' => null,
+        ));
         craft()->db->createCommand()->insert('categorygroups', array(
             'id' => $categoryGroupID,
-            'structureId' => $categoryGroupID,
+            'structureId' => craft()->db->getLastInsertID(),
         ));
         $categoryGroup = new CategoryGroupModel();
         $categoryGroup->id = $categoryGroupID;
