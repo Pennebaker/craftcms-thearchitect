@@ -152,7 +152,7 @@ class TheArchitectService extends BaseApplicationComponent
                     /*
                      * Migration Field Pre-Processing
                      */
-                    if ($field->type == 'Matrix' || $field->type == 'Neo') {
+                    if ($field->type == 'Matrix' || $field->type == 'Neo' || $field->type == 'SuperTable') {
                         $query = craft()->db->createCommand()->select('id')
                             ->from('fields')
                             ->where('id=:id', array(':id' => $field->id))
@@ -188,9 +188,37 @@ class TheArchitectService extends BaseApplicationComponent
                                 if (!$query) {
                                     craft()->db->createCommand()->insert('fields', array(
                                         'id'      => $matrixFieldId,
-                                        'name'    => $matrixBlockType->name,
-                                        'handle'  => $matrixBlockType->handle,
+                                        'name'    => $matrixField->name,
+                                        'handle'  => $matrixField->handle,
                                         'context' => 'matrixBlockType:' . $matrixBlockTypeId
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    if ($field->type == 'SuperTable') {
+                        foreach ($field->typesettings->blockTypes as $supertableBlockTypeId => $supertableBlockType) {
+                            $query = craft()->db->createCommand()->select('id')
+                                ->from('supertableblocktypes')
+                                ->where('id=:id', array(':id' => $supertableBlockTypeId))
+                                ->queryColumn();
+                            if (!$query) {
+                                craft()->db->createCommand()->insert('supertableblocktypes', array(
+                                    'id'      => $supertableBlockTypeId,
+                                    'fieldId' => $field->id
+                                ));
+                            }
+                            foreach ($supertableBlockType->fields as $supertableFieldId => $supertableField) {
+                                $query = craft()->db->createCommand()->select('id')
+                                    ->from('fields')
+                                    ->where('id=:id', array(':id' => $supertableFieldId))
+                                    ->queryColumn();
+                                if (!$query) {
+                                    craft()->db->createCommand()->insert('fields', array(
+                                        'id'      => $supertableFieldId,
+                                        'name'    => $supertableField->name,
+                                        'handle'  => $supertableField->handle,
+                                        'context' => 'superTableBlockType:' . $supertableBlockTypeId
                                     ));
                                 }
                             }
