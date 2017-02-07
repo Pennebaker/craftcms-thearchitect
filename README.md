@@ -10,10 +10,16 @@ CraftCMS Plugin to Construct Groups, Fields, Sections, EntryTypes, Transforms, G
 Example files can be found in the `library` directory
 
 ## Exported Constructs
-If you want to provide json files to be loaded throught the CP. Put the files in `craft/config/thearchitect`. If using a version prior to v1.6.0 the folder for these files is `craft/plugins/thearchitect/content`.
+If you want to provide json files to be loaded throught the CP. Put the files in `craft/config/thearchitect`. If using a version prior to v1.6.0 the folder for these files is `craft/plugins/thearchitect/content`. This path is also configurable by creating a config file at `craft/config/thearchitect.php`
+```php
+'modelsPath' => str_replace('plugins', 'config', __dir__.'/'),
+```
 
 ## Migration File
-The migration file is named `_master_.json` and located inside the folder with the other json files listed above.
+The migration file is named `_master_.json` and located inside the folder with the other json files listed above. Migration files are intended to be used within a single site. They are not intended to transfer content models between websites.
+
+## Rollback
+As of version 1.6.0, if Craft crashes with an exception, the Architect will roll back any changes that were made to the database for the operation. This should help prevent any issues that might appear from a partial import. If an exception happens please report them to on the [repo's issues](https://github.com/Pennebaker/craftcms-thearchitect/issues)
 
 ## JSON Schema
 The example / syntax schemas are located on the [Repo's Wiki](https://github.com/Pennebaker/craftcms-thearchitect/wiki)
