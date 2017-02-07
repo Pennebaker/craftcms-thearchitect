@@ -154,6 +154,28 @@ class TheArchitectService extends BaseApplicationComponent
                 }
             }
 
+            // Add Tags from JSON
+            $addedTagGroups = [];
+            if (isset($result->tags)) {
+                foreach ($result->tags as $id => $tag) {
+                    if ($migration) {
+                        $addTagGroupResult = $this->addTagGroup($tag, $tag->id);
+                    } else {
+                        $addTagGroupResult = $this->addTagGroup($tag);
+                    }
+                    if ($addTagGroupResult[0]) {
+                        array_push($addedTagGroups, $id);
+                    }
+                    // Append Notice to Display Results
+                    $notice[] = array(
+                        'type' => 'Tag',
+                        'name' => $tag->name,
+                        'result' => $addTagGroupResult[0],
+                        'errors' => $addTagGroupResult[1],
+                    );
+                }
+            }
+
             // Add Fields from JSON
             if (isset($result->fields)) {
                 foreach ($result->fields as $field) {
@@ -501,12 +523,9 @@ class TheArchitectService extends BaseApplicationComponent
                 foreach ($result->categories as $id => $categoryGroup) {
                     if (in_array($id, $addedCategories)) {
                         $addCategoryGroupResult = $this->setCategoryGroupFieldLayout($categoryGroup);
-                        if ($addCategoryGroupResult[0]) {
-                            array_push($addedCategories, $id);
-                        }
                         // Append Notice to Display Results
                         $notice[] = array(
-                            'type' => 'Category Group',
+                            'type' => 'Category Group Field Layout',
                             'name' => $categoryGroup->name,
                             'result' => $addCategoryGroupResult[0],
                             'errors' => $addCategoryGroupResult[1],
@@ -515,8 +534,61 @@ class TheArchitectService extends BaseApplicationComponent
                          * Category Group Post Processing
                          */
                         if ($addCategoryGroupResult[0]) {
-                            $generatedGlobalSet = $addCategoryGroupResult[2];
-                            $fieldLayoutId = $generatedGlobalSet->fieldLayoutId;
+                            $generatedCategoryGroup = $addCategoryGroupResult[2];
+                            $fieldLayoutId = $generatedCategoryGroup->fieldLayoutId;
+                            if (craft()->plugins->getPlugin('relabel')) {
+                                if (isset($categoryGroup->relabel)) {
+                                    foreach ($categoryGroup->relabel as $relabel) {
+                                        $relabelModel = new RelabelModel();
+                                        $relabelModel->fieldId = craft()->fields->getFieldByHandle($relabel->field)->id;
+                                        $relabelModel->fieldLayoutId = $fieldLayoutId;
+                                        $relabelModel->name = $relabel->name;
+                                        $relabelModel->instructions = $relabel->instructions;
+                                        craft()->relabel->saveLabel($relabelModel);
+                                    }
+                                }
+                            }
+                            if (craft()->plugins->getPlugin('reasons')) {
+                                if (isset($categoryGroup->reasons)) {
+                                    $reasonsModel = [];
+                                    foreach ($categoryGroup->reasons as $fieldHandle => $reasons) {
+                                        foreach ($reasons as &$reasonOr) {
+                                            foreach ($reasonOr as &$reason) {
+                                                $reason->fieldId = intval(craft()->fields->getFieldByHandle($reason->fieldId)->id);
+                                            }
+                                        }
+                                        $reasonsModel[craft()->fields->getFieldByHandle($fieldHandle)->id] = $reasons;
+                                    }
+                                    $conditionalsModel = new Reasons_ConditionalsModel();
+                                    $conditionalsModel->fieldLayoutId = $fieldLayoutId;
+                                    $conditionalsModel->conditionals = $reasonsModel;
+                                    craft()->reasons->saveConditionals($conditionalsModel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add Tags from JSON
+            if (isset($result->tags)) {
+                foreach ($result->tags as $id => $tag) {
+                    if (in_array($id, $addedTagGroups)) {
+                        $addTagResult = $this->addTagFieldLayout($tag);
+
+                        // Append Notice to Display Results
+                        $notice[] = array(
+                            'type' => 'Tag Field Layout',
+                            'name' => $tag->name,
+                            'result' => $addTagResult[0],
+                            'errors' => $addTagResult[1],
+                        );
+                        /*
+                         * Tag Group Post Processing
+                         */
+                        if ($addTagResult[0]) {
+                            $generatedTagGroup = $addTagResult[2];
+                            $fieldLayoutId = $generatedTagGroup->fieldLayoutId;
                             if (craft()->plugins->getPlugin('relabel')) {
                                 if (isset($categoryGroup->relabel)) {
                                     foreach ($categoryGroup->relabel as $relabel) {
@@ -600,8 +672,10 @@ class TheArchitectService extends BaseApplicationComponent
             return $notice;
         } catch (\Exception $e) {
             UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
+            unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql');
             throw $e;
         }
+        unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql');
     }
 
     /**
@@ -620,6 +694,7 @@ class TheArchitectService extends BaseApplicationComponent
         $globals = $this->globalSetExport($post, $includeID);
         $categories = $this->categoryGroupExport($post, $includeID);
         $routes = $this->routeExport($post, $includeID);
+        $tags = $this->tagExport($post, $includeID);
         $users = $this->usersExport($post, $includeID);
 
         // Add all Arrays into the final output array
@@ -633,6 +708,7 @@ class TheArchitectService extends BaseApplicationComponent
             'globals' => $globals,
             'categories' => $categories,
             'routes' => $routes,
+            'tags' => $tags,
             'users' => $users,
         ];
 
@@ -1589,6 +1665,79 @@ class TheArchitectService extends BaseApplicationComponent
             return [false, $routeRecord->getErrors(), false];
         } else {
             return [true, false, $routeRecord];
+        }
+    }
+
+    public function addTagGroup($jsonTag, $tagGroupID = null)
+    {
+        // Construct handle if one wasn't provided
+        if (!isset($jsonTag->handle)) {
+            $jsonTag->handle = $this->constructHandle($jsonTag->name);
+        }
+
+        if ($tagGroupID) {
+            if (!craft()->tags->getTagGroupById($tagGroupID)) {
+                craft()->db->createCommand()->insert('taggroups', array(
+                    'id' => $tagGroupID,
+                    'name' => $jsonTag->name,
+                    'handle' => $jsonTag->handle,
+                ));
+            }
+        }
+
+        if ($tagGroupID) {
+            $tagGroup = craft()->tags->getTagGroupById($tagGroupID);
+            if (!$tagGroup) {
+                $tagGroup = new TagGroupModel();
+                $tagGroup->id = $tagGroupID;
+            }
+        } else {
+            $tagGroup = new TagGroupModel();
+        }
+
+        $tagGroup->name = $jsonTag->name;
+        $tagGroup->handle = $jsonTag->handle;
+
+        // Save Tag Group to DB
+        if (craft()->tags->saveTagGroup($tagGroup)) {
+            return [true, false, $tagGroup];
+        } else {
+            return [false, $tagGroup->getErrors(), false];
+        }
+    }
+
+    public function addTagFieldLayout($jsonTag)
+    {
+        // Construct handle if one wasn't provided
+        if (!isset($jsonTag->handle)) {
+            $jsonTag->handle = $this->constructHandle($jsonTag->name);
+        }
+
+        $tagGroup = craft()->tags->getTagGroupByHandle($jsonTag->handle);
+
+        $problemFields = $this->checkFieldLayout($jsonTag->fieldLayout);
+        if ($problemFields !== ['handle' => []]) {
+            return [false, $problemFields, false];
+        }
+
+        // Parse & Set Field Layout if Provided
+        if (isset($jsonTag->fieldLayout)) {
+            $requiredFields = [];
+            if (isset($jsonTag->requiredFields) && is_array($jsonTag->requiredFields)) {
+                foreach ($jsonTag->requiredFields as $requirdField) {
+                    array_push($requiredFields, $this->getFieldId($requirdField));
+                }
+            }
+            $fieldLayout = $this->assembleLayout($jsonTag->fieldLayout, $requiredFields);
+            $fieldLayout->type = ElementType::Tag;
+            $tagGroup->setFieldLayout($fieldLayout);
+        }
+
+        // Save Tag Group to DB
+        if (craft()->tags->saveTagGroup($tagGroup)) {
+            return [true, false, $tagGroup];
+        } else {
+            return [false, $tagGroup->getErrors(), false];
         }
     }
 
@@ -3019,6 +3168,47 @@ class TheArchitectService extends BaseApplicationComponent
         return $routes;
     }
 
+    public function tagExport($post, $includeID = false)
+    {
+        $tags = [];
+
+        if (isset($post['tagSelection'])) {
+            foreach ($post['tagSelection'] as $id) {
+                $tag = craft()->tags->getTagGroupById($id);
+
+                $newTag = [
+                    'name' => $tag['name'],
+                    'handle' => $tag['handle'],
+                ];
+                if ($includeID) {
+                    $newTag = array_merge(['id' => $tag['id']], $newTag);
+                }
+
+                // Set Tag fieldLayout
+                $fieldLayout = $tag->getFieldLayout();
+
+                // Set reasons
+                $fieldLayoutReasons = $this->getConditionalsByFieldLayoutId($fieldLayout->id);
+                if ($fieldLayoutReasons) {
+                    $newTag['reasons'] = $this->setReasonsLabels($fieldLayoutReasons);
+                }
+
+                // Set relabels
+                $this->setRelabels($newTag, $fieldLayout);
+
+                foreach ($fieldLayout->getTabs() as $tab) {
+                    $newTag['fieldLayout'][$tab->name] = [];
+                    foreach ($tab->getFields() as $tabField) {
+                        array_push($newTag['fieldLayout'][$tab->name], craft()->fields->getFieldById($tabField->fieldId)->handle);
+                    }
+                }
+                array_push($tags, $newTag);
+            }
+        }
+
+        return $tags;
+    }
+
     public function getAllIDs()
     {
         // Generate all IDs available for export.
@@ -3031,6 +3221,7 @@ class TheArchitectService extends BaseApplicationComponent
             'globalSelection' => [],
             'categorySelection' => [],
             'routeSelection' => [],
+            'tagSelection' => [],
             'userSelection' => [],
         ];
 
@@ -3057,6 +3248,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
         foreach ($this->getAllRoutes() as $route) {
             array_push($post['routeSelection'], $route['id']);
+        }
+        foreach (craft()->tags->getAllTagGroups() as $tag) {
+            array_push($post['tagSelection'], $tag['id']);
         }
         foreach (craft()->theArchitect->getAllUsers() as $user) {
             array_push($post['userSelection'], $user->id);

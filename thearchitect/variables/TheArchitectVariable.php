@@ -26,6 +26,16 @@ class TheArchitectVariable
    }
 
    /**
+    * Returns an array of all the users.
+    *
+    * @return array[UserModel]
+    */
+  public function getAllTagGroups()
+  {
+      return craft()->tags->getAllTagGroups();
+  }
+
+   /**
     * Returns a entry type by its ID.
     *
     * @param int $entryTypeId

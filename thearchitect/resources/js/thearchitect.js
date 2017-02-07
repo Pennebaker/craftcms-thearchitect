@@ -132,6 +132,25 @@ $(function() {
     }
   });
 
+  $('#allTags').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.tags [id^="tag"]:not(:disabled)').prop('checked', true);
+      $('.tags [id^="tag"]:not(:disabled)').change();
+    } else {
+      $('.tags [id^="tag"]:not(:disabled)').prop('checked', false);
+      $('.tags [id^="tag"]:not(:disabled)').change();
+    }
+  });
+  $('.tags [id^="tag"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.tags [id^="tag"]:checked:not(:disabled)').length == $('.tags [id^="tag"]:not(:disabled)').length) {
+        $('#allTags').prop('checked', true);
+      }
+    } else {
+      $('#allTags').prop('checked', false);
+    }
+  });
+
   $('#allUsers').on('change', function(e) {
     if ($(this).is(':checked')) {
       $('.users [id^="user"]:not(:disabled)').prop('checked', true);

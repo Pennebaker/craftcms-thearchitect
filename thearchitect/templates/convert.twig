@@ -45,9 +45,7 @@
                 {% if field.type == 'Matrix' %}
                 <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
                     <th scope="row" class="name">
-                        <div class="field checkboxfield">
-                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
-                        </div>
+                        <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
                     </th>
                     <td>
                         <code>{{ field.handle }}</code>
