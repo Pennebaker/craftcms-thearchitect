@@ -681,7 +681,7 @@ class TheArchitectService extends BaseApplicationComponent
                 Craft::log('Rolling back any database changes.', LogLevel::Info, true);
                 UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
                 Craft::log('Done rolling back any database changes.', LogLevel::Info, true);
-                // unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql');
+                // unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql'); // NOTE: Delete DB Backups after rollback?
                 throw $e;
             }
         }
