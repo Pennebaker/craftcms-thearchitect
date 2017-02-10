@@ -674,8 +674,7 @@ class TheArchitectService extends BaseApplicationComponent
             $re = '/Property "Craft\\\\ContentModel\..*" is not defined\./';
              // TODO: Figure out why this happens at all.
              // Occurs on Saving a global if any field handles get updated.
-             // Invalid field handle which occurs when a field handle is changed.
-             // This field does not even have to be used on the global.
+             // This field does not even have to be used on any global to trigger.
             preg_match_all($re, $e->getMessage(), $matches);
             if (!$matches) {
                 Craft::log('Rolling back any database changes.', LogLevel::Info, true);
