@@ -1,24 +1,47 @@
 {% extends "_layouts/cp" %}
 {% set title = "The Architect"|t %}
 
-{% macro quickActionForm(action, buttonText) %}
+{% macro migrationsToggleForm(value, buttonText) %}
 <form action="" method="post" accept-charset="UTF-8" class="quick-action">
     <input type="hidden" name="action" value="plugins/savePluginSettings">
     <input type="hidden" name="pluginClass" value="TheArchitect">
     <input type="hidden" name="redirect" value="thearchitect/migrations">
     {{ getCsrfInput() }}
-    <input type="hidden" name="settings[enableMigrations]" value="{{ action }}">
+    <input type="hidden" name="settings[automation]" value="{{ value }}">
     <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
 </form>
 {% endmacro %}
 
+{% macro quickActionForm(action, buttonText, additionalFields, bigButton) %}
+<form action="" method="post" accept-charset="UTF-8" class="quick-action">
+    <input type="hidden" name="action" value="theArchitect/{{ action }}">
+    <input type="hidden" name="redirect" value="thearchitect/migrations">
+    {{ getCsrfInput() }}
+    {% for fieldName, fieldValue in additionalFields %}
+        <input type="hidden" name="{{ fieldName }}"{% if fieldValue %} value="{{ fieldValue }}"{% endif %}>
+    {% endfor %}
+    {% if bigButton %}
+    <div class="buttons clearafter">
+        <input type="submit" class="btn submit" value="{{ buttonText }}">
+    </div>
+    {% else %}
+    <input type="submit" class="updatestatus btn small" value="{{ buttonText }}">
+    {% endif %}
+</form>
+{% endmacro %}
+
+{% macro clipboardButton(clipboardText) %}
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" x="0" y="0" viewBox="0 0 650 650" width="24px" height="24px" xml:space="preserve" data-clipboard-text="{{ clipboardText }}"><path fill="#E89931" d="M527.4 53H120.6C95.2 53 75 76.2 75 101.6v479.9c0 25.4 20.2 46.5 45.6 46.5h406.8c25.4 0 46.6-21.1 46.6-46.5V101.6C574 76.2 552.8 53 527.4 53z"/><rect x="124.5" y="119.8" fill="#FFFFFF" width="399.1" height="446.4"/><path fill="#8D94A3" d="M471.4 89H368V53c0-23.1-20.4-41.9-43.5-41.9C301.4 11.1 281 29.9 281 53v36H176.7c-5.1 0-7.7 4.4-7.7 9.4v42.7c0 5.1 2.6 11.9 7.7 11.9h294.7c5.1 0 8.6-6.8 8.6-11.9V98.4C480 93.4 476.4 89 471.4 89zM324 37.5c8.9 0 16 7.2 16 16 0 8.9-7.2 16-16 16 -8.9 0-16-7.2-16-16C308 44.6 315.2 37.5 324 37.5z"/><rect x="324" y="196" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="324" y="254.6" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="324" y="313.2" fill="#DCE6EF" width="156.5" height="18.6"/><rect x="167.5" y="371.8" fill="#DCE6EF" width="313" height="18.6"/><rect x="167.5" y="430.4" fill="#DCE6EF" width="269.2" height="18.6"/><rect x="167.5" y="489" fill="#DCE6EF" width="313" height="18.6"/><rect x="167.5" y="196" fill="#DCE6EF" width="134.6" height="134.6"/></svg>
+{% endmacro %}
+
 {% import "_includes/forms" as forms %}
-{% from _self import quickActionForm %}
+{% from _self import quickActionForm, migrationsToggleForm, clipboardButton %}
 
 {% set tabs = {
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
     tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
 } %}
 
@@ -28,15 +51,114 @@
 
 {% set content %}
 <div class="the-architect">
+    <h3 class="error">Migrations have only been tested in a local dev environment. Backup your DB before and while using migrations. Please report any <a href="https://github.com/Pennebaker/craftcms-thearchitect/issues" target="_blank">issues</a> you run into.</h3>
+    <p>It is recommended leaving <em>Automatic Import</em> disabled until you have imported many times successfully with no issues or until the plugin has had some more real world testing.</h3>
+    <p class="warning">Migrations are designed to be used with a single site only. Exported files store ID numbers of all exported data. When imported it will overwrite those IDs which could be different across sites. Using migrations to replicate models across sites is not the intended use.</p>
 
-    <h1>Migration</h1>
-    {% if migrationsEnabled %}<span class="status green"></span>Enabled{{ quickActionForm(0, 'Disable') }}{% else %}<span class="status red"></span>Disabled{{ quickActionForm(1, 'Enable') }}{% endif %}
-    <p>
-        Last Export on {{ exportTime|date("F d Y @ g:i a") }}
-    </p>
-    <p>
-        Last Import on {{ importTime|date("F d Y @ g:i a") }}
-    </p>
+    <hr>
+
+    <h2>Status</h2>
+    <p>Migration file for import / export is located at: <code class="location">{{ jsonPath }}_master_.json</code>.</p>
+    <p>If automatic import is enabled this is the file that will be loaded into the DB whenever the files modified time is newer than the last import time.</p>
+    <table class="data collapsible">
+        <tbody>
+            <tr>
+                <td>Automatic Import</td>
+                <td class="code">{% if automation %}<span class="status green"></span>Enabled{% else %}<span class="status red"></span>Disabled{% endif %}</td>
+                <td>{% if automation %}{{ migrationsToggleForm(0, 'Disable') }}{% else %}{{ migrationsToggleForm(1, 'Enable') }}{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Last Export</td>
+                <td class="code">{% if exportTime %}{{ exportTime|date("F d Y @ g:i a") }}{% else %}n/a{% endif %}</td>
+                <td>{{ quickActionForm('migrationExport', 'Run Export') }}</td>
+            </tr>
+            <tr>
+                <td>Last Import</td>
+                <td class="code">{% if importTime %}{{ importTime|date("F d Y @ g:i a") }}{% else %}n/a{% endif %}</td>
+                <td>{{ quickActionForm('migrationImport', 'Run Import') }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>API</h2>
+    {% if apiKey %}
+    {% set apiExportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/export', { key: apiKey }) %}
+    {% set apiImportUrl = siteUrl(craft.config.get('actionTrigger') ~ '/theArchitect/api/import', { key: apiKey, force: false }) %}
+    <table class="data collapsible">
+        <tbody>
+            <tr>
+                <td class="code">{{ apiKey }}</td>
+                <td style="text-align:center;">{{ quickActionForm('generateKey', 'Generate New Key') }}</td>
+            </tr>
+            <tr>
+                <td class="code">{{ apiExportUrl }}</td>
+                <td style="text-align:center;">{{ clipboardButton(apiExportUrl) }}</td>
+            </tr>
+            <tr>
+                <td class="code">{{ apiImportUrl }}</td>
+                <td style="text-align:center;">{{ clipboardButton(apiImportUrl) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+        {{ quickActionForm('generateKey', 'Generate Key') }}
+    {% endif %}
+
+    <hr>
+
+    {% if dbAdditions|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbAdditions, status: 'success', headline: 'DB Additions', text: 'List of items added since the previous export. Performing an import will not delete these added fields.'} %}
+    {% endif %}
+    {% if dbUpdates|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbUpdates, status: 'warning', headline: 'DB Updates', text: 'List of items updated since the previous export. Performing an import will overwrite these changes prefering the exported model.'} %}
+    {% endif %}
+    {% if dbDeletions|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: dbDeletions, status: 'error', headline: 'DB Deletions', text: 'List if items deleted since the previous export. Performing an import will add these items back to the database.'} %}
+    {% endif %}
+    {% if modelAdditions|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelAdditions, status: 'success', headline: 'Model Additions', text: 'List if items added to the model since the previous import. Performing an import will create these items in the database.'} %}
+    {% endif %}
+    {% if modelUpdates|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelUpdates, status: 'warning', headline: 'Model Updates', text: 'List if items updated in the model since the previous import. Performing an import will modify existing items in the database.'} %}
+    {% endif %}
+    {% if modelDeletions|length > 0 %}
+        {% include 'thearchitect/_itemTable' with {itemList: modelDeletions, status: 'error', headline: 'Model Deletions', text: 'List if items deleted from the model since the previous import. Performing an import will delete these items from the database.', subText: {Users: 'User deletions are not handled by The Architect please manually delete the users below to remove them.'}} %}
+    {% endif %}
+    {% if mismatch|length > 0 %}
+    <h2>Field Migration Problems</h2>
+    <p>Problems listed below are preventing standard and automation imports from running. Please review changes before forcing an import.</p>
+    <table class="shadow-box editable">
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Name</th>
+                <th>Handle</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fields in mismatch %}
+                <tr>
+                    <td>
+                        {{ fields[0].group }}{% if fields[0].group != fields[1].group %} &rarr; {{ fields[1].group }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].name }}{% if fields[0].name != fields[1].name %} &rarr; {{ fields[1].name }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].handle }}{% if fields[0].handle != fields[1].handle %} &rarr; {{ fields[1].handle }}{% endif %}
+                    </td>
+                    <td>
+                        {{ fields[0].type }} &rarr; {{ fields[1].type }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ quickActionForm('migrationImport', 'Force Import', { force: null }, true) }}
+    {% endif %}
 
 </div>
 {% endset %}

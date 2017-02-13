@@ -1,15 +1,15 @@
 <?php
+
 namespace Craft;
 
 /**
- * Class TheArchitectPlugin
- *
- * @package Craft
+ * Class TheArchitectPlugin.
  */
 class TheArchitectPlugin extends BasePlugin
 {
     /**
-     * getName
+     * getName.
+     *
      * @return null|string
      */
     public function getName()
@@ -18,25 +18,28 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getVersion
+     * getVersion.
+     *
      * @return string
      */
     public function getVersion()
     {
-        return '1.5.5.3';
+        return '1.6.0';
     }
 
     /**
-     * getSchemaVersion
+     * getSchemaVersion.
+     *
      * @return string
      */
     public function getSchemaVersion()
     {
-        return '1.5.5.1';
+        return '1.6.0';
     }
 
     /**
-     * getDeveloper
+     * getDeveloper.
+     *
      * @return string
      */
     public function getDeveloper()
@@ -45,7 +48,8 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getDeveloperUrl
+     * getDeveloperUrl.
+     *
      * @return string
      */
     public function getDeveloperUrl()
@@ -54,56 +58,81 @@ class TheArchitectPlugin extends BasePlugin
     }
 
     /**
-     * getPluginUrl
+     * getPluginUrl.
+     *
      * @return string
      */
     public function getPluginUrl()
     {
-        return 'https://github.com/Pennebaker/craftcms-thearchitect';
+        return 'https://github.com/pennebaker/craftcms-thearchitect';
     }
 
     /**
-     * getReleaseFeedUrl
+     * getReleaseFeedUrl.
+     *
      * @return string
      */
 	public function getReleaseFeedUrl()
 	{
-		return 'https://raw.githubusercontent.com/Pennebaker/craftcms-thearchitect/master/releases.json';
+		return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
 	}
 
     /**
-     * getDocumentationUrl
+     * getDocumentationUrl.
+     *
      * @return string
      */
     public function getDocumentationUrl()
     {
-        return $this->getPluginUrl() . '/wiki';
+        return $this->getPluginUrl().'/wiki';
     }
 
     /**
-     * hasCpSection
-     * @return boolean
+     * hasCpSection.
+     *
+     * @return bool
      */
-	public function hasCpSection()
-	{
-		if (craft()->userSession->isAdmin())
-		{
-			return true;
-		}
-	}
+    public function hasCpSection()
+    {
+        if (craft()->userSession->isAdmin()) {
+            return true;
+        }
+    }
 
     public function init()
     {
-        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
-        if (!file_exists($jsonPath)) {
-            mkdir($jsonPath);
+        $modelsPath = craft()->config->get('modelsPath', 'theArchitect');
+        if (!file_exists($modelsPath)) {
+            mkdir($modelsPath);
+        }
+        $automation = craft()->theArchitect->getAutomation();
+
+        if ($automation) {
+            $masterJson = $modelsPath.'_master_.json';
+            $lastImport = craft()->theArchitect->getLastImport();
+            if (file_exists($masterJson)) {
+                $exportTime = filemtime($masterJson);
+            } else {
+                $exportTime = null;
+            }
+
+            if ($lastImport < $exportTime) {
+                $result = craft()->theArchitect->importMigrationConstruct();
+                if ($result) {
+                    craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+                } else {
+                    craft()->userSession->setError(Craft::t('There is some field type changes. Visit the Architect Migrations page to review.'));
+                }
+            }
         }
     }
 
     protected function defineSettings()
     {
         return array(
-            'enableMigrations' => array(AttributeType::Bool)
+            'automation' => array(AttributeType::Bool, 'default' => null),
+            'lastImport' => array(AttributeType::Number, 'default' => null),
+            'apiKey' => array(AttributeType::String, 'default' => null),
         );
     }
 

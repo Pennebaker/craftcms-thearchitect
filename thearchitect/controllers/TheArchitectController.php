@@ -110,96 +110,83 @@ class TheArchitectController extends BaseController
     }
 
     /**
-     * actionConstructMigration.
-     */
-    public function actionConstructMigration()
-    {
-        // Generate all IDs available for export.
-        $post = [
-            'fieldSelection' => [],
-            'sectionSelection' => [],
-            'assetSourceSelection' => [],
-            'assetTransformSelection' => [],
-            'globalSelection' => [],
-            'categorySelection' => [],
-            'userSelection' => [],
-            'groupSelection' => [],
-        ];
-
-        foreach (craft()->fields->getAllFields() as $field) {
-            array_push($post['fieldSelection'], $field->id);
-        }
-        foreach (craft()->sections->getAllSections() as $section) {
-            array_push($post['sectionSelection'], $section->id);
-        }
-        foreach (craft()->assetSources->getAllSources() as $field) {
-            array_push($post['assetSourceSelection'], $field->id);
-        }
-        foreach (craft()->assetTransforms->getAllTransforms() as $section) {
-            array_push($post['assetTransformSelection'], $section->id);
-        }
-        foreach (craft()->globals->getAllSets() as $section) {
-            array_push($post['globalSelection'], $section->id);
-        }
-        foreach (craft()->categories->getAllGroups() as $section) {
-            array_push($post['categorySelection'], $section->id);
-        }
-        foreach (craft()->theArchitect->getAllUsers() as $section) {
-            array_push($post['userSelection'], $section->id);
-        }
-        foreach (craft()->userGroups->getAllGroups() as $section) {
-            array_push($post['groupSelection'], $section->id);
-        }
-
-        $output = craft()->theArchitect->exportConstruct($post, true);
-        $json = json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT);
-
-
-        $masterPath = craft()->path->getConfigPath() . 'thearchitect/_master_.json';
-        file_put_contents($masterPath, $json);
-    }
-
-    /**
      * actionMigrations [View migration file info].
      */
     public function actionMigrations()
     {
-        $migrationsEnabled = $this->migrationsEnabled();
+        $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
+        $masterJson = $jsonPath.'_master_.json';
 
-        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
-        $masterPath = craft()->path->getConfigPath() . 'thearchitect/_master_.json';
+        if (file_exists($masterJson)) {
+            $exportTime = filemtime($masterJson);
+        } else {
+            $exportTime = null;
+        }
 
-        if ($migrationsEnabled) {
-            $this->actionConstructMigration();
+        if (file_exists($masterJson)) {
+            list($dbAddedIDs, $dbUpdatedIDs, $dbDeleteIDs, $modelAddedIDs, $modelUpdatedIDs, $modelDeleteIDs) = craft()->theArchitect->getAddedUpdatedDeletedIds(file_get_contents($masterJson));
         }
 
         $variables = array(
-            'migrationsEnabled' => $migrationsEnabled,
-            'exportTime' => filemtime($masterPath),
-            'importTime' => fileatime($masterPath),
+            'automation' => craft()->theArchitect->getAutomation(),
+            'exportTime' => $exportTime,
+            'importTime' => craft()->theArchitect->getLastImport(),
+            'apiKey' => craft()->theArchitect->getAPIKey(),
+            'jsonPath' => $jsonPath,
+            'mismatch' => craft()->theArchitect->compareMigrationConstruct(),
+            'dbAdditions' => (isset($dbAddedIDs)) ? $dbAddedIDs : null,
+            'dbUpdates' => (isset($dbUpdatedIDs)) ? $dbUpdatedIDs : null,
+            'dbDeletions' => (isset($dbDeleteIDs)) ? $dbDeleteIDs : null,
+            'modelAdditions' => (isset($modelAddedIDs)) ? $modelAddedIDs : null,
+            'modelUpdates' => (isset($modelUpdatedIDs)) ? $modelUpdatedIDs : null,
+            'modelDeletions' => (isset($modelDeleteIDs)) ? $modelDeleteIDs : null,
         );
 
         craft()->templates->includeCssResource('thearchitect/css/thearchitect.css');
+        craft()->templates->includeJsResource('thearchitect/js/clipboard.min.js');
+        craft()->templates->includeJs('var clipboard = new Clipboard("[data-clipboard-text]");clipboard.on("success",function(){Craft.cp.displayNotice("Copied to clipboard!");});clipboard.on("error",function(){Craft.cp.displayError("Error copying to clipboard.");});');
 
         $this->renderTemplate('thearchitect/migrations', $variables);
     }
 
-    /**
-     * actionEnableMigrations [Enable migrations].
-     */
-    public function actionEnableMigrations()
+    public function actionMigrationExport()
     {
-        craft()->plugins->getPlugin('theArchitect')->setSettings(array('enableMigrations' => true));
+        // Run Migration Export
+        craft()->theArchitect->exportMigrationConstruct();
+
+        // Set last import to match this export time.
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('lastImport' => (new DateTime())->getTimestamp()));
 
         $this->redirect('thearchitect/migrations');
     }
 
-    /**
-     * actionFarm [Disable migrations].
-     */
-    public function actionDisableMigrations()
+    public function actionMigrationImport()
     {
-        craft()->plugins->getPlugin('theArchitect')->setSettings(array('enableMigrations' => false));
+        $force = (!is_null(craft()->request->getPost('force')));
+
+        $jsonPath = craft()->config->get('modelsPath', 'theArchitect');
+        $masterJson = $jsonPath.'_master_.json';
+
+        if (!file_exists($masterJson)) {
+            craft()->userSession->setError(Craft::t('There is no migration file to import.'));
+        } else {
+            $result = craft()->theArchitect->importMigrationConstruct($force);
+
+            if ($result) {
+                touch($masterJson);
+                craft()->userSession->setNotice(Craft::t('Migration imported successfully.'));
+            } else {
+                craft()->userSession->setError(Craft::t('There is some field type changes. To prevent content loss please review the field types before forcing.'));
+            }
+        }
+
+        $this->redirect('thearchitect/migrations');
+    }
+
+    public function actionGenerateKey()
+    {
+        // Generate a new API key for import / export url calls
+        craft()->plugins->savePluginSettings(craft()->plugins->getPlugin('theArchitect'), array('apiKey' => craft()->theArchitect->generateUUID4()));
 
         $this->redirect('thearchitect/migrations');
     }
@@ -210,7 +197,7 @@ class TheArchitectController extends BaseController
     public function actionConstructList()
     {
         $files = array();
-        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
+        $jsonPath = craft()->path->getConfigPath().'thearchitect/';
 
         if (file_exists($jsonPath) && is_dir($jsonPath) && $handle = opendir($jsonPath)) {
             while (false !== ($entry = readdir($handle))) {
@@ -252,9 +239,9 @@ class TheArchitectController extends BaseController
         $this->requirePostRequest();
 
         $fileName = craft()->request->getRequiredPost('fileName');
-        $jsonPath = craft()->path->getConfigPath() . 'thearchitect/';
+        $jsonPath = craft()->path->getConfigPath().'thearchitect/';
 
-        $filePath = $jsonPath . $fileName;
+        $filePath = $jsonPath.$fileName;
 
         if (file_exists($filePath)) {
             $json = file_get_contents($filePath);
@@ -288,10 +275,5 @@ class TheArchitectController extends BaseController
 
             $this->renderTemplate('thearchitect/index', $variables);
         }
-    }
-
-    public function migrationsEnabled()
-    {
-        return craft()->plugins->getPlugin('theArchitect')->getSettings()['enableMigrations'];
     }
 }

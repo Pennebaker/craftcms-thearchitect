@@ -7,6 +7,7 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
     tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
 } %}
 
@@ -20,9 +21,6 @@
     </p>
     <p>
         Fields pulled out of matrix entries will be put in the same group the matrix field was in. The conversion will combine fields if they are 100% identical and that field will be grouped into the first group it was added as.
-    </p>
-    <p>
-        If the matrix contains a SuperTable. The exported supertable will import but will be missing all fields. This is a known issue and is something to be fixed in a future version.
     </p>
 
     <form class="field toolbar" action="" method="post" accept-charset="UTF-8">
@@ -47,9 +45,7 @@
                 {% if field.type == 'Matrix' %}
                 <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}">
                     <th scope="row" class="name">
-                        <div class="field checkboxfield">
-                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
-                        </div>
+                        <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
                     </th>
                     <td>
                         <code>{{ field.handle }}</code>

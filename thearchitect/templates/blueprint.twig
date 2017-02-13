@@ -7,6 +7,7 @@
     tab1: { label: "Raw Input"|t, url: url('thearchitect') },
     tab2: { label: "Available Files"|t, url: url('thearchitect/files') },
     tab3: { label: "Export"|t, url: url('thearchitect/blueprint') },
+    tab4: { label: "Migrations"|t, url: url('thearchitect/migrations') },
     tab5: { label: "Matrix to Neo Export"|t, url: url('thearchitect/convert') },
 } %}
 
@@ -47,9 +48,7 @@
                 {% endif %}
                 <tr class="field" data-id="{{ field.id }}" data-groupid="{{ field.group.id }}" data-name="{{ field }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
-                        <div class="field checkboxfield">
-                            <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
-                        </div>
+                        <input type="checkbox" id="field{{ field.id }}" class="checkbox" name="fieldSelection[]" value="{{ field.id }}"> <label for="field{{ field.id }}">{{ field }}</label>
                     </th>
                     <td>
                         <code>{{ field.handle }}</code>
@@ -70,7 +69,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxsection">
                             <input type="checkbox" id="allSections" class="checkbox" name="allSections" value="all"><label for="allSections"></label>
                             Name
                         </div>
@@ -113,7 +112,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxsource">
                             <input type="checkbox" id="allAssetSources" class="checkbox" name="allAssetSources" value="all"><label for="allAssetSources"></label>
                             Name
                         </div>
@@ -150,7 +149,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxtransform">
                             <input type="checkbox" id="allAssetTransforms" class="checkbox" name="allAssetTransforms" value="all"><label for="allAssetTransforms"></label>
                             Name
                         </div>
@@ -189,7 +188,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxglobal">
                             <input type="checkbox" id="allGlobals" class="checkbox" name="allGlobals" value="all"><label for="allGlobals"></label>
                             Name
                         </div>
@@ -222,7 +221,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxcategory">
                             <input type="checkbox" id="allCategories" class="checkbox" name="allCategories" value="all"><label for="allCategories"></label>
                             Name
                         </div>
@@ -240,12 +239,64 @@
                 {% endfor %}
                 <tr class="category" data-id="{{ category.id }}" data-name="{{ category }}" data-fields="{% for id in utilizedFields %}{{ id }} {% endfor %}">
                     <th scope="row" class="name">
-                        <div class="category checkboxcategory">
-                            <input type="checkbox" id="category{{ category.id }}" class="checkbox" name="categorySelection[]" value="{{ category.id }}"> <label for="category{{ category.id }}">{{ category }}</label>
-                        </div>
+                        <input type="checkbox" id="category{{ category.id }}" class="checkbox" name="categorySelection[]" value="{{ category.id }}"> <label for="category{{ category.id }}">{{ category }}</label>
                     </th>
                     <td>
                         <code>{{ category.handle }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>Routes</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxroute">
+                            <input type="checkbox" id="allRoutes" class="checkbox" name="allRoutes" value="all"><label for="allRoutes"></label>
+                            URI
+                        </div>
+                    </th>
+                    <th>Template</th>
+                </tr>
+            </thead>
+            <tbody class="routes">
+                {% for route in craft.routes.getDbRoutes() %}
+                <tr class="route" data-id="{{ route.id }}">
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="route{{ route.id }}" class="checkbox" name="routeSelection[]" value="{{ route.id }}"> <label for="route{{ route.id }}">{{ route.urlDisplayHtml | raw }}</label>
+                    </th>
+                    <td>
+                        <code>{{ route.template }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <h1>Tags</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxtag">
+                            <input type="checkbox" id="allTags" class="checkbox" name="allTags" value="all"><label for="allTags"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Handle</th>
+                </tr>
+            </thead>
+            <tbody class="tags">
+                {% for tag in craft.theArchitect.getAllTagGroups() %}
+                <tr class="tag" data-id="{{ tag.id }}">
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="tag{{ tag.id }}" class="checkbox" name="tagSelection[]" value="{{ tag.id }}"> <label for="tag{{ tag.id }}">{{ tag.name | raw }}</label>
+                    </th>
+                    <td>
+                        <code>{{ tag.handle }}</code>
                     </td>
                 </tr>
                 {% endfor %}
@@ -257,7 +308,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxuser">
                             <input type="checkbox" id="allUsers" class="checkbox" name="allUsers" value="all"><label for="allUsers"></label>
                             Name
                         </div>
@@ -292,7 +343,7 @@
             <thead>
                 <tr>
                     <th>
-                        <div class="field checkboxfield">
+                        <div class="field checkboxusergroup">
                             <input type="checkbox" id="allGroups" class="checkbox" name="allGroups" value="all"><label for="allGroups"></label>
                             Name
                         </div>

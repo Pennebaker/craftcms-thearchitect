@@ -1,4 +1,14 @@
 [{
+    "version": "1.6.0-beta",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.zip",
+    "date": "2017-02-13T08:13:33-06:00",
+    "notes": [
+      "[Added] Import / Exporting of Routes",
+      "[Added] Import / Exporting of Tags",
+      "[Added] Structural migrations",
+      "[Improved] Implemented a database rollback feature when an exception occurs."
+    ]
+}, {
     "version": "1.5.5.3",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.5.5.3.zip",
     "date": "2017-01-23T09:36:08-06:00",
@@ -35,7 +45,8 @@
     "date": "2016-10-24T17:22:52-05:00",
     "notes": [
       "[Fixed] Fix Section export/import to not always generate a primary locale.",
-      "[Fixed] Fix Section enableVersioning flag always being true from incorrect parsing."
+      "[Fixed] Fix Section enableVersioning flag always being true from incorrect parsing.",
+      "[Fixed] Fix Group permissions createSubfoldersInAssetSource belongs in assetsource_perms."
     ]
 }, {
     "version": "1.5.4",
