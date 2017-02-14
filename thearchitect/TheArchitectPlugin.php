@@ -103,7 +103,7 @@ class TheArchitectPlugin extends BasePlugin
     {
         $modelsPath = craft()->config->get('modelsPath', 'theArchitect');
         if (!file_exists($modelsPath)) {
-            mkdir($modelsPath);
+            IOHelper::createFolder($modelsPath);
         }
         $automation = craft()->theArchitect->getAutomation();
 
