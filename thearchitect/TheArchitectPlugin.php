@@ -72,10 +72,10 @@ class TheArchitectPlugin extends BasePlugin
      *
      * @return string
      */
-	public function getReleaseFeedUrl()
-	{
-		return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
-	}
+    public function getReleaseFeedUrl()
+    {
+        return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
+    }
 
     /**
      * getDocumentationUrl.

@@ -15,8 +15,8 @@ class TheArchitect_ApiController extends BaseController
         $key = craft()->request->getParam('key');
 
         if (!$apiKey OR $key != $apiKey) {
-			die('{"type": "export","success": false}');
-		}
+            die('{"type": "export","success": false}');
+        }
 
         // Run Migration Export
         craft()->theArchitect->exportMigrationConstruct();
@@ -34,8 +34,8 @@ class TheArchitect_ApiController extends BaseController
         $force = craft()->request->getParam('force');
 
         if (!$apiKey OR $key != $apiKey) {
-			die('{"type": "export","success": false}');
-		}
+           die('{"type": "export","success": false}');
+        }
 
         // Run Migration Import
         $result = craft()->theArchitect->importMigrationConstruct($force);
