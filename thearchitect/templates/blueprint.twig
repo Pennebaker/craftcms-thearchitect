@@ -379,6 +379,8 @@
                         </div>
                     </th>
                     <th>Handle</th>
+                    <th>Title Format</th>
+                    <th>Template</th>
                 </tr>
             </thead>
             <tbody class="productTypes">
@@ -389,6 +391,12 @@
                     </th>
                     <td>
                         <code>{{ productType.handle }}</code>
+                    </td>
+                    <td>
+                        <code>{{ productType.titleFormat }}</code>
+                    </td>
+                    <td>
+                        <code>{{ productType.template }}</code>
                     </td>
                 </tr>
                 {% endfor %}
