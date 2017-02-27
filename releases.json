@@ -1,4 +1,11 @@
 [{
+    "version": "1.6.0-beta.2",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.2.zip",
+    "date": "2017-02-27T09:14:32-06:00",
+    "notes": [
+      "[Fixed] User group export when exporting a user without group permissions with a user that has group permissions."
+    ]
+}, {
     "version": "1.6.0-beta",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.zip",
     "date": "2017-02-13T08:13:33-06:00",
