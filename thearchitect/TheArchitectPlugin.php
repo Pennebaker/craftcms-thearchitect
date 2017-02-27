@@ -72,10 +72,10 @@ class TheArchitectPlugin extends BasePlugin
      *
      * @return string
      */
-	public function getReleaseFeedUrl()
-	{
-		return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
-	}
+    public function getReleaseFeedUrl()
+    {
+        return 'https://raw.githubusercontent.com/pennebaker/craftcms-thearchitect/master/releases.json';
+    }
 
     /**
      * getDocumentationUrl.
@@ -103,7 +103,7 @@ class TheArchitectPlugin extends BasePlugin
     {
         $modelsPath = craft()->config->get('modelsPath', 'theArchitect');
         if (!file_exists($modelsPath)) {
-            mkdir($modelsPath);
+            IOHelper::createFolder($modelsPath);
         }
         $automation = craft()->theArchitect->getAutomation();
 

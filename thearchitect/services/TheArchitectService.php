@@ -698,12 +698,20 @@ class TheArchitectService extends BaseApplicationComponent
     {
         list($sections, $entryTypes) = $this->sectionExport($post, $includeID);
         list($groups, $fields) = $this->fieldExport($post, $includeID);
+
         $sources = $this->assetSourceExport($post, $includeID);
         $transforms = $this->transformExport($post, $includeID);
         $globals = $this->globalSetExport($post, $includeID);
         $categories = $this->categoryGroupExport($post, $includeID);
         $routes = $this->routeExport($post, $includeID);
         $tags = $this->tagExport($post, $includeID);
+
+        // Get user groups info before uses. This seems to fix an issue with stripGroupPermissions. Where asking for userGroupPermissions returns null.
+        if (craft()->getEdition() == Craft::Pro) {
+            $userGroups = $this->userGroupsExport($post, $includeID);
+        } else {
+            $userGroups = null;
+        }
         $users = $this->usersExport($post, $includeID);
 
         // Add all Arrays into the final output array
@@ -719,15 +727,9 @@ class TheArchitectService extends BaseApplicationComponent
             'routes' => $routes,
             'tags' => $tags,
             'users' => $users,
+            'userGroups' => (is_array($userGroups)) ? $userGroups[0] : null,
+            'userGroupPermissions' => (is_array($userGroups)) ? $userGroups[1] : null,
         ];
-
-        if (craft()->getEdition() == Craft::Pro) {
-            $userGroups = $this->userGroupsExport($post, $includeID);
-            if (is_array($userGroups)) {
-                $output['userGroups'] = $userGroups[0];
-                $output['userGroupPermissions'] = $userGroups[1];
-            }
-        }
 
         // Remove empty sections from the output array
         foreach ($output as $key => $value) {
@@ -2002,9 +2004,11 @@ class TheArchitectService extends BaseApplicationComponent
     {
         foreach ($userGroups as $group) {
             $userGroupPermissions = craft()->userPermissions->getPermissionsByGroupId($group->id);
-            foreach ($userPermissions as &$permission) {
-                if (in_array($permission, $userGroupPermissions)) {
-                    $permission = null;
+            if (is_array($userGroupPermissions)) {
+                foreach ($userPermissions as &$permission) {
+                    if (in_array($permission, $userGroupPermissions)) {
+                        $permission = null;
+                    }
                 }
             }
         }

@@ -189,6 +189,25 @@ $(function() {
     }
   });
 
+  $('#allProductTypes').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      $('.productTypes [id^="productType"]:not(:disabled)').prop('checked', true);
+      $('.productTypes [id^="productType"]:not(:disabled)').change();
+    } else {
+      $('.productTypes [id^="productType"]:not(:disabled)').prop('checked', false);
+      $('.productTypes [id^="productType"]:not(:disabled)').change();
+    }
+  });
+  $('.productTypes [id^="productType"]:not(:disabled)').on('change', function(e) {
+    if ($(this).is(':checked')) {
+      if ($('.productTypes [id^="productType"]:checked:not(:disabled)').length == $('.productTypes [id^="productType"]:not(:disabled)').length) {
+        $('#allProductTypes').prop('checked', true);
+      }
+    } else {
+      $('#allProductTypes').prop('checked', false);
+    }
+  });
+
   $('[data-fields] [type="checkbox"]').on('change', function(e) {
     var parentRow = $(this).closest('[data-fields]');
     if ($(this).prop('checked')) {

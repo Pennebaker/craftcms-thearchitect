@@ -367,6 +367,43 @@
             </tbody>
         </table>
         <hr>
+        {% if craft.plugins.getPlugin('commerce') %}
+        <h1>Product Types</h1>
+        <table class="data fullwidth collapsible">
+            <thead>
+                <tr>
+                    <th>
+                        <div class="field checkboxproducttype">
+                            <input type="checkbox" id="allProductTypes" class="checkbox" name="allProductTypes" value="all"><label for="allProductTypes"></label>
+                            Name
+                        </div>
+                    </th>
+                    <th>Handle</th>
+                    <th>Title Format</th>
+                    <th>Template</th>
+                </tr>
+            </thead>
+            <tbody class="productTypes">
+                {% for productType in craft.commerce.getProductTypes() %}
+                <tr class="productType" data-id="{{ productType.id }}" data-name="{{ productType }}">
+                    <th scope="row" class="name">
+                        <input type="checkbox" id="productType{{ productType.id }}" class="checkbox" name="productTypeSelection[]" value="{{ productType.id }}"> <label for="productType{{ productType.id }}">{{ productType.name }}</label>
+                    </th>
+                    <td>
+                        <code>{{ productType.handle }}</code>
+                    </td>
+                    <td>
+                        <code>{{ productType.titleFormat }}</code>
+                    </td>
+                    <td>
+                        <code>{{ productType.template }}</code>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        {% endif %}
         <div class="buttons clearafter">
             <input type="submit" class="btn submit export-btn" value="Export Selected">
             <input type="submit" class="btn submit disabled export-btn" disabled="" value="Export All">
