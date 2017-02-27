@@ -2002,9 +2002,11 @@ class TheArchitectService extends BaseApplicationComponent
     {
         foreach ($userGroups as $group) {
             $userGroupPermissions = craft()->userPermissions->getPermissionsByGroupId($group->id);
-            foreach ($userPermissions as &$permission) {
-                if (in_array($permission, $userGroupPermissions)) {
-                    $permission = null;
+            if (is_array($userGroupPermissions)) {
+                foreach ($userPermissions as &$permission) {
+                    if (in_array($permission, $userGroupPermissions)) {
+                        $permission = null;
+                    }
                 }
             }
         }
