@@ -2713,6 +2713,13 @@ class TheArchitectService extends BaseApplicationComponent
                     'type' => $blockField->type,
                     'typesettings' => $blockField->settings,
                 ];
+                if ($blockField->type == 'PositionSelect') {
+                    $options = [];
+                    foreach ($blockField->settings['options'] as $value) {
+                        $options[$value] = true;
+                    }
+                    $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId]['typesettings']['options'] = $options;
+                }
                 if ($blockField->type == 'Neo') {
                     $this->setNeoField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $blockField->id, $includeID);
                 }
@@ -2818,6 +2825,13 @@ class TheArchitectService extends BaseApplicationComponent
                     'width' => $columns[$sTFieldCount - 1]['width'],
                     'typesettings' => $sTField->settings,
                 ];
+                if ($sTField->type == 'PositionSelect') {
+                    $options = [];
+                    foreach ($sTField->settings['options'] as $value) {
+                        $options[$value] = true;
+                    }
+                    $newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId]['typesettings']['options'] = $options;
+                }
                 if ($sTField->type == 'Matrix') {
                     $this->setMatrixField($newField['typesettings']['blockTypes'][$blockId]['fields'][$fieldId], $sTField->id);
                 }
