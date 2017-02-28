@@ -1,4 +1,11 @@
 [{
+    "version": "1.6.0-beta.3",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.3.zip",
+    "date": "2017-02-28T07:55:44-06:00",
+    "notes": [
+      "[Fixed] Correctly export PositionSelect when inside a Matrix or SuperTable."
+    ]
+}, {
     "version": "1.6.0-beta.2",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.2.zip",
     "date": "2017-02-27T09:14:32-06:00",
