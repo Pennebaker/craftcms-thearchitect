@@ -2878,7 +2878,7 @@ class TheArchitectService extends BaseApplicationComponent
     private function parseFieldSources(&$field, &$newField)
     {
         if ($field->type == 'Assets') {
-            if ($newField['typesettings']['sources'] !== '*') {
+            if (is_array(isset($newField['typesettings']['sources']))) {
                 foreach ($newField['typesettings']['sources'] as $key => $value) {
                     if (substr($value, 0, 7) == 'folder:') {
                         $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
