@@ -21,12 +21,12 @@ class TheArchitectService extends BaseApplicationComponent
     {
         $return = craft()->updates->backupDatabase();
         $dbBackupPath = $return['dbBackupPath'];
+
+        $notice = array();
         try {
             $result = json_decode($json);
 
             $this->stripHandleSpaces($result);
-
-            $notice = array();
 
             // Add Groups from JSON
             if (isset($result->groups)) {
@@ -668,8 +668,6 @@ class TheArchitectService extends BaseApplicationComponent
                     );
                 }
             }
-
-            return $notice;
         } catch (\Exception $e) {
             $re = '/Property "Craft\\\\ContentModel\..*" is not defined\./';
              // TODO: Figure out why this happens at all.
@@ -683,8 +681,12 @@ class TheArchitectService extends BaseApplicationComponent
                 // unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql'); // NOTE: Delete DB Backups after rollback?
                 throw $e;
             }
+            return $notice;
         }
+
         unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql');
+
+        return $notice;
     }
 
     /**
