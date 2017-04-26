@@ -21,12 +21,12 @@ class TheArchitectService extends BaseApplicationComponent
     {
         $return = craft()->updates->backupDatabase();
         $dbBackupPath = $return['dbBackupPath'];
+
+        $notice = array();
         try {
             $result = json_decode($json);
 
             $this->stripHandleSpaces($result);
-
-            $notice = array();
 
             // Add Groups from JSON
             if (isset($result->groups)) {
@@ -668,8 +668,6 @@ class TheArchitectService extends BaseApplicationComponent
                     );
                 }
             }
-
-            return $notice;
         } catch (\Exception $e) {
             $re = '/Property "Craft\\\\ContentModel\..*" is not defined\./';
              // TODO: Figure out why this happens at all.
@@ -677,14 +675,18 @@ class TheArchitectService extends BaseApplicationComponent
              // This field does not even have to be used on any global to trigger.
             preg_match_all($re, $e->getMessage(), $matches);
             if (!$matches) {
-                Craft::log('Rolling back any database changes.', LogLevel::Info, true);
-                UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
-                Craft::log('Done rolling back any database changes.', LogLevel::Info, true);
+                // Craft::log('Rolling back any database changes.', LogLevel::Info, true);
+                // UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
+                // Craft::log('Done rolling back any database changes.', LogLevel::Info, true);
                 // unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql'); // NOTE: Delete DB Backups after rollback?
                 throw $e;
             }
+            return $notice;
         }
+
         unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql');
+
+        return $notice;
     }
 
     /**
@@ -753,7 +755,7 @@ class TheArchitectService extends BaseApplicationComponent
         $export = $this->exportConstruct($post);
 
         // Converting arrays to objects.
-        $json = json_encode($export, JSON_NUMERIC_CHECK);
+        $json = json_encode($export/*, JSON_NUMERIC_CHECK*/);
 
         $object = json_decode($json);
 
@@ -874,7 +876,7 @@ class TheArchitectService extends BaseApplicationComponent
         $post = $this->getAllIDs();
 
         $output = $this->exportConstruct($post, true);
-        $json = json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT);
+        $json = json_encode($output, /*JSON_NUMERIC_CHECK | */JSON_PRETTY_PRINT);
 
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
         file_put_contents($masterJson, $json);
@@ -1083,6 +1085,10 @@ class TheArchitectService extends BaseApplicationComponent
                 if (!isset($blockType->maxChildBlocks)) {
                     $blockType->maxChildBlocks = '';
                 }
+                $problemFields = $this->checkFieldLayout($blockType->fieldLayout);
+                if ($problemFields !== ['handle' => []]) {
+                    return [false, $problemFields, false, false];
+                }
             }
         }
 
@@ -1215,7 +1221,7 @@ class TheArchitectService extends BaseApplicationComponent
                 ));
             }
         }
-        if ($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') {
+        if (($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') && isset($jsonSection->typesettings->locales)) {
             foreach ($jsonSection->typesettings->locales as $localeId => $defaultLocaleStatus) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
@@ -2822,7 +2828,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => $columns[$sTFieldCount - 1]['width'],
+                    'width' => isset($columns[$sTFieldCount - 1]['width']) ? $columns[$sTFieldCount - 1]['width'] : '',
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'PositionSelect') {
@@ -2876,7 +2882,7 @@ class TheArchitectService extends BaseApplicationComponent
     private function parseFieldSources(&$field, &$newField)
     {
         if ($field->type == 'Assets') {
-            if ($newField['typesettings']['sources'] !== '*') {
+            if (is_array(isset($newField['typesettings']['sources']))) {
                 foreach ($newField['typesettings']['sources'] as $key => $value) {
                     if (substr($value, 0, 7) == 'folder:') {
                         $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));

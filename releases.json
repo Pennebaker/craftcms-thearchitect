@@ -1,4 +1,17 @@
 [{
+    "version": "1.6.0-beta.4",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.4.zip",
+    "date": "2017-04-26T13:17:32-05:00",
+    "notes": [
+      "[Fixed] Removed rollback feature when exception occurs. The database still gets backed up before any modifications happen.",
+      "[Fixed] Fix section errors when hasUrls is false.",
+      "[Fixed] Fix missing output list after import if something goes wrong.",
+      "[Fixed] Fix SuperTable export if width is undefined.",
+      "[Fixed] Add Field Layout handle testing to Neo field export.",
+      "[Fixed] Fix content model export converting string values into numbers.",
+      "[Fixed] Fix parseFieldSources looping over string values."
+    ]
+}, {
     "version": "1.6.0-beta.3",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.3.zip",
     "date": "2017-02-28T07:55:44-06:00",
