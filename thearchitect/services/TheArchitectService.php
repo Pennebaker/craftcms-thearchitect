@@ -1085,6 +1085,10 @@ class TheArchitectService extends BaseApplicationComponent
                 if (!isset($blockType->maxChildBlocks)) {
                     $blockType->maxChildBlocks = '';
                 }
+                $problemFields = $this->checkFieldLayout($blockType->fieldLayout);
+                if ($problemFields !== ['handle' => []]) {
+                    return [false, $problemFields, false, false];
+                }
             }
         }
 
