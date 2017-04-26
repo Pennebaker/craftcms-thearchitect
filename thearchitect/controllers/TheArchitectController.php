@@ -57,7 +57,7 @@ class TheArchitectController extends BaseController
         // Else display the output data as json for the user to copy
         else {
             $variables = array(
-                'json' => json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT),
+                'json' => json_encode($output, /*JSON_NUMERIC_CHECK | */JSON_PRETTY_PRINT),
                 'tab' => 'tab3',
             );
 
@@ -95,7 +95,7 @@ class TheArchitectController extends BaseController
         list($newObject, $allFields, $fields, $similarFields) = craft()->theArchitect->exportMatrixAsNeo($post);
 
         $variables = array(
-            'json' => json_encode($newObject, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT),
+            'json' => json_encode($newObject, /*JSON_NUMERIC_CHECK | */JSON_PRETTY_PRINT),
             'tab' => 'tab5',
             'oldFieldCount' => sizeof($allFields),
             'newFieldCount' => sizeof($fields),

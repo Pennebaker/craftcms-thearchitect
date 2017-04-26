@@ -755,7 +755,7 @@ class TheArchitectService extends BaseApplicationComponent
         $export = $this->exportConstruct($post);
 
         // Converting arrays to objects.
-        $json = json_encode($export, JSON_NUMERIC_CHECK);
+        $json = json_encode($export/*, JSON_NUMERIC_CHECK*/);
 
         $object = json_decode($json);
 
@@ -876,7 +876,7 @@ class TheArchitectService extends BaseApplicationComponent
         $post = $this->getAllIDs();
 
         $output = $this->exportConstruct($post, true);
-        $json = json_encode($output, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT);
+        $json = json_encode($output, /*JSON_NUMERIC_CHECK | */JSON_PRETTY_PRINT);
 
         $masterJson = craft()->config->get('modelsPath', 'theArchitect').'_master_.json';
         file_put_contents($masterJson, $json);
