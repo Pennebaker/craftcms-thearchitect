@@ -677,9 +677,9 @@ class TheArchitectService extends BaseApplicationComponent
              // This field does not even have to be used on any global to trigger.
             preg_match_all($re, $e->getMessage(), $matches);
             if (!$matches) {
-                Craft::log('Rolling back any database changes.', LogLevel::Info, true);
-                UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
-                Craft::log('Done rolling back any database changes.', LogLevel::Info, true);
+                // Craft::log('Rolling back any database changes.', LogLevel::Info, true);
+                // UpdateHelper::rollBackDatabaseChanges($dbBackupPath);
+                // Craft::log('Done rolling back any database changes.', LogLevel::Info, true);
                 // unlink(craft()->path->getDbBackupPath().$dbBackupPath.'.sql'); // NOTE: Delete DB Backups after rollback?
                 throw $e;
             }
