@@ -1215,7 +1215,7 @@ class TheArchitectService extends BaseApplicationComponent
                 ));
             }
         }
-        if ($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') {
+        if (($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') && isset($jsonSection->typesettings->locales)) {
             foreach ($jsonSection->typesettings->locales as $localeId => $defaultLocaleStatus) {
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
