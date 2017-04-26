@@ -2822,7 +2822,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => $columns[$sTFieldCount - 1]['width'],
+                    'width' => isset($columns[$sTFieldCount - 1]['width']) ? $columns[$sTFieldCount - 1]['width'] : '',
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'PositionSelect') {
