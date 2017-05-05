@@ -298,9 +298,13 @@ class TheArchitectService extends BaseApplicationComponent
                     if ($field->type == 'Neo' && $addFieldResult[0]) {
                         $generatedField = $addFieldResult[3];
                         $blockTypes = craft()->neo->getBlockTypesByFieldId($generatedField->id);
+                        $blockTypeKey = 0;
                         foreach ($field->typesettings['blockTypes'] as $key => $value) {
-                            $blockTypeKey = intval(substr($key, 3));
+                            if ($migration) {
+                                $blockTypeKey = intval(substr($key, 3));
+                            }
                             $fieldLayoutId = $blockTypes[$blockTypeKey]->getFieldLayout()->id;
+                            $blockTypeKey++;
                             if (craft()->plugins->getPlugin('relabel')) {
                                 if (isset($value['relabel'])) {
                                     foreach ($value['relabel'] as $relabel) {
@@ -1085,6 +1089,7 @@ class TheArchitectService extends BaseApplicationComponent
                 if (!isset($blockType->maxChildBlocks)) {
                     $blockType->maxChildBlocks = '';
                 }
+
                 $problemFields = $this->checkFieldLayout($blockType->fieldLayout);
                 if ($problemFields !== ['handle' => []]) {
                     return [false, $problemFields, false, false];
@@ -1429,7 +1434,10 @@ class TheArchitectService extends BaseApplicationComponent
             foreach ($fields as $fieldHandle) {
                 $field = craft()->fields->getFieldByHandle($fieldHandle);
                 if ($field === null) {
-                    array_push($problemFields['handle'], 'Handle "'.$fieldHandle.'" is not a valid field.');
+                    $field = craft()->fields->getFieldById($fieldHandle);
+                    if ($field === null) {
+                        array_push($problemFields['handle'], 'Handle "'.$fieldHandle.'" is not a valid field.');
+                    }
                 }
             }
         }
