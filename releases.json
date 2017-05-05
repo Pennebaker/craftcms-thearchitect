@@ -1,4 +1,11 @@
 [{
+    "version": "1.6.0-beta.5",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.5.zip",
+    "date": "2017-05-05T10:41:16-05:00",
+    "notes": [
+      "[Fixed] Neo valid field layout detection fixed."
+    ]
+}, {
     "version": "1.6.0-beta.4",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.4.zip",
     "date": "2017-04-26T13:17:32-05:00",
