@@ -1429,7 +1429,10 @@ class TheArchitectService extends BaseApplicationComponent
             foreach ($fields as $fieldHandle) {
                 $field = craft()->fields->getFieldByHandle($fieldHandle);
                 if ($field === null) {
-                    array_push($problemFields['handle'], 'Handle "'.$fieldHandle.'" is not a valid field.');
+                    $field = craft()->fields->getFieldById($fieldHandle);
+                    if ($field === null) {
+                        array_push($problemFields['handle'], 'Handle "'.$fieldHandle.'" is not a valid field.');
+                    }
                 }
             }
         }
