@@ -577,7 +577,7 @@ class TheArchitectService extends BaseApplicationComponent
             // Add Tags from JSON
             if (isset($result->tags)) {
                 foreach ($result->tags as $id => $tag) {
-                    if (in_array($id, $addedTagGroups)) {
+                    if (in_array($id, $addedTagGroups) && isset($tag->fieldLayout)) {
                         $addTagResult = $this->addTagFieldLayout($tag);
 
                         // Append Notice to Display Results
@@ -1163,6 +1163,13 @@ class TheArchitectService extends BaseApplicationComponent
             $section->maxLevels = $jsonSection->typesettings->maxLevels;
         }
 
+        // Find available site locales
+        $availableLocales = [];
+        $siteLocales = craft()->i18n->getSiteLocales();
+        foreach ($siteLocales as $locale) {
+            array_push($availableLocales, $locale->id);
+        }
+
         // Set Locale Information
         $locales = [];
 
@@ -1188,6 +1195,9 @@ class TheArchitectService extends BaseApplicationComponent
             }
 
             if (isset($jsonSection->typesettings->$localeId)) {
+                if (!in_array($localeId, $availableLocales)) {
+                    return [false, ['Section' => ['Locale "' . $localeId . '" not available']]];
+                }
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
                     'enabledByDefault' => $defaultLocaleStatus,
@@ -1228,6 +1238,9 @@ class TheArchitectService extends BaseApplicationComponent
         }
         if (($section->attributes['hasUrls'] === false || $section->attributes['hasUrls'] === 0 || $section->attributes['hasUrls'] === '0') && isset($jsonSection->typesettings->locales)) {
             foreach ($jsonSection->typesettings->locales as $localeId => $defaultLocaleStatus) {
+                if (!in_array($localeId, $availableLocales)) {
+                    return [false, ['Section' => ['Locale "' . $localeId . '" not available']]];
+                }
                 $locales[$localeId] = new SectionLocaleModel(array(
                     'locale' => $localeId,
                     'enabledByDefault' => $defaultLocaleStatus,
@@ -1972,30 +1985,50 @@ class TheArchitectService extends BaseApplicationComponent
         foreach ($userPermissions as $k => $permissionGroup) {
             if ($k == 'globals') {
                 foreach ($permissionGroup as $globalHandle => $permissions) {
-                    $globalId = craft()->globals->getSetByHandle($globalHandle)->id;
-                    foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission.':'.$globalId);
+                    $set = craft()->globals->getSetByHandle($globalHandle);
+                    if ($set) {
+                        $globalId = $set->id;
+                        foreach ($permissions as $permission) {
+                            array_push($newUserPermissions, $permission.':'.$globalId);
+                        }
+                    } else {
+                        return false;
                     }
                 }
             } elseif ($k == 'assetSources') {
                 foreach ($permissionGroup as $assetSourceHandle => $permissions) {
-                    $assetSourceId = $this->getSourceByHandle($assetSourceHandle)->id;
-                    foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission.':'.$assetSourceId);
+                    $source = $this->getSourceByHandle($assetSourceHandle);
+                    if ($source) {
+                        $assetSourceId = $source->id;
+                        foreach ($permissions as $permission) {
+                            array_push($newUserPermissions, $permission.':'.$assetSourceId);
+                        }
+                    } else {
+                        return false;
                     }
                 }
             } elseif ($k == 'sections') {
                 foreach ($permissionGroup as $sectionHandle => $permissions) {
-                    $sectionId = craft()->sections->getSectionByHandle($sectionHandle)->id;
-                    foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission.':'.$sectionId);
+                    $section = craft()->sections->getSectionByHandle($sectionHandle);
+                    if ($section) {
+                        $sectionId = $section->id;
+                        foreach ($permissions as $permission) {
+                            array_push($newUserPermissions, $permission.':'.$sectionId);
+                        }
+                    } else {
+                        return false;
                     }
                 }
             } elseif ($k == 'categories') {
                 foreach ($permissionGroup as $categoryHandle => $permissions) {
-                    $sectionId = craft()->categories->getGroupByHandle($categoryHandle)->id;
-                    foreach ($permissions as $permission) {
-                        array_push($newUserPermissions, $permission.':'.$sectionId);
+                    $category = craft()->categories->getGroupByHandle($categoryHandle);
+                    if ($category) {
+                        $sectionId = $category->id;
+                        foreach ($permissions as $permission) {
+                            array_push($newUserPermissions, $permission.':'.$sectionId);
+                        }
+                    } else {
+                        return false;
                     }
                 }
             } elseif ($k == 'general') {
@@ -2086,10 +2119,15 @@ class TheArchitectService extends BaseApplicationComponent
             }
             if (craft()->getEdition() == 2) {
                 if (craft()->userGroups->assignUserToGroups($user->id, $groupIds)) {
-                    if (!isset($jsonUser->permissions) || craft()->userPermissions->saveUserPermissions($user->id, $this->constructPermissions($jsonUser->permissions))) {
-                        return [true, null];
+                    $permissions = $this->constructPermissions($jsonUser->permissions);
+                    if ($permissions) {
+                        if (!isset($jsonUser->permissions) || craft()->userPermissions->saveUserPermissions($user->id, $permissions)) {
+                            return [true, null];
+                        } else {
+                            return [false, ['Permissions' => ['Failed assigning user permissions.']]];
+                        }
                     } else {
-                        return [false, ['Permissions' => ['Failed assigning user permissions.']]];
+                        return [false, ['Permissions' => ['Failed to construct permissions for User: "'.$jsonUser->username.'"']]];
                     }
                 } else {
                     return [false, ['User Group' => ['Failed to add user to groups.']]];
@@ -2150,10 +2188,16 @@ class TheArchitectService extends BaseApplicationComponent
      */
     public function addUserGroupPermissions($jsonUserGroupPermissions)
     {
-        if (craft()->userPermissions->saveGroupPermissions(craft()->userGroups->getGroupByHandle($jsonUserGroupPermissions->handle)->id, $this->constructPermissions($jsonUserGroupPermissions->permissions))) {
-            return [true, null];
+        $userGroupId = craft()->userGroups->getGroupByHandle($jsonUserGroupPermissions->handle)->id;
+        $permissions = $this->constructPermissions($jsonUserGroupPermissions->permissions);
+        if ($permissions) {
+            if (craft()->userPermissions->saveGroupPermissions($userGroupId, $permissions)) {
+                return [true, null];
+            } else {
+                return [false, ['Permissions' => ['Failed to save permissions for User Group: "'.$jsonUserGroupPermissions->handle.'"']]];
+            }
         } else {
-            return [false, null];
+            return [false, ['Permissions' => ['Failed to construct permissions for User Group: "'.$jsonUserGroupPermissions->handle.'"']]];
         }
     }
 
