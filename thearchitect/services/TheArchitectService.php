@@ -1753,23 +1753,21 @@ class TheArchitectService extends BaseApplicationComponent
 
         $tagGroup = craft()->tags->getTagGroupByHandle($jsonTag->handle);
 
+        // Parse & Set Field Layout if Provided
         $problemFields = $this->checkFieldLayout($jsonTag->fieldLayout);
         if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields, false];
         }
 
-        // Parse & Set Field Layout if Provided
-        if (isset($jsonTag->fieldLayout)) {
-            $requiredFields = [];
-            if (isset($jsonTag->requiredFields) && is_array($jsonTag->requiredFields)) {
-                foreach ($jsonTag->requiredFields as $requirdField) {
-                    array_push($requiredFields, $this->getFieldId($requirdField));
-                }
+        $requiredFields = [];
+        if (isset($jsonTag->requiredFields) && is_array($jsonTag->requiredFields)) {
+            foreach ($jsonTag->requiredFields as $requirdField) {
+                array_push($requiredFields, $this->getFieldId($requirdField));
             }
-            $fieldLayout = $this->assembleLayout($jsonTag->fieldLayout, $requiredFields);
-            $fieldLayout->type = ElementType::Tag;
-            $tagGroup->setFieldLayout($fieldLayout);
         }
+        $fieldLayout = $this->assembleLayout($jsonTag->fieldLayout, $requiredFields);
+        $fieldLayout->type = ElementType::Tag;
+        $tagGroup->setFieldLayout($fieldLayout);
 
         // Save Tag Group to DB
         if (craft()->tags->saveTagGroup($tagGroup)) {
@@ -2880,7 +2878,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => isset($columns[$sTFieldCount - 1]['width']) ? $columns[$sTFieldCount - 1]['width'] : '',
+                    'width' => (sizeof($columns) < 1) ? [] : $columns[$sTFieldCount - 1]['width'],
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'PositionSelect') {
@@ -2934,7 +2932,7 @@ class TheArchitectService extends BaseApplicationComponent
     private function parseFieldSources(&$field, &$newField)
     {
         if ($field->type == 'Assets') {
-            if (is_array(isset($newField['typesettings']['sources']))) {
+            if (isset($newField['typesettings']['sources']) && is_array($newField['typesettings']['sources'])) {
                 foreach ($newField['typesettings']['sources'] as $key => $value) {
                     if (substr($value, 0, 7) == 'folder:') {
                         $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
@@ -3042,7 +3040,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         if ($field->type == 'FruitLinkIt') {
-            if ($newField['typesettings']['entrySources']) {
+            if (isset($newField['typesettings']['entrySources']) && $newField['typesettings']['entrySources']) {
                 if (is_array($newField['typesettings']['entrySources'])) {
                     foreach ($newField['typesettings']['entrySources'] as $key => $value) {
                         if (substr($value, 0, 8) == 'section:') {
