@@ -1,4 +1,14 @@
 [{
+    "version": "1.6.0-beta.6",
+    "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.6.zip",
+    "date": "2017-09-18T09:02:00-05:00",
+    "notes": [
+      "[Fixed] Tag importing without a field layout.",
+      "[Fixed] SuperTable export error.",
+      "[Fixed] LinkIt export error.",
+      "[Fixed] Asset source parsing."
+    ]
+}, {
     "version": "1.6.0-beta.5",
     "downloadUrl": "https://github.com/Pennebaker/craftcms-thearchitect/archive/v1.6.0-beta.5.zip",
     "date": "2017-05-05T10:41:16-05:00",
