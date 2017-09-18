@@ -577,7 +577,7 @@ class TheArchitectService extends BaseApplicationComponent
             // Add Tags from JSON
             if (isset($result->tags)) {
                 foreach ($result->tags as $id => $tag) {
-                    if (in_array($id, $addedTagGroups)) {
+                    if (in_array($id, $addedTagGroups) && isset($tag->fieldLayout)) {
                         $addTagResult = $this->addTagFieldLayout($tag);
 
                         // Append Notice to Display Results
@@ -1740,23 +1740,21 @@ class TheArchitectService extends BaseApplicationComponent
 
         $tagGroup = craft()->tags->getTagGroupByHandle($jsonTag->handle);
 
+        // Parse & Set Field Layout if Provided
         $problemFields = $this->checkFieldLayout($jsonTag->fieldLayout);
         if ($problemFields !== ['handle' => []]) {
             return [false, $problemFields, false];
         }
 
-        // Parse & Set Field Layout if Provided
-        if (isset($jsonTag->fieldLayout)) {
-            $requiredFields = [];
-            if (isset($jsonTag->requiredFields) && is_array($jsonTag->requiredFields)) {
-                foreach ($jsonTag->requiredFields as $requirdField) {
-                    array_push($requiredFields, $this->getFieldId($requirdField));
-                }
+        $requiredFields = [];
+        if (isset($jsonTag->requiredFields) && is_array($jsonTag->requiredFields)) {
+            foreach ($jsonTag->requiredFields as $requirdField) {
+                array_push($requiredFields, $this->getFieldId($requirdField));
             }
-            $fieldLayout = $this->assembleLayout($jsonTag->fieldLayout, $requiredFields);
-            $fieldLayout->type = ElementType::Tag;
-            $tagGroup->setFieldLayout($fieldLayout);
         }
+        $fieldLayout = $this->assembleLayout($jsonTag->fieldLayout, $requiredFields);
+        $fieldLayout->type = ElementType::Tag;
+        $tagGroup->setFieldLayout($fieldLayout);
 
         // Save Tag Group to DB
         if (craft()->tags->saveTagGroup($tagGroup)) {
