@@ -2836,7 +2836,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $sTField->instructions,
                     'required' => $sTField->required,
                     'type' => $sTField->type,
-                    'width' => isset($columns[$sTFieldCount - 1]['width']) ? $columns[$sTFieldCount - 1]['width'] : '',
+                    'width' => (sizeof($columns) < 1) ? [] : $columns[$sTFieldCount - 1]['width'],
                     'typesettings' => $sTField->settings,
                 ];
                 if ($sTField->type == 'PositionSelect') {
@@ -2890,7 +2890,7 @@ class TheArchitectService extends BaseApplicationComponent
     private function parseFieldSources(&$field, &$newField)
     {
         if ($field->type == 'Assets') {
-            if (is_array(isset($newField['typesettings']['sources']))) {
+            if (isset($newField['typesettings']['sources']) && is_array($newField['typesettings']['sources'])) {
                 foreach ($newField['typesettings']['sources'] as $key => $value) {
                     if (substr($value, 0, 7) == 'folder:') {
                         $source = craft()->assetSources->getSourceById(intval(substr($value, 7)));
@@ -2998,7 +2998,7 @@ class TheArchitectService extends BaseApplicationComponent
         }
 
         if ($field->type == 'FruitLinkIt') {
-            if ($newField['typesettings']['entrySources']) {
+            if (isset($newField['typesettings']['entrySources']) && $newField['typesettings']['entrySources']) {
                 if (is_array($newField['typesettings']['entrySources'])) {
                     foreach ($newField['typesettings']['entrySources'] as $key => $value) {
                         if (substr($value, 0, 8) == 'section:') {
