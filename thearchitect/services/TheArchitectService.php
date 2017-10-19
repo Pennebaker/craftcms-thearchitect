@@ -2693,6 +2693,7 @@ class TheArchitectService extends BaseApplicationComponent
                     'instructions' => $field->instructions,
                     'required' => $field->required,
                     'type' => $field->type,
+                    'translatable' => (bool)$field->translatable,
                     'typesettings' => $field->settings,
                 ];
                 if ($includeID) {
