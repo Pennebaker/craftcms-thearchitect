@@ -1,3 +1,5 @@
+# Looking for? [Architect for Craft 3](https://github.com/Pennebaker/craft-architect)
+
 ![The Architect](/the-architect.png?raw=true)
 # The Architect for [Craft CMS](http://buildwithcraft.com/)
 
